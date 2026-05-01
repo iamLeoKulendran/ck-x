@@ -2,6 +2,8 @@
 
 This guide explains how to create and contribute your own practice labs for the CK-X Simulator. By following these steps, you can create custom assessment scenarios for Kubernetes certification preparation (CKAD, CKA, CKS) or other container-related topics.
 
+> Note: For new CKA practice questions, CKA mock exams, or AI-generated CKA labs, use `docs/cka-lab-generation-guide.md` as the stricter and current source of truth. That guide reflects the current `ckad9999` candidate host, k3d/K3s runtime limitations, Previous Attempts weak-area metadata, and CKA-specific quality rules.
+
 ## Lab Structure Overview
 
 Each lab in CK-X Simulator consists of:
@@ -266,4 +268,4 @@ Before submitting your lab:
 3. Test thoroughly
 4. Submit a pull request with a description of your lab
 
-Thank you for contributing to the CK-X community! 
+Thank you for contributing to the CK-X community!
