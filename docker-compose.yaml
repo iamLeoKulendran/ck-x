@@ -1,7 +1,6 @@
 services:
   # VNC Server (Ubuntu)
   remote-desktop:
-    # image: nishanb/ck-x-simulator-remote-desktop:latest
     build:
       context: ./remote-desktop
     hostname: terminal
@@ -9,8 +8,8 @@ services:
       - "5901" # VNC port (internal only)
       - "6901" # Web VNC port (internal only)
     environment:
-      - VNC_PW=bakku-the-wizard
-      - VNC_PASSWORD=bakku-the-wizard
+      - VNC_PW=${CKX_VNC_PASSWORD:-bakku-the-wizard}
+      - VNC_PASSWORD=${CKX_VNC_PASSWORD:-bakku-the-wizard}
       - VNC_VIEW_ONLY=false
       - VNC_RESOLUTION=1280x800
     healthcheck:
@@ -31,7 +30,6 @@ services:
 
   # Web Application (not directly exposed to users)
   webapp:
-    # image: nishanb/ck-x-simulator-webapp:latest
     build:
       context: ./app
     expose:
@@ -39,11 +37,11 @@ services:
     environment:
       - VNC_SERVICE_HOST=remote-desktop
       - VNC_SERVICE_PORT=6901
-      - VNC_PASSWORD=bakku-the-wizard
+      - VNC_PASSWORD=${CKX_VNC_PASSWORD:-bakku-the-wizard}
       - SSH_HOST=remote-terminal
       - SSH_PORT=22
       - SSH_USER=candidate
-      - SSH_PASSWORD=password
+      - SSH_PASSWORD=${CKX_SSH_PASSWORD:-password}
     deploy:
       resources:
         limits:
@@ -62,7 +60,6 @@ services:
 
   # Nginx Reverse Proxy - ONLY SERVICE EXPOSED TO USERS
   nginx:
-    # image: nishanb/ck-x-simulator-nginx:latest
     build:
       context: ./nginx
     depends_on:
@@ -72,7 +69,7 @@ services:
       - facilitator
       - k8s-api-server
     ports:
-      - "30080:80" # Expose Nginx on port 30080
+      - "127.0.0.1:${CKX_HTTP_PORT:-30081}:80" # Local-only UI/API access
     deploy:
       resources:
         limits:
@@ -91,7 +88,6 @@ services:
 
   # Jump Host (ckad9999 and ckad9988)
   jumphost:
-    # image: nishanb/ck-x-simulator-jumphost:latest
     build:
       context: ./jumphost
     hostname: ckad9999
@@ -118,7 +114,6 @@ services:
 
   # Remote Terminal Service
   remote-terminal:
-    # image: nishanb/ck-x-simulator-remote-terminal:latest
     build:
       context: ./remote-terminal
     hostname: remote-terminal
@@ -142,7 +137,6 @@ services:
 
   # KIND Kubernetes Cluster
   k8s-api-server: # Service name that will be used for DNS resolution
-    # image: nishanb/ck-x-simulator-cluster:latest
     build:
       context: ./kind-cluster
     container_name: kind-cluster
@@ -196,7 +190,6 @@ services:
 
   # Facilitator Service
   facilitator:
-    # image: nishanb/ck-x-simulator-facilitator:latest
     build:
       context: ./facilitator
       dockerfile: Dockerfile
@@ -212,7 +205,7 @@ services:
       - LOG_LEVEL=info
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - TRACK_METRICS=true # based on the environment variable TRACK_METRICS, the facilitator will send metrics to the metric server
+      - TRACK_METRICS=${TRACK_METRICS:-false}
       - ATTEMPT_HISTORY_FILE=/usr/src/app/data/attempt-history.json
     volumes:
       - attempt-history:/usr/src/app/data

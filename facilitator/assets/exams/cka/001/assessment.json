@@ -19,14 +19,14 @@
           "description": "Pod has correct image",
           "verificationScriptFile": "q1_s2_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Pod has correct status and configuration",
           "verificationScriptFile": "q1_s3_validate_pod_status.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 5
         }
       ]
     },
@@ -42,14 +42,14 @@
           "description": "Static pod manifest exists",
           "verificationScriptFile": "q2_s1_validate_static_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Static pod manifest has correct configuration",
           "verificationScriptFile": "q2_s2_validate_static_pod_config.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 6
         }
       ]
     },
@@ -65,14 +65,14 @@
           "description": "StorageClass and PVC exist",
           "verificationScriptFile": "q3_s1_validate_storageclass.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 5
         },
         {
           "id": "2",
           "description": "StorageClass has correct configuration",
           "verificationScriptFile": "q3_s2_validate_pvc.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 5
         }
       ]
     },
@@ -88,14 +88,14 @@
           "description": "Pod and containers exist",
           "verificationScriptFile": "q4_s1_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Logging functionality is working",
           "verificationScriptFile": "q4_s2_validate_logging.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 6
         }
       ]
     },
@@ -111,21 +111,21 @@
           "description": "Service Account exist",
           "verificationScriptFile": "q5_s1_validate_sa.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "Role has correct permissions",
           "verificationScriptFile": "q5_s2_validate_rbac.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "RBAC permissions are correctly configured",
           "verificationScriptFile": "q5_s3_validate_rbac_permissions.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 4
         }
       ]
     },
@@ -141,14 +141,14 @@
           "description": "NetworkPolicy exists",
           "verificationScriptFile": "q6_s1_validate_networkpolicy.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Network policy is correctly configured and effective",
           "verificationScriptFile": "q6_s2_validate_network_policy_effect.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 6
         }
       ]
     },
@@ -164,14 +164,14 @@
           "description": "Deployment and service exist",
           "verificationScriptFile": "q7_s1_validate_deployment.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 5
         },
         {
           "id": "2",
           "description": "Service has correct configuration",
           "verificationScriptFile": "q7_s2_validate_service.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 5
         }
       ]
     },
@@ -187,14 +187,14 @@
           "description": "Pod exists with correct resource configuration",
           "verificationScriptFile": "q8_s1_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Resource usage and limits are correct",
           "verificationScriptFile": "q8_s2_validate_resource_usage.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 6
         }
       ]
     },
@@ -210,21 +210,21 @@
           "description": "ConfigMap and pod exist",
           "verificationScriptFile": "q9_s1_validate_configmap.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "ConfigMap has correct data",
           "verificationScriptFile": "q9_s2_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "ConfigMap usage and mounting are correct",
           "verificationScriptFile": "q9_s3_validate_configmap_usage.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 4
         }
       ]
     },
@@ -240,14 +240,14 @@
           "description": "Pod exists with health check configuration",
           "verificationScriptFile": "q10_s1_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Health check effectiveness is verified",
           "verificationScriptFile": "q10_s2_validate_health_check_effectiveness.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 6
         }
       ]
     }

@@ -4,7 +4,6 @@ find /usr/src/app/assets/exams -type d -path "*/*/scripts" | while read scripts_
     cd "$exam_dir"; \
     echo "Creating tar archive of scripts in $exam_dir"; \
     tar -czf assets.tar.gz scripts/; \
-    rm -rf scripts/; \
     cd - > /dev/null; \
 done
 

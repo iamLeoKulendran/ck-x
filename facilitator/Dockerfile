@@ -32,7 +32,8 @@ RUN mkdir -p /home/nodeuser/.ssh && \
     chown -R nodeuser:nodejs /home/nodeuser/.ssh
 
 # Change ownership of the app files to the non-root user
-RUN chown -R nodeuser:nodejs /usr/src/app
+RUN chown -R nodeuser:nodejs /usr/src/app && \
+    chmod -R u+rwX /usr/src/app/assets /usr/src/app/logs /usr/src/app/data
 
 # Expose the service port
 EXPOSE 3000

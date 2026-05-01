@@ -10,6 +10,20 @@ document.addEventListener('DOMContentLoaded', function() {
     const examDescription = document.getElementById('examDescription');
     const startSelectedExamBtn = document.getElementById('startSelectedExam');
     const viewPastResultsBtn = document.getElementById('viewPastResultsBtn');
+    const refreshAttemptsBtn = document.getElementById('refreshAttemptsBtn');
+    const attemptsLoading = document.getElementById('attemptsLoading');
+    const attemptsError = document.getElementById('attemptsError');
+    const attemptsEmpty = document.getElementById('attemptsEmpty');
+    const attemptsContent = document.getElementById('attemptsContent');
+    const attemptSummaryGrid = document.getElementById('attemptSummaryGrid');
+    const attemptsTableBody = document.getElementById('attemptsTableBody');
+    const weakAreaSummary = document.getElementById('weakAreaSummary');
+    const attemptCategoryFilter = document.getElementById('attemptCategoryFilter');
+    const attemptLabFilter = document.getElementById('attemptLabFilter');
+    const attemptConceptFilter = document.getElementById('attemptConceptFilter');
+    const attemptFromFilter = document.getElementById('attemptFromFilter');
+    const attemptToFilter = document.getElementById('attemptToFilter');
+    const clearAttemptFiltersBtn = document.getElementById('clearAttemptFiltersBtn');
     
     // Hide View Results button by default - only show when current exam is EVALUATING or EVALUATED
     if (viewPastResultsBtn) {
@@ -18,6 +32,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     let labs = []; // Will store all labs fetched from the API
     let selectedLab = null; // Will store the currently selected lab
+    let attemptHistory = [];
     
     // Check for current exam status on page load
     checkCurrentExamStatus();
@@ -25,6 +40,7 @@ document.addEventListener('DOMContentLoaded', function() {
     console.log('Loading labs on page load...');
     // Load labs data when the page loads
     fetchLabs(false);
+    fetchAttemptHistory();
 
     // Function to check current exam status
     function checkCurrentExamStatus() {
@@ -564,18 +580,339 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // Modify the dropdown population to include difficulty info
-    function populateDropdown(labs) {
-        const dropdown = document.getElementById('examDropdown');
-        dropdown.innerHTML = '';
-        
-        labs.forEach(lab => {
-            const option = document.createElement('option');
-            option.value = lab.id;
-            option.textContent = `${lab.name} (${lab.difficulty || 'Medium'})`;
-            option.title = `${lab.description}\nDifficulty: ${lab.difficulty || 'Medium'}\nEstimated Time: ${lab.estimatedTime || '30'} minutes`;
-            dropdown.appendChild(option);
+    function escapeHtml(value) {
+        return String(value || '')
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#039;');
+    }
+
+    function formatAttemptDate(dateString) {
+        if (!dateString) {
+            return 'Unknown date';
+        }
+
+        return new Date(dateString).toLocaleString(undefined, {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
         });
+    }
+
+    function setAttemptsState(state, message = '') {
+        if (!attemptsLoading || !attemptsError || !attemptsEmpty || !attemptsContent) {
+            return;
+        }
+
+        attemptsLoading.style.display = state === 'loading' ? 'block' : 'none';
+        attemptsError.style.display = state === 'error' ? 'block' : 'none';
+        attemptsEmpty.style.display = state === 'empty' ? 'block' : 'none';
+        attemptsContent.style.display = state === 'ready' ? 'block' : 'none';
+
+        if (state === 'error') {
+            attemptsError.textContent = message || 'Previous attempts are unavailable.';
+        }
+    }
+
+    function fetchAttemptHistory() {
+        if (!attemptsContent) {
+            return;
+        }
+
+        setAttemptsState('loading');
+
+        fetch('/facilitator/api/v1/exams/attempts')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to load previous attempts. Status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(payload => {
+                attemptHistory = payload?.data?.attempts || [];
+                populateAttemptFilters(payload?.data?.filters || {});
+                renderAttempts();
+            })
+            .catch(error => {
+                console.error('Error loading attempt history:', error);
+                setAttemptsState('error', error.message);
+            });
+    }
+
+    function populateAttemptFilters(filters) {
+        populateSelect(attemptCategoryFilter, filters.categories || [], 'All categories', value => ({
+            value,
+            label: getCategoryLabel(value)
+        }));
+
+        populateSelect(attemptLabFilter, filters.labs || [], 'All labs', lab => ({
+            value: lab.labId,
+            label: lab.labName
+        }));
+
+        populateSelect(attemptConceptFilter, filters.failedConcepts || [], 'All weak areas', value => ({
+            value,
+            label: value
+        }));
+    }
+
+    function populateSelect(select, values, placeholder, mapValue) {
+        if (!select) {
+            return;
+        }
+
+        const selectedValue = select.value;
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+
+        values.forEach(item => {
+            const mapped = mapValue(item);
+            const option = document.createElement('option');
+            option.value = mapped.value || '';
+            option.textContent = mapped.label || mapped.value || '';
+            select.appendChild(option);
+        });
+
+        select.value = selectedValue;
+    }
+
+    function getFilteredAttempts() {
+        const category = attemptCategoryFilter?.value || '';
+        const labId = attemptLabFilter?.value || '';
+        const failedConcept = attemptConceptFilter?.value || '';
+        const fromDate = attemptFromFilter?.value ? new Date(`${attemptFromFilter.value}T00:00:00`) : null;
+        const toDate = attemptToFilter?.value ? new Date(`${attemptToFilter.value}T23:59:59`) : null;
+
+        return attemptHistory.filter(attempt => {
+            const completedAt = new Date(attempt.completedAt);
+
+            if (category && attempt.category !== category) {
+                return false;
+            }
+
+            if (labId && attempt.labId !== labId) {
+                return false;
+            }
+
+            if (failedConcept) {
+                const hasConcept = (attempt.failedConcepts || [])
+                    .some(concept => concept.name === failedConcept);
+                if (!hasConcept) {
+                    return false;
+                }
+            }
+
+            if (fromDate && completedAt < fromDate) {
+                return false;
+            }
+
+            if (toDate && completedAt > toDate) {
+                return false;
+            }
+
+            return true;
+        });
+    }
+
+    function renderAttempts() {
+        const attempts = getFilteredAttempts();
+
+        if (attemptHistory.length === 0) {
+            setAttemptsState('empty');
+            return;
+        }
+
+        setAttemptsState('ready');
+        renderAttemptSummary(attempts);
+        renderAttemptRows(attempts);
+        renderWeakAreaSummary(attempts);
+    }
+
+    function countNames(names) {
+        const counts = new Map();
+        names.forEach(name => {
+            if (name) {
+                counts.set(name, (counts.get(name) || 0) + 1);
+            }
+        });
+
+        return Array.from(counts.entries())
+            .map(([name, count]) => ({ name, count }))
+            .sort((a, b) => b.count - a.count || a.name.localeCompare(b.name));
+    }
+
+    function getLatestFailedAttempt(attempts) {
+        return attempts
+            .filter(attempt => (attempt.failedQuestions || []).length > 0)
+            .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt))[0] || null;
+    }
+
+    function getTrendText(attempts) {
+        const byLab = new Map();
+
+        attempts.forEach(attempt => {
+            const key = attempt.labId || attempt.labName;
+            const entries = byLab.get(key) || [];
+            entries.push(attempt);
+            byLab.set(key, entries);
+        });
+
+        const trends = Array.from(byLab.values())
+            .filter(entries => entries.length > 1)
+            .map(entries => {
+                const sorted = entries.sort((a, b) => new Date(a.completedAt) - new Date(b.completedAt));
+                const previous = sorted[sorted.length - 2];
+                const latest = sorted[sorted.length - 1];
+                return {
+                    labName: latest.labName,
+                    delta: latest.percentageScore - previous.percentageScore
+                };
+            })
+            .sort((a, b) => Math.abs(b.delta) - Math.abs(a.delta));
+
+        if (trends.length === 0) {
+            return 'Need 2 attempts on the same lab';
+        }
+
+        const trend = trends[0];
+        const sign = trend.delta > 0 ? '+' : '';
+        return `${sign}${trend.delta}% on ${trend.labName}`;
+    }
+
+    function renderAttemptSummary(attempts) {
+        if (!attemptSummaryGrid) {
+            return;
+        }
+
+        const failedConcepts = countNames(attempts.flatMap(attempt => (
+            (attempt.failedConcepts || []).map(concept => concept.name)
+        )));
+        const latestFailedAttempt = getLatestFailedAttempt(attempts);
+
+        attemptSummaryGrid.innerHTML = `
+            <div class="summary-card">
+                <div class="summary-label">Attempts</div>
+                <div class="summary-value">${attempts.length}</div>
+                <div class="summary-note">Matching current filters</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Top Weak Area</div>
+                <div class="summary-value">${escapeHtml(failedConcepts[0]?.name || 'None yet')}</div>
+                <div class="summary-note">${failedConcepts[0]?.count || 0} failed appearances</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Latest Failed Attempt</div>
+                <div class="summary-value">${latestFailedAttempt ? `${latestFailedAttempt.percentageScore}%` : 'None'}</div>
+                <div class="summary-note">${escapeHtml(latestFailedAttempt?.labName || 'No failed steps found')}</div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-label">Improvement Trend</div>
+                <div class="summary-value">${escapeHtml(getTrendText(attempts))}</div>
+                <div class="summary-note">Compared by lab</div>
+            </div>
+        `;
+    }
+
+    function renderAttemptRows(attempts) {
+        if (!attemptsTableBody) {
+            return;
+        }
+
+        if (attempts.length === 0) {
+            attemptsTableBody.innerHTML = '<tr><td colspan="4">No attempts match the selected filters.</td></tr>';
+            return;
+        }
+
+        attemptsTableBody.innerHTML = attempts.map(attempt => {
+            const weakAreas = (attempt.failedConcepts || [])
+                .slice(0, 4)
+                .map(concept => `${escapeHtml(concept.name)} (${concept.failedStepCount})`)
+                .join(', ') || 'None';
+            const failedQuestions = (attempt.failedQuestions || [])
+                .slice(0, 5)
+                .map(question => {
+                    const steps = (question.failedValidationSteps || [])
+                        .map(step => step.description)
+                        .join('; ');
+                    return `<span title="${escapeHtml(steps)}">${escapeHtml(question.questionTitle)} (${question.failedValidationSteps.length} steps)</span>`;
+                })
+                .join('<br>') || 'None';
+            const scoreLevel = attempt.scoreLevel || 'low';
+
+            return `
+                <tr>
+                    <td>
+                        <div class="attempt-title">${escapeHtml(attempt.labName)}</div>
+                        <div class="attempt-meta">${escapeHtml(getCategoryLabel(attempt.category))} | ${escapeHtml(attempt.labId)}</div>
+                        <div class="attempt-date">${formatAttemptDate(attempt.completedAt)}</div>
+                    </td>
+                    <td>
+                        <span class="score-pill score-${escapeHtml(scoreLevel)}">${attempt.percentageScore}% ${escapeHtml(scoreLevel)}</span>
+                        <div class="attempt-meta">${attempt.totalScore} / ${attempt.totalPossibleScore}</div>
+                    </td>
+                    <td class="weak-list">${weakAreas}</td>
+                    <td class="weak-list">${failedQuestions}</td>
+                </tr>
+            `;
+        }).join('');
+    }
+
+    function renderWeakAreaSummary(attempts) {
+        if (!weakAreaSummary) {
+            return;
+        }
+
+        const failedConcepts = countNames(attempts.flatMap(attempt => (
+            (attempt.failedConcepts || []).map(concept => concept.name)
+        ))).slice(0, 8);
+
+        const failedQuestions = countNames(attempts.flatMap(attempt => (
+            (attempt.failedQuestions || []).map(question => `${attempt.labName} - ${question.questionTitle}`)
+        ))).slice(0, 5);
+
+        if (failedConcepts.length === 0 && failedQuestions.length === 0) {
+            weakAreaSummary.innerHTML = '<div class="attempts-message">No weak areas yet. Nice work so far.</div>';
+            return;
+        }
+
+        weakAreaSummary.innerHTML = `
+            <div class="weak-area-list">
+                ${failedConcepts.map(item => `
+                    <div class="weak-area-item">
+                        <div class="weak-area-name">${escapeHtml(item.name)}</div>
+                        <div class="attempt-meta">${item.count} failed appearances</div>
+                    </div>
+                `).join('')}
+                ${failedQuestions.length > 0 ? `
+                    <div class="weak-area-item">
+                        <div class="weak-area-name">Most Failed Questions</div>
+                        <div class="attempt-meta">${failedQuestions.map(item => `${escapeHtml(item.name)} (${item.count})`).join('<br>')}</div>
+                    </div>
+                ` : ''}
+            </div>
+        `;
+    }
+
+    [attemptCategoryFilter, attemptLabFilter, attemptConceptFilter, attemptFromFilter, attemptToFilter]
+        .filter(Boolean)
+        .forEach(filter => filter.addEventListener('change', renderAttempts));
+
+    if (clearAttemptFiltersBtn) {
+        clearAttemptFiltersBtn.addEventListener('click', function() {
+            [attemptCategoryFilter, attemptLabFilter, attemptConceptFilter, attemptFromFilter, attemptToFilter]
+                .filter(Boolean)
+                .forEach(filter => {
+                    filter.value = '';
+                });
+            renderAttempts();
+        });
+    }
+
+    if (refreshAttemptsBtn) {
+        refreshAttemptsBtn.addEventListener('click', fetchAttemptHistory);
     }
 
     // Add event listener for View Past Results button

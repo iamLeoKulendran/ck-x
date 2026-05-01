@@ -59,6 +59,68 @@
         </div>
     </section>
 
+    <!-- Previous Attempts Section -->
+    <section id="previousAttempts" class="attempts-section">
+        <div class="container">
+            <div class="attempts-wrapper">
+                <div class="attempts-header">
+                    <div>
+                        <h2 class="section-title">Previous Attempts</h2>
+                        <p class="section-subtitle">Review past scores, failed questions, and weak areas across your local practice history.</p>
+                    </div>
+                    <button type="button" class="btn btn-primary" id="refreshAttemptsBtn">Refresh Results</button>
+                </div>
+
+                <div class="attempts-message" id="attemptsLoading">Loading previous attempts...</div>
+                <div class="attempts-message attempts-error" id="attemptsError" style="display: none;"></div>
+                <div class="attempts-message" id="attemptsEmpty" style="display: none;">No previous attempts yet. Complete an exam to build your weak-area history.</div>
+
+                <div id="attemptsContent" style="display: none;">
+                    <div class="summary-grid" id="attemptSummaryGrid"></div>
+
+                    <div class="attempt-filters">
+                        <select class="form-select" id="attemptCategoryFilter">
+                            <option value="">All categories</option>
+                        </select>
+                        <select class="form-select" id="attemptLabFilter">
+                            <option value="">All labs</option>
+                        </select>
+                        <select class="form-select" id="attemptConceptFilter">
+                            <option value="">All weak areas</option>
+                        </select>
+                        <input class="form-control" type="date" id="attemptFromFilter" aria-label="Attempts from date">
+                        <input class="form-control" type="date" id="attemptToFilter" aria-label="Attempts to date">
+                        <button type="button" class="btn btn-secondary" id="clearAttemptFiltersBtn">Clear</button>
+                    </div>
+
+                    <div class="attempts-layout">
+                        <div class="attempts-table-card">
+                            <h3>Review Results</h3>
+                            <div class="table-responsive">
+                                <table class="attempts-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Attempt</th>
+                                            <th>Score</th>
+                                            <th>Weak Areas</th>
+                                            <th>Failed Questions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="attemptsTableBody"></tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="weak-area-card">
+                            <h3>Weak-Area Summary</h3>
+                            <div id="weakAreaSummary"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- Features Section -->
     <section id="features">
         <div class="container">

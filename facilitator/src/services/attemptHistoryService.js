@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const { v4: uuidv4 } = require('uuid');
+const { randomUUID } = require('crypto');
 const logger = require('../utils/logger');
 
 const HISTORY_VERSION = 1;
@@ -160,7 +160,7 @@ function buildAttemptRecord(examId, examInfo, result) {
   const failedValidationSteps = getFlatFailedValidationSteps(failedQuestions);
 
   return {
-    attemptId: uuidv4(),
+    attemptId: randomUUID(),
     examSessionId: examId,
     labId: examInfo.id || examInfo.config?.lab || '',
     labName: examInfo.name || 'Unknown Exam',

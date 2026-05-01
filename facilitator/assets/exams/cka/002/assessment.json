@@ -425,7 +425,7 @@
           "description": "Deployment exists with correct resource configuration",
           "verificationScriptFile": "q15_s1_validate_deployment.sh",
           "expectedOutput": "0",
-          "weightage": 3
+          "weightage": 2
         },
         {
           "id": "2",
@@ -469,7 +469,7 @@
           "description": "Test pod is running with correct ServiceAccount",
           "verificationScriptFile": "q16_s3_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
         }
       ]
     },
