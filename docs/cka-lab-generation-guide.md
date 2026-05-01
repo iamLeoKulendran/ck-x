@@ -531,6 +531,46 @@ Troubleshooting: about 30 marks
 Troubleshooting should be integrated across domains, not only isolated at the
 end.
 
+## 30-Day CKA Preparation Recommendation
+
+When the user has an upcoming CKA exam, prioritize exam practice over backend
+engineering. Before the kubeadm backend exists, generate labs that maximize
+score impact and repetition on frequently checked CKA skills.
+
+Do not spend exam-preparation time implementing Docker, systemd, or kubeadm
+backend engineering. Keep kubeadm backend work for after the exam.
+
+Recommended priority order:
+
+1. Real kubectl troubleshooting labs.
+2. Real RBAC, scheduling, services, networking, and storage labs.
+3. Simulated kubeadm upgrade runbook/script labs.
+4. Simulated etcd, static pod, kubelet, and certificate artifact labs.
+
+High-priority current-backend lab areas:
+
+| Priority | Area | Why It Matters | Current Backend Strategy |
+| --- | --- | --- | --- |
+| 1 | Troubleshooting across workloads and services | Troubleshooting is the largest public CKA domain and appears across many task types. | Create broken Deployments, Services, Endpoints, probes, labels, selectors, Jobs, and Pods. Validate real cluster state. |
+| 2 | Services and networking | Service selectors, ports, DNS, NetworkPolicy, and connectivity are frequent practical checks. | Use real Services, Endpoints, DNS checks, NetworkPolicy where supported, and pod-to-service connectivity validation. |
+| 3 | RBAC and ServiceAccounts | Common source of realistic failures and strong CKA/CKS overlap. | Use real Roles, RoleBindings, ClusterRoles, ClusterRoleBindings, `kubectl auth can-i`, and least-privilege checks. |
+| 4 | Scheduling | Taints, tolerations, node selectors, affinity, and resource pressure are practical exam-style tasks. | Use real node labels, taints/tolerations, affinity, requests/limits, and pod placement validation. |
+| 5 | Storage | PVC/PV/StorageClass and mount troubleshooting are high-value CKA topics. | Use real PVCs, mounts, `emptyDir`, hostPath where safe, and app-level file checks. |
+| 6 | kubectl speed and output tasks | Fast command fluency saves exam time. | Generate tasks using `jsonpath`, `custom-columns`, sorting, contexts, and writing command output to `/tmp/exam/qN/`. |
+| 7 | Simulated kubeadm maintenance | Useful for remembering command sequence, but cannot replace real kubeadm practice. | Use bridge labs: scripts, runbooks, copied manifests, fake logs, and artifact repair. |
+
+For the next 30 days, AI tools should avoid generating too many complex
+kubeadm-only bridge tasks. A good practice mix is:
+
+```text
+70% real supported k3d/K3s labs
+20% real kubectl speed/reporting drills
+10% simulated kubeadm-only bridge labs
+```
+
+Full mock exams should bias toward high-score real tasks first. Use simulated
+kubeadm bridge questions only as a small section, clearly labelled as simulated.
+
 ## Task Types That Work Well Today
 
 These are well-supported by the current simulator:
@@ -582,6 +622,139 @@ and must write output to `/tmp/exam/q7/upgrade-plan.txt`.
 ```
 
 Do not phrase simulated tasks as if they are modifying a real kubeadm cluster.
+
+## Bridge Labs For kubeadm-Only Topics Before kubeadm Backend Exists
+
+Use this section when the user wants CKA/CKS cluster-maintenance practice before
+the future kubeadm backend is implemented.
+
+The current CK-X backend is still k3d/K3s. Therefore, AI-generated labs may
+simulate kubeadm-style cluster questions only when the task wording is honest
+and the validation checks files, scripts, command choices, or safe diagnostics.
+
+Allowed bridge patterns:
+
+- Script-writing tasks: candidate writes a shell script containing the correct
+  kubeadm, etcdctl, kubectl, openssl, crictl, or systemctl commands, but the
+  script must not perform destructive real cluster changes.
+- Runbook tasks: candidate writes ordered steps to a file under `/tmp/exam/qN/`.
+- Artifact-analysis tasks: setup creates fake kubeadm files, logs, manifests, or
+  certificate metadata under `/tmp/exam/qN/cluster/`, and the candidate repairs
+  or reports on those artifacts.
+- Manifest-repair tasks: setup creates broken static Pod YAML under
+  `/tmp/exam/qN/controlplane/etc/kubernetes/manifests/`; candidate edits that
+  copy, not the real cluster manifest path.
+- Certificate-inspection tasks: setup creates sample certificate files or
+  `openssl` output under `/tmp/exam/qN/`; candidate identifies expiry, CN, SANs,
+  or renewal commands.
+- Safe node-maintenance tasks: candidate performs real `kubectl drain`,
+  `cordon`, and `uncordon` against the k3d/K3s nodes if the setup and validation
+  are tested and the task does not require kubeadm internals.
+- K3s control-plane helper tasks: candidate uses `ssh controlplane` to inspect
+  K3s/k3d node state, but the task must not call it a kubeadm VM.
+
+Forbidden bridge patterns:
+
+- Do not ask the candidate to run a real `kubeadm upgrade` on the current
+  backend.
+- Do not ask the candidate to run real `kubeadm reset`, `init`, or `join` on the
+  current backend.
+- Do not ask the candidate to restore the live etcd database in the current
+  backend.
+- Do not ask the candidate to edit live `/etc/kubernetes/manifests` unless the
+  future kubeadm backend exists.
+- Do not ask the candidate to renew live kubeadm certificates in the current
+  backend.
+- Do not validate fake kubeadm tasks by checking K3s paths and pretending they
+  are kubeadm paths.
+
+Recommended wording:
+
+```text
+This is a simulated kubeadm maintenance task for CK-X's current k3d/K3s
+backend. Do not execute the destructive command. Write the exact commands or
+repair the provided artifact under `/tmp/exam/qN/`.
+```
+
+Avoid wording:
+
+```text
+Upgrade the real cluster with kubeadm.
+```
+
+### Possible Bridge Options By Topic
+
+| Topic | Possible Now? | Safe Current-Backend Lab Pattern | Must Wait For kubeadm Backend |
+| --- | --- | --- | --- |
+| kubeadm upgrade from v1.35.x to v1.36.x | Partially | Write `upgrade-plan.sh` with `kubeadm upgrade plan`, `kubeadm upgrade apply v1.36.x`, drain/uncordon order, kubelet/kubectl package pinning commands, and verification commands. Validate script content and order. | Running the real upgrade and validating real component versions after upgrade. |
+| static pod manifest troubleshooting | Partially | Repair copied manifests under `/tmp/exam/qN/controlplane/etc/kubernetes/manifests/`. Validate YAML fields such as command flags, volumes, image, hostPath, and liveness probes. | Repairing live kube-apiserver, scheduler, controller-manager, or etcd manifests and watching kubelet recreate static pods. |
+| kubelet configuration troubleshooting | Partially | Repair copied kubelet config/drop-in files under `/tmp/exam/qN/node01/var/lib/kubelet/` or write a diagnostic script that checks expected kubelet settings. | Restarting real kubelet and recovering a NotReady kubeadm node. |
+| etcd snapshot and restore practice | Partially | Write `backup-etcd.sh` or `restore-etcd-runbook.md` with correct `ETCDCTL_API=3`, endpoints, cert paths, snapshot save/restore commands, and static pod/data-dir recovery steps. Validate command structure. | Taking/restoring a real snapshot of the live kubeadm etcd and recovering the API server. |
+| certificate inspection and renewal | Partially | Provide sample cert files or `kubeadm certs check-expiration` output. Candidate uses `openssl`/text analysis and writes renewal commands. Validate reported CN/SAN/expiry and command choices. | Renewing real kubeadm certificates and restarting affected components. |
+| node drain/uncordon/cordon | Mostly | Use real `kubectl cordon`, `drain --ignore-daemonsets --delete-emptydir-data`, and `uncordon` on current nodes when tested. Validate node scheduling state and workload movement. | kubeadm-specific node package/kubelet upgrade workflow. |
+| worker node join troubleshooting | Partially | Provide broken `kubeadm join` command, token, CA hash, or fake logs. Candidate writes corrected join command and diagnosis. Validate the corrected command. | Rejoining a real kubeadm worker node to the cluster. |
+| control-plane component troubleshooting | Partially | Provide fake static pod manifests, `crictl ps/logs` output, or kubelet journal snippets. Candidate identifies root cause and repairs copied artifacts. | Repairing live kubeadm control-plane components and validating component recovery. |
+| RBAC practice | Yes | Real RBAC, ServiceAccount, Role, RoleBinding, ClusterRole, and ClusterRoleBinding tasks using `kubectl auth can-i`. | Not blocked by kubeadm. |
+| NetworkPolicy practice | Yes, if CNI supports it | Real NetworkPolicy tasks where current CNI behavior is validated. Prefer tested ingress/egress cases. | Advanced CNI-specific behavior may wait for a Calico-backed kubeadm mode. |
+| Pod Security practice | Yes | Real namespace labels for Pod Security Admission, securityContext fixes, non-root containers, capabilities, privileged restrictions. | API server admission-plugin flag repair waits for kubeadm. |
+| Audit/logging-oriented CKS practice | Partially | Simulated audit policy/log analysis under `/tmp/exam/qN/`; real log parsing tasks from provided files. | Enabling/repairing live API server audit flags and audit log backend waits for kubeadm. |
+
+### Bridge Lab Quality Rules
+
+- Clearly label every kubeadm-only bridge task as simulated.
+- Prefer `/tmp/exam/qN/` artifact paths for fake kubeadm files.
+- Make the final answer verifiable through deterministic scripts.
+- Validate command order when order matters, especially for upgrades and
+  etcd restore.
+- For scripts that must not execute destructive actions, validate content and
+  permissions but do not run them directly.
+- Keep bridge labs short and focused for exam preparation. The goal is recall,
+  command fluency, troubleshooting sequence, and path familiarity until the real
+  kubeadm backend exists.
+- Never mix fake kubeadm artifacts with real k3d/K3s state in a way that could
+  mislead the learner.
+
+### Example Bridge Question Pattern
+
+```json
+{
+  "id": "1",
+  "namespace": "default",
+  "machineHostname": "ckad9999",
+  "question": "This is a simulated kubeadm upgrade planning task.\n\nCreate executable script `/tmp/exam/q1/upgrade-plan.sh` that documents the command sequence to upgrade a kubeadm control plane from `v1.35.3` to `v1.36.0`.\n\nThe script must not execute the upgrade automatically. It must include commands for `kubeadm upgrade plan`, `kubeadm upgrade apply v1.36.0`, draining `node01`, upgrading kubelet/kubectl, restarting kubelet, and uncordoning the node.",
+  "concepts": ["kubeadm", "upgrade", "node maintenance", "troubleshooting"],
+  "verification": [
+    {
+      "id": "1",
+      "description": "Upgrade script exists and is executable",
+      "verificationScriptFile": "q1_s1_validate_script_exists.sh",
+      "expectedOutput": "0",
+      "weightage": 25
+    },
+    {
+      "id": "2",
+      "description": "Upgrade script includes kubeadm upgrade planning and apply commands",
+      "verificationScriptFile": "q1_s2_validate_kubeadm_commands.sh",
+      "expectedOutput": "0",
+      "weightage": 25
+    },
+    {
+      "id": "3",
+      "description": "Upgrade script includes safe node drain and uncordon sequence",
+      "verificationScriptFile": "q1_s3_validate_node_sequence.sh",
+      "expectedOutput": "0",
+      "weightage": 25
+    },
+    {
+      "id": "4",
+      "description": "Upgrade script includes kubelet restart and post-upgrade verification",
+      "verificationScriptFile": "q1_s4_validate_verification_steps.sh",
+      "expectedOutput": "0",
+      "weightage": 25
+    }
+  ]
+}
+```
 
 ## Setup Script Rules
 
