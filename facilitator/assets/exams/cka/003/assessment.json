@@ -1,0 +1,683 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "namespace": "rbac-sec-q1",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nServiceAccount `report-reader` exists in namespace `rbac-sec-q1`, but it cannot read Pods.\n\nFix RBAC so `report-reader` can `get` and `list` Pods only in namespace `rbac-sec-q1`.\n\nUse Role `q1-pod-reader` and RoleBinding `q1-read-pods`.",
+      "concepts": [
+        "RBAC",
+        "Role",
+        "RoleBinding",
+        "ServiceAccount"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Role and RoleBinding target the correct ServiceAccount",
+          "verificationScriptFile": "q1_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "report-reader has pod read access and no pod delete access",
+          "verificationScriptFile": "q1_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "namespace": "rbac-sec-q2",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nServiceAccount `log-reader` can read Pod objects but cannot read Pod logs.\n\nFix RBAC so it can `get` Pods and `get` the `pods/log` subresource in namespace `rbac-sec-q2`.\n\nUse Role `q2-log-reader` and RoleBinding `q2-read-logs`.",
+      "concepts": [
+        "RBAC",
+        "subresources",
+        "pods/log"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Role includes pods and pods/log resources",
+          "verificationScriptFile": "q2_s1_validate_role.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "log-reader can get pods/log",
+          "verificationScriptFile": "q2_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "namespace": "rbac-sec-q3",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nServiceAccount `deploy-reader` cannot read Deployments because the Role uses the wrong API group.\n\nFix Role `q3-deployment-reader` so `deploy-reader` can `get`, `list`, and `watch` Deployments in namespace `rbac-sec-q3`.\n\nKeep RoleBinding `q3-read-deployments`.",
+      "concepts": [
+        "RBAC",
+        "apiGroups",
+        "Deployments"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment Role uses apps API group",
+          "verificationScriptFile": "q3_s1_validate_apigroup.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "deploy-reader can read deployments.apps only",
+          "verificationScriptFile": "q3_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "namespace": "rbac-sec-q4",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nServiceAccount `auditor` has excessive cluster-admin access through ClusterRoleBinding `q4-accidental-admin`.\n\nRemove the broad binding.\n\nCreate namespace-only read access so `auditor` can `get` and `list` Pods and ConfigMaps in namespace `rbac-sec-q4`, but cannot read Secrets or delete Pods.\n\nUse Role `q4-audit-reader` and RoleBinding `q4-audit-read`.",
+      "concepts": [
+        "RBAC",
+        "least privilege",
+        "ClusterRoleBinding",
+        "security troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Accidental admin binding removed and namespace RoleBinding exists",
+          "verificationScriptFile": "q4_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "auditor has least-privilege namespace access",
+          "verificationScriptFile": "q4_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "namespace": "rbac-sec-q5",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nUser `dev-operator` cannot read Pods because RoleBinding `q5-dev-read-pods` uses the wrong subject kind.\n\nFix the RoleBinding so user `dev-operator` can `get` and `list` Pods only in namespace `rbac-sec-q5`.\n\nUse Role `q5-pod-reader` and RoleBinding `q5-dev-read-pods`.",
+      "concepts": [
+        "RBAC",
+        "users",
+        "RoleBinding"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "RoleBinding subject is User dev-operator",
+          "verificationScriptFile": "q5_s1_validate_subject.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "dev-operator can read pods only in namespace",
+          "verificationScriptFile": "q5_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "namespace": "rbac-sec-q6",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nServiceAccount `node-inspector` needs read-only node access.\n\nThe current namespace Role cannot grant access to cluster-scoped Node resources.\n\nCreate ClusterRole `q6-node-reader` and ClusterRoleBinding `q6-node-reader-binding` so `node-inspector` can `get` and `list` Nodes.",
+      "concepts": [
+        "RBAC",
+        "ClusterRole",
+        "ClusterRoleBinding",
+        "cluster-scoped resources"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "ClusterRole and ClusterRoleBinding exist",
+          "verificationScriptFile": "q6_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "node-inspector can read but not modify nodes",
+          "verificationScriptFile": "q6_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "namespace": "rbac-sec-q7",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nDeployment `q7-api` uses the default ServiceAccount and still mounts an API token.\n\nCreate ServiceAccount `app-runner` with `automountServiceAccountToken: false`.\n\nUpdate Deployment `q7-api` to use `app-runner` and disable token automounting in the Pod template.",
+      "concepts": [
+        "ServiceAccount",
+        "token security",
+        "Deployment security"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "app-runner ServiceAccount disables token automount",
+          "verificationScriptFile": "q7_s1_validate_serviceaccount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment q7-api uses app-runner and disables token automount",
+          "verificationScriptFile": "q7_s2_validate_deployment.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "namespace": "rbac-sec-q8",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `6` minutes.\n\nThe kubeconfig file `/tmp/exam/q8/kubeconfig` is broken.\n\nFix it so it has:\n- current context `q8-context`\n- context namespace `rbac-sec-q8`\n- user `q8-user`\n- cluster `q8-cluster`\n- the same API server URL as the current cluster\n\nUse the current cluster CA data or configure `insecure-skip-tls-verify: true`.",
+      "concepts": [
+        "kubeconfig",
+        "contexts",
+        "cluster access",
+        "security troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "kubeconfig has the expected context and namespace",
+          "verificationScriptFile": "q8_s1_validate_context.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "kubeconfig uses the current cluster server and TLS config",
+          "verificationScriptFile": "q8_s2_validate_cluster.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "namespace": "rbac-sec-q9",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `7` minutes.\n\nCreate and approve a Kubernetes client certificate request for user `q9-user`.\n\nRequirements:\n- generate private key `/tmp/exam/q9/q9-user.key`\n- generate CSR `/tmp/exam/q9/q9-user.csr` with subject `CN=q9-user`\n- create Kubernetes CSR object `q9-user`\n- signerName `kubernetes.io/kube-apiserver-client`\n- usage `client auth`\n- approve the CSR",
+      "concepts": [
+        "certificates",
+        "CSR",
+        "client authentication"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Client key and CSR files exist with correct subject",
+          "verificationScriptFile": "q9_s1_validate_files.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Kubernetes CSR exists and is approved",
+          "verificationScriptFile": "q9_s2_validate_k8s_csr.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nCreate certificate expiration report `/tmp/exam/q10/cert-expiration.txt`.\n\nThe report must be generated using `kubeadm certs check-expiration`.\n\nIt must include the Kubernetes API server certificate information.",
+      "concepts": [
+        "certificates",
+        "kubeadm",
+        "security troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Certificate expiration report exists and is non-empty",
+          "verificationScriptFile": "q10_s1_validate_file.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Report includes API server certificate information",
+          "verificationScriptFile": "q10_s2_validate_apiserver.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "namespace": "rbac-sec-q11",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nRoleBinding `q11-read-pods` points to a non-existing Role.\n\nFix it so ServiceAccount `reader` can `get` and `list` Pods in namespace `rbac-sec-q11`.\n\nBecause RoleBinding `roleRef` is immutable, recreate the RoleBinding if needed.",
+      "concepts": [
+        "RBAC",
+        "RoleBinding troubleshooting",
+        "immutable fields"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "RoleBinding roleRef points to q11-pod-reader",
+          "verificationScriptFile": "q11_s1_validate_roleref.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "reader can read pods",
+          "verificationScriptFile": "q11_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "namespace": "rbac-sec-q12",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nServiceAccount `impersonator` must be allowed to impersonate Kubernetes user `limited-user`.\n\nCreate ClusterRole `q12-impersonate-limited-user` and ClusterRoleBinding `q12-impersonate-limited-user`.\n\nGrant only `impersonate` on resource `users` with resourceName `limited-user`.",
+      "concepts": [
+        "RBAC",
+        "impersonation",
+        "ClusterRole"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Impersonation ClusterRole and ClusterRoleBinding exist",
+          "verificationScriptFile": "q12_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Impersonation rule is limited to limited-user",
+          "verificationScriptFile": "q12_s2_validate_rule.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "namespace": "rbac-sec-q13",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nRole `q13-app-reader` is too broad and allows Secret access.\n\nFix it so ServiceAccount `app-reader` can only `get` and `list` ConfigMaps in namespace `rbac-sec-q13`.\n\nIt must not read Secrets.",
+      "concepts": [
+        "RBAC",
+        "least privilege",
+        "Secrets"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Role no longer grants Secret access",
+          "verificationScriptFile": "q13_s1_validate_role.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "app-reader can read configmaps but not secrets",
+          "verificationScriptFile": "q13_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "namespace": "rbac-sec-q14",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `6` minutes.\n\nPod `q14-insecure-pod` is insecure.\n\nRecreate it as `q14-secure-pod` using image `nginx:1.25`.\n\nSecurity requirements:\n- `runAsNonRoot: true`\n- `runAsUser: 101`\n- `allowPrivilegeEscalation: false`\n- drop capability `ALL`\n- `seccompProfile.type: RuntimeDefault`\n- `readOnlyRootFilesystem: true`",
+      "concepts": [
+        "securityContext",
+        "Pod security",
+        "security troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "q14-secure-pod exists with expected image and non-root settings",
+          "verificationScriptFile": "q14_s1_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "q14-secure-pod has required container hardening",
+          "verificationScriptFile": "q14_s2_validate_securitycontext.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "namespace": "rbac-sec-q15",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `3` minutes.\n\nNamespace `rbac-sec-q15` must enforce Pod Security Admission.\n\nLabel the namespace with:\n- `pod-security.kubernetes.io/enforce=restricted`\n- `pod-security.kubernetes.io/audit=restricted`\n- `pod-security.kubernetes.io/warn=restricted`",
+      "concepts": [
+        "Pod Security Admission",
+        "namespace labels",
+        "security"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Namespace enforces restricted Pod Security",
+          "verificationScriptFile": "q15_s1_validate_enforce.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Namespace audit and warn labels are restricted",
+          "verificationScriptFile": "q15_s2_validate_audit_warn.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "namespace": "rbac-sec-q16",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nCreate NetworkPolicy `q16-db-ingress` in namespace `rbac-sec-q16`.\n\nIt must select Pods with label `role=db`.\n\nAllow ingress only from Pods with label `role=frontend` on TCP port `5432`.",
+      "concepts": [
+        "NetworkPolicy",
+        "security",
+        "ingress isolation"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "NetworkPolicy selects role=db and has Ingress policy type",
+          "verificationScriptFile": "q16_s1_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "NetworkPolicy allows frontend to db on TCP 5432",
+          "verificationScriptFile": "q16_s2_validate_ingress.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "namespace": "rbac-sec-q17",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nSecret `q17-regcred` exists in namespace `rbac-sec-q17`.\n\nCreate ServiceAccount `image-puller` configured with imagePullSecret `q17-regcred`.\n\nUpdate Deployment `q17-private-app` so its Pods use ServiceAccount `image-puller`.",
+      "concepts": [
+        "ServiceAccount",
+        "imagePullSecrets",
+        "security troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "image-puller ServiceAccount references q17-regcred",
+          "verificationScriptFile": "q17_s1_validate_serviceaccount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "q17-private-app uses image-puller ServiceAccount",
+          "verificationScriptFile": "q17_s2_validate_deployment.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "namespace": "rbac-sec-q18",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nPod `q18-token-pod` currently mounts a ServiceAccount token.\n\nRecreate it using image `nginx:1.25` with `automountServiceAccountToken: false`.",
+      "concepts": [
+        "ServiceAccount token security",
+        "Pod security"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "q18-token-pod exists with nginx image",
+          "verificationScriptFile": "q18_s1_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "q18-token-pod disables automountServiceAccountToken",
+          "verificationScriptFile": "q18_s2_validate_automount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "namespace": "rbac-sec-q19",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nCreate kubeconfig `/tmp/exam/q19/dev.kubeconfig` for namespace `rbac-sec-q19`.\n\nRequirements:\n- cluster name `dev-cluster`\n- user name `dev-token-user`\n- context name `dev-context`\n- current context `dev-context`\n- context namespace `rbac-sec-q19`\n- user token value exactly `dev-token-123`\n- API server URL must match the current cluster",
+      "concepts": [
+        "kubeconfig",
+        "tokens",
+        "contexts"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "dev.kubeconfig has correct current context, namespace, user, and cluster",
+          "verificationScriptFile": "q19_s1_validate_context.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "dev.kubeconfig server and token are correct",
+          "verificationScriptFile": "q19_s2_validate_cluster_user.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "namespace": "rbac-sec-q20",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `4` minutes.\n\nCreate executable script `/tmp/exam/q20/inspect_rbac.sh`.\n\nThe script must list effective permissions for ServiceAccount `troubleshoot-sa` in namespace `rbac-sec-q20` using:\n\n`kubectl auth can-i --list --as=system:serviceaccount:rbac-sec-q20:troubleshoot-sa -n rbac-sec-q20`",
+      "concepts": [
+        "RBAC troubleshooting",
+        "kubectl auth can-i",
+        "audit"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "inspect_rbac.sh exists and is executable",
+          "verificationScriptFile": "q20_s1_validate_script.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "inspect_rbac.sh checks the correct ServiceAccount and namespace",
+          "verificationScriptFile": "q20_s2_validate_arguments.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `7` minutes.\n\nCreate and approve a kubelet serving CertificateSigningRequest named `q21-kubelet-serving`.\n\nRequirements:\n- private key `/tmp/exam/q21/q21-kubelet-serving.key`\n- CSR file `/tmp/exam/q21/q21-kubelet-serving.csr`\n- Kubernetes CSR object `q21-kubelet-serving`\n- signerName `kubernetes.io/kubelet-serving`\n- usages `digital signature`, `key encipherment`, and `server auth`\n- approved CSR",
+      "concepts": [
+        "certificates",
+        "kubelet serving CSR",
+        "security"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Kubelet serving key and CSR files exist",
+          "verificationScriptFile": "q21_s1_validate_files.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Kubernetes kubelet-serving CSR is approved with correct signer and usages",
+          "verificationScriptFile": "q21_s2_validate_csr.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "namespace": "rbac-sec-q22",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `6` minutes.\n\nNamespace `rbac-sec-q22` enforces the restricted Pod Security standard.\n\nCreate Deployment `q22-restricted-nginx` with one replica using image `nginx:1.25`.\n\nThe Pod template must comply with restricted settings:\n- `runAsNonRoot: true`\n- `runAsUser: 101`\n- `seccompProfile.type: RuntimeDefault`\n- `allowPrivilegeEscalation: false`\n- drop capability `ALL`",
+      "concepts": [
+        "Pod Security Admission",
+        "Deployment security",
+        "securityContext"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment exists with expected image and replica count",
+          "verificationScriptFile": "q22_s1_validate_deployment.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment Pod template uses restricted security settings",
+          "verificationScriptFile": "q22_s2_validate_securitycontext.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "namespace": "rbac-sec-q23",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nCreate Secret `q23-db-secret` with literals `username=admin` and `password=s3cr3t`.\n\nCreate Pod `q23-db-client` using image `busybox:1.36` and command `sleep 3600`.\n\nExpose `username` as environment variable `DB_USER`.\n\nMount the Secret read-only at `/etc/db-secret`.",
+      "concepts": [
+        "Secrets",
+        "Pod security",
+        "secret mounting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Secret exists with username and password values",
+          "verificationScriptFile": "q23_s1_validate_secret.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod uses Secret as environment variable and read-only volume",
+          "verificationScriptFile": "q23_s2_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "namespace": "rbac-sec-q24",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nServiceAccount `token-rotator` must update only Secret `app-token` in namespace `rbac-sec-q24`.\n\nCreate Role `q24-token-rotator` with verbs `get`, `update`, and `patch` on resource `secrets`, restricted with `resourceNames: [\"app-token\"]`.\n\nCreate RoleBinding `q24-token-rotator` binding it to ServiceAccount `token-rotator`.",
+      "concepts": [
+        "RBAC",
+        "resourceNames",
+        "Secrets",
+        "least privilege"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Role restricts Secret access with resourceNames app-token",
+          "verificationScriptFile": "q24_s1_validate_role.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "token-rotator can update app-token but not other-token",
+          "verificationScriptFile": "q24_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "namespace": "rbac-sec-q25",
+      "machineHostname": "ckad9999",
+      "question": "Estimated time: `5` minutes.\n\nCreate a TLS certificate and Secret for `secure.example.local`.\n\nRequirements:\n- certificate file `/tmp/exam/q25/tls.crt`\n- key file `/tmp/exam/q25/tls.key`\n- Secret `q25-tls` in namespace `rbac-sec-q25`\n- Secret type `kubernetes.io/tls`\n- Secret must contain `tls.crt` and `tls.key`",
+      "concepts": [
+        "TLS",
+        "Secrets",
+        "certificates"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "TLS certificate and key files exist and match",
+          "verificationScriptFile": "q25_s1_validate_files.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "q25-tls Secret is kubernetes.io/tls and contains tls data",
+          "verificationScriptFile": "q25_s2_validate_secret.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,706 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "namespace": "cka-q01",
+      "machineHostname": "ckad9999",
+      "question": "The `frontend-api` Deployment in namespace `cka-q01` was changed during a failed release. The rollout is paused and the active template references a bad image tag, so the application is not becoming available.\n\nTasks:\n- Resume the rollout for `frontend-api` if it is paused.\n- Set the container `frontend` image to `nginx:1.27`.\n- Keep exactly `3` replicas and make the rollout complete successfully.",
+      "concepts": [
+        "workloads",
+        "deployment",
+        "rolling-update",
+        "rollout-troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment uses the fixed `nginx:1.27` image.",
+          "verificationScriptFile": "q1_s1_validate_image.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment has 3 replicas and is not paused.",
+          "verificationScriptFile": "q1_s2_validate_replicas_unpaused.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Deployment rollout is available.",
+          "verificationScriptFile": "q1_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "namespace": "cka-q02",
+      "machineHostname": "ckad9999",
+      "question": "The `orders-web` Deployment in namespace `cka-q02` has a broken readiness probe and unsafe rolling-update values. Pods start, but they are never marked ready and the rollout cannot provide the expected availability.\n\nTasks:\n- Fix the readiness probe to check HTTP path `/` on port `80`.\n- Use a safe rolling update policy with `maxUnavailable: 0` and `maxSurge: 1`.\n- Ensure `orders-web` has exactly `4` available replicas.",
+      "concepts": [
+        "workloads",
+        "deployment",
+        "readiness-probe",
+        "rolling-update"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Readiness probe uses HTTP `/` on port 80.",
+          "verificationScriptFile": "q2_s1_validate_probe.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "RollingUpdate strategy prevents unavailable pods during rollout.",
+          "verificationScriptFile": "q2_s2_validate_strategy.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Deployment has four available replicas.",
+          "verificationScriptFile": "q2_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "namespace": "cka-q03",
+      "machineHostname": "ckad9999",
+      "question": "The `ledger-db` StatefulSet in namespace `cka-q03` was recreated with the wrong `serviceName`. Stable DNS names such as `ledger-db-0.ledger-db-hl.cka-q03.svc.cluster.local` do not resolve because the required headless Service is missing and the StatefulSet points at the wrong service.\n\nTasks:\n- Create a headless Service named `ledger-db-hl` selecting `app=ledger-db`.\n- Recreate/fix the StatefulSet so `.spec.serviceName` is `ledger-db-hl`.\n- Keep `2` ready replicas with stable names `ledger-db-0` and `ledger-db-1`.",
+      "concepts": [
+        "workloads",
+        "statefulset",
+        "headless-service",
+        "stable-dns"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Headless Service exists and selects the StatefulSet pods.",
+          "verificationScriptFile": "q3_s1_validate_headless_service.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "StatefulSet serviceName points to the headless Service.",
+          "verificationScriptFile": "q3_s2_validate_statefulset_service_name.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Both StatefulSet pods are ready with stable names.",
+          "verificationScriptFile": "q3_s3_validate_stateful_pods_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "namespace": "cka-q04",
+      "machineHostname": "ckad9999",
+      "question": "The `metrics-store` StatefulSet in namespace `cka-q04` was deployed with ephemeral storage. The application requires one persistent PVC per replica named from a `volumeClaimTemplates` entry called `data`, mounted at `/usr/share/nginx/html`.\n\nTasks:\n- Recreate/fix `metrics-store` with a `volumeClaimTemplates` entry named `data`.\n- Use `ReadWriteOnce`, request `128Mi`, and keep `storageClassName: standard` unless your cluster requires another default class.\n- Run `2` ready replicas with each pod mounting the `data` claim at `/usr/share/nginx/html`.",
+      "concepts": [
+        "workloads",
+        "statefulset",
+        "volumeClaimTemplates",
+        "persistent-storage"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "StatefulSet defines the required volumeClaimTemplates entry.",
+          "verificationScriptFile": "q4_s1_validate_vct.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Container mounts the `data` claim at the required path.",
+          "verificationScriptFile": "q4_s2_validate_mount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Per-pod PVCs exist and StatefulSet is ready.",
+          "verificationScriptFile": "q4_s3_validate_pvcs_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "namespace": "cka-q05",
+      "machineHostname": "ckad9999",
+      "question": "The `node-log-agent` DaemonSet in namespace `cka-q05` must run on every cluster node. It currently misses the control-plane toleration, so it skips tainted control-plane nodes.\n\nTasks:\n- Add a toleration for `node-role.kubernetes.io/control-plane:NoSchedule` using operator `Exists`.\n- Keep the DaemonSet selector/template label `app=node-log-agent`.\n- Ensure the desired number scheduled equals the total node count and all scheduled pods are ready.",
+      "concepts": [
+        "workloads",
+        "daemonset",
+        "tolerations",
+        "control-plane-scheduling"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "DaemonSet tolerates the control-plane NoSchedule taint.",
+          "verificationScriptFile": "q5_s1_validate_toleration.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "DaemonSet desired count matches total node count.",
+          "verificationScriptFile": "q5_s2_validate_desired_count.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "All desired DaemonSet pods are ready.",
+          "verificationScriptFile": "q5_s3_validate_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "namespace": "cka-q06",
+      "machineHostname": "ckad9999",
+      "question": "The `packet-capture` DaemonSet in namespace `cka-q06` should run only on nodes labeled `q06.capture=true`. The DaemonSet already has that nodeSelector, but no schedulable node has the required label, so no agent pod starts.\n\nTasks:\n- Label exactly one schedulable worker node with `q06.capture=true`.\n- Keep the DaemonSet nodeSelector as `q06.capture=true`.\n- Ensure one `packet-capture` DaemonSet pod is ready on the labeled node.",
+      "concepts": [
+        "workloads",
+        "daemonset",
+        "nodeSelector",
+        "node-labels"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "At least one node is labeled for packet capture.",
+          "verificationScriptFile": "q6_s1_validate_node_label.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "DaemonSet uses the required nodeSelector.",
+          "verificationScriptFile": "q6_s2_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Exactly one DaemonSet pod is scheduled and ready.",
+          "verificationScriptFile": "q6_s3_validate_one_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "namespace": "cka-q07",
+      "machineHostname": "ckad9999",
+      "question": "A batch manifest at `/tmp/exam/q07/checksum-job.yaml` was rejected because the Job template uses `restartPolicy: Always`. Create/fix the `checksum-job` in namespace `cka-q07` so it completes successfully.\n\nTasks:\n- Fix the manifest or create the Job with `restartPolicy: OnFailure` or `Never`.\n- Use container image `busybox:1.36` and run `sh -c \"echo checksum-ok\"`.\n- Ensure the Job completes successfully exactly once.",
+      "concepts": [
+        "workloads",
+        "job",
+        "restartPolicy",
+        "batch"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Job exists with a valid restartPolicy.",
+          "verificationScriptFile": "q7_s1_validate_job_exists_policy.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Job uses expected image and command.",
+          "verificationScriptFile": "q7_s2_validate_image_command.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Job completes successfully.",
+          "verificationScriptFile": "q7_s3_validate_complete.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "namespace": "cka-q08",
+      "machineHostname": "ckad9999",
+      "question": "The `db-cleanup` CronJob in namespace `cka-q08` was left suspended after maintenance and uses the wrong concurrency policy and schedule. It should run every five minutes without overlapping runs.\n\nTasks:\n- Set schedule to `*/5 * * * *`.\n- Set `concurrencyPolicy: Forbid` and `suspend: false`.\n- Set `timeZone: Asia/Colombo` and keep the Job template restart policy valid.",
+      "concepts": [
+        "workloads",
+        "cronjob",
+        "concurrencyPolicy",
+        "schedule"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "CronJob has the required schedule and timezone.",
+          "verificationScriptFile": "q8_s1_validate_schedule_timezone.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "CronJob is unsuspended and prevents overlap.",
+          "verificationScriptFile": "q8_s2_validate_policy_suspend.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "CronJob template uses a valid restartPolicy.",
+          "verificationScriptFile": "q8_s3_validate_jobtemplate.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "namespace": "cka-q09",
+      "machineHostname": "ckad9999",
+      "question": "The `slow-api` Deployment in namespace `cka-q09` takes about 25 seconds to create its health file. Its liveness probe checks too early and restarts the container before startup completes.\n\nTasks:\n- Add a `startupProbe` that checks `/tmp/healthy` with enough failures to allow slow startup.\n- Keep the liveness probe as an exec check for `/tmp/healthy` but make it safe after startup.\n- Ensure the Deployment reaches one available replica.",
+      "concepts": [
+        "workloads",
+        "probes",
+        "livenessProbe",
+        "startupProbe",
+        "CrashLoopBackOff"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment has a startupProbe for `/tmp/healthy` with adequate threshold.",
+          "verificationScriptFile": "q9_s1_validate_startup_probe.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Liveness probe checks the same health file safely.",
+          "verificationScriptFile": "q9_s2_validate_liveness.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "slow-api becomes available.",
+          "verificationScriptFile": "q9_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "namespace": "cka-q10",
+      "machineHostname": "ckad9999",
+      "question": "The `catalog-web` Service in namespace `cka-q10` has no usable ready endpoints because the Deployment readiness probe checks a non-existent path. Fix the workload so traffic can reach ready pods.\n\nTasks:\n- Change the readiness probe HTTP path to `/` on port `80`.\n- Keep the Service selector `app=catalog-web` matching the pod template label.\n- Ensure at least two ready endpoints exist for Service `catalog-web`.",
+      "concepts": [
+        "workloads",
+        "readinessProbe",
+        "service-endpoints",
+        "deployment"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Readiness probe path and port are correct.",
+          "verificationScriptFile": "q10_s1_validate_readiness_path.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Service selector matches Deployment pod labels.",
+          "verificationScriptFile": "q10_s2_validate_selector_match.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Service has at least two ready endpoints.",
+          "verificationScriptFile": "q10_s3_validate_endpoints.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "namespace": "cka-q11",
+      "machineHostname": "ckad9999",
+      "question": "The `config-consumer` Deployment in namespace `cka-q11` is stuck in `CreateContainerConfigError`. It references a ConfigMap key with the wrong case, so the required `APP_MODE` environment variable is not injected.\n\nTasks:\n- Fix the environment variable reference so `APP_MODE` comes from ConfigMap `app-settings` key `APP_MODE`.\n- Keep the container image `busybox:1.36` and command running.\n- Ensure the pod becomes ready and `APP_MODE` resolves to `production`.",
+      "concepts": [
+        "workloads",
+        "configmap",
+        "env",
+        "CreateContainerConfigError"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment references the correct ConfigMap key.",
+          "verificationScriptFile": "q11_s1_validate_env_ref.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment is available.",
+          "verificationScriptFile": "q11_s2_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Running pod has APP_MODE=production.",
+          "verificationScriptFile": "q11_s3_validate_runtime_env.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "namespace": "cka-q12",
+      "machineHostname": "ckad9999",
+      "question": "The `payment-worker` Deployment in namespace `cka-q12` cannot start because its `DB_PASSWORD` environment variable references the wrong Secret key. The Secret exists in the correct namespace with key `password`.\n\nTasks:\n- Fix the Secret key reference from `pwd` to `password`.\n- Keep the Secret named `db-credentials` in namespace `cka-q12`.\n- Ensure the pod is ready and `DB_PASSWORD` resolves to `s3cr3t`.",
+      "concepts": [
+        "workloads",
+        "secret",
+        "env",
+        "namespaced-secret"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment references Secret `db-credentials` key `password`.",
+          "verificationScriptFile": "q12_s1_validate_secret_ref.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment is available.",
+          "verificationScriptFile": "q12_s2_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Running pod receives DB_PASSWORD=s3cr3t.",
+          "verificationScriptFile": "q12_s3_validate_runtime_env.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "namespace": "cka-q13",
+      "machineHostname": "ckad9999",
+      "question": "The standalone Pod `pinned-cache` in namespace `cka-q13` is hard-pinned to `ghost-node` using `spec.nodeName`, bypassing the scheduler. It must be recreated so the scheduler can place it normally.\n\nTasks:\n- Recreate `pinned-cache` without `spec.nodeName`.\n- Keep image `nginx:1.27` and label `app=pinned-cache`.\n- Ensure the Pod is Running on a real node.",
+      "concepts": [
+        "scheduling",
+        "nodeName",
+        "pod-recreate",
+        "Pending"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Pod does not use hard `nodeName` pinning.",
+          "verificationScriptFile": "q13_s1_validate_no_nodename.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod keeps required image and label.",
+          "verificationScriptFile": "q13_s2_validate_image_label.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Pod is Running and Ready.",
+          "verificationScriptFile": "q13_s3_validate_running.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "namespace": "cka-q14",
+      "machineHostname": "ckad9999",
+      "question": "The `reporting-api` Deployment in namespace `cka-q14` uses `nodeSelector: q14.disk=ssd`, but no node has that label. The workload must run only on a node labeled for SSD capacity.\n\nTasks:\n- Label one schedulable node with `q14.disk=ssd`.\n- Keep the Deployment nodeSelector exactly `q14.disk=ssd`.\n- Ensure both replicas are ready and scheduled only on nodes with that label.",
+      "concepts": [
+        "scheduling",
+        "nodeSelector",
+        "node-labels",
+        "Pending"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "A node has label `q14.disk=ssd`.",
+          "verificationScriptFile": "q14_s1_validate_node_label.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment keeps required nodeSelector.",
+          "verificationScriptFile": "q14_s2_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Pods are ready on labeled nodes only.",
+          "verificationScriptFile": "q14_s3_validate_ready_on_labeled_nodes.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "namespace": "cka-q15",
+      "machineHostname": "ckad9999",
+      "question": "The `analytics-api` Deployment in namespace `cka-q15` uses required node affinity for a GPU label that does not exist in the cluster. The team only wanted GPU nodes to be preferred, not required.\n\nTasks:\n- Remove `requiredDuringSchedulingIgnoredDuringExecution` from node affinity.\n- Add/keep a preferred node affinity rule for `q15.accelerator=gpu` with weight `80` or higher.\n- Ensure two replicas become available on any schedulable nodes.",
+      "concepts": [
+        "scheduling",
+        "nodeAffinity",
+        "required-vs-preferred"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Hard required node affinity is removed.",
+          "verificationScriptFile": "q15_s1_validate_no_required_affinity.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Preferred node affinity for GPU label exists.",
+          "verificationScriptFile": "q15_s2_validate_preferred_affinity.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "analytics-api has two available replicas.",
+          "verificationScriptFile": "q15_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "namespace": "cka-q16",
+      "machineHostname": "ckad9999",
+      "question": "The `reserved-api` Deployment in namespace `cka-q16` must run on a reserved node labeled `q16.pool=reserved`. The setup taints that node with reserved workload taints, but the pod template has no matching tolerations, so replicas remain Pending.\n\nTasks:\n- Keep `nodeSelector: q16.pool=reserved`.\n- Add tolerations for `q16.pool=reserved:NoSchedule` and `q16.soft=reserved:PreferNoSchedule`.\n- Also add a bounded `NoExecute` toleration for `q16.evict=reserved` with `tolerationSeconds: 300`, then ensure the Deployment is available.",
+      "concepts": [
+        "scheduling",
+        "taints",
+        "tolerations",
+        "NoSchedule",
+        "PreferNoSchedule",
+        "NoExecute"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment targets the reserved pool by nodeSelector.",
+          "verificationScriptFile": "q16_s1_validate_node_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Required NoSchedule and PreferNoSchedule tolerations exist.",
+          "verificationScriptFile": "q16_s2_validate_tolerations.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "NoExecute toleration is bounded and Deployment is available.",
+          "verificationScriptFile": "q16_s3_validate_noexecute_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "namespace": "cka-q17",
+      "machineHostname": "ckad9999",
+      "question": "The `ha-web` Deployment in namespace `cka-q17` requires two replicas not to co-locate on the same node. The anti-affinity rule uses a custom rack topology where all nodes have the same value, so the second replica cannot schedule. Use node hostname topology instead.\n\nTasks:\n- Set required podAntiAffinity topologyKey to `kubernetes.io/hostname`.\n- Keep the anti-affinity label selector matching `app=ha-web`.\n- Ensure two replicas are ready on different nodes.",
+      "concepts": [
+        "scheduling",
+        "podAntiAffinity",
+        "topologyKey",
+        "high-availability"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Anti-affinity topologyKey is hostname.",
+          "verificationScriptFile": "q17_s1_validate_topologykey.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Anti-affinity selector matches `app=ha-web`.",
+          "verificationScriptFile": "q17_s2_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Two replicas are ready on different nodes.",
+          "verificationScriptFile": "q17_s3_validate_spread_nodes.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "namespace": "cka-q18",
+      "machineHostname": "ckad9999",
+      "question": "The `pay-api` Deployment in namespace `cka-q18` is supposed to spread four replicas across hostnames with `maxSkew: 1`, but its topology spread label selector points at the wrong app label. The constraint is not protecting placement.\n\nTasks:\n- Set the topologySpreadConstraints labelSelector to match `app=pay-api`.\n- Use `topologyKey: kubernetes.io/hostname`, `maxSkew: 1`, and `whenUnsatisfiable: DoNotSchedule`.\n- Ensure four replicas are available and spread across at least two nodes.",
+      "concepts": [
+        "scheduling",
+        "topologySpreadConstraints",
+        "maxSkew",
+        "spread"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Topology spread constraint uses hostname, maxSkew 1, DoNotSchedule.",
+          "verificationScriptFile": "q18_s1_validate_spread_constraint.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Spread constraint selector matches `app=pay-api`.",
+          "verificationScriptFile": "q18_s2_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Four replicas are available and on at least two nodes.",
+          "verificationScriptFile": "q18_s3_validate_available_spread.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "namespace": "cka-q19",
+      "machineHostname": "ckad9999",
+      "question": "The `quota-api` Deployment in namespace `cka-q19` exists, but its ReplicaSet cannot create pods because container requests exceed the namespace ResourceQuota. Reduce requests/limits to fit the quota while keeping explicit resource settings.\n\nTasks:\n- Set container requests to `cpu: 100m` and `memory: 64Mi`.\n- Set limits to `cpu: 200m` and `memory: 128Mi`.\n- Ensure two replicas become available without deleting the ResourceQuota `compute-quota`.",
+      "concepts": [
+        "scheduling",
+        "resources",
+        "requests-limits",
+        "ResourceQuota"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment has the required CPU and memory requests.",
+          "verificationScriptFile": "q19_s1_validate_requests.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment has required limits and ResourceQuota still exists.",
+          "verificationScriptFile": "q19_s2_validate_limits_quota.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "quota-api has two available replicas.",
+          "verificationScriptFile": "q19_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "namespace": "cka-q20",
+      "machineHostname": "ckad9999",
+      "question": "The `critical-api` Deployment in namespace `cka-q20` references PriorityClass `business-critical`, but the PriorityClass does not exist. The workload must use a high scheduling priority with normal preemption enabled.\n\nTasks:\n- Create PriorityClass `business-critical` with value at least `100000`.\n- Set `preemptionPolicy: PreemptLowerPriority` and `globalDefault: false`.\n- Ensure Deployment `critical-api` uses this PriorityClass and has one available replica.",
+      "concepts": [
+        "scheduling",
+        "PriorityClass",
+        "preemption",
+        "priority"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "PriorityClass exists with high value and non-default setting.",
+          "verificationScriptFile": "q20_s1_validate_priorityclass.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "PriorityClass enables preemption and Deployment uses it.",
+          "verificationScriptFile": "q20_s2_validate_preemption_and_usage.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "critical-api is available.",
+          "verificationScriptFile": "q20_s3_validate_available.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    }
+  ]
+}

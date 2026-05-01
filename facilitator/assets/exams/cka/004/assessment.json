@@ -1,0 +1,680 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Write all available kubectl context names to `/tmp/exam/q1/contexts`.\n\nCreate `/tmp/exam/q1/context_default_kubectl.sh` containing a command that prints the current context using `kubectl`.\n\nCreate `/tmp/exam/q1/context_default_no_kubectl.sh` containing a command that prints the current context without using `kubectl`.",
+      "concepts": [
+        "contexts",
+        "kubectl",
+        "cluster access"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Context list file contains all configured contexts",
+          "verificationScriptFile": "q1_s1_validate_contexts.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Current-context command scripts are present and valid",
+          "verificationScriptFile": "q1_s2_validate_context_scripts.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Create a Pod named `q2-control-plane-pod` in the `default` namespace using image `httpd:2.4-alpine`.\n\nThe container name must be `web`.\n\nSchedule it only on a control-plane node using existing node labels and the required control-plane toleration. Do not add new labels to nodes.",
+      "concepts": [
+        "scheduling",
+        "taints",
+        "tolerations",
+        "nodeSelector"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Control-plane pod exists with correct image and container name",
+          "verificationScriptFile": "q2_s1_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod is scheduled on a control-plane node with proper toleration",
+          "verificationScriptFile": "q2_s2_validate_scheduling.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "namespace": "cka-q03",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q03`, the StatefulSet `q3-data-store` is running too many replicas.\n\nScale it down to exactly `1` replica and ensure only one managed Pod remains active.",
+      "concepts": [
+        "statefulsets",
+        "scaling"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "StatefulSet desired replicas is 1",
+          "verificationScriptFile": "q3_s1_validate_replicas.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Only one StatefulSet Pod remains active",
+          "verificationScriptFile": "q3_s2_validate_pods.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "namespace": "cka-q04",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q04`, create a Pod named `waiting-client` using image `nginx:1.16.1-alpine`.\n\nConfigure a liveness probe that executes `true`.\n\nConfigure a readiness probe that executes `wget -T2 -O- http://service-check:80`.\n\nThen create a second Pod named `dependency-server` using image `nginx:1.16.1-alpine` with label `app=dependency` so the existing Service `service-check` receives an endpoint.",
+      "concepts": [
+        "probes",
+        "services",
+        "endpoints"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "waiting-client has the required liveness and readiness probes",
+          "verificationScriptFile": "q4_s1_validate_probes.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "service-check has an endpoint from dependency-server",
+          "verificationScriptFile": "q4_s2_validate_endpoint.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "namespace": "cka-q05",
+      "machineHostname": "ckad9999",
+      "question": "Write a command to `/tmp/exam/q5/sort_by_age.sh` that lists all Pods in all namespaces sorted by `.metadata.creationTimestamp`.\n\nWrite a second command to `/tmp/exam/q5/sort_by_uid.sh` that lists all Pods in all namespaces sorted by `.metadata.uid`.\n\nBoth scripts must use `kubectl --sort-by` and be executable.",
+      "concepts": [
+        "kubectl",
+        "sorting",
+        "jsonpath"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "sort_by_age.sh uses kubectl sort by creationTimestamp",
+          "verificationScriptFile": "q5_s1_validate_age_sort.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "sort_by_uid.sh uses kubectl sort by uid",
+          "verificationScriptFile": "q5_s2_validate_uid_sort.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "namespace": "cka-q06",
+      "machineHostname": "ckad9999",
+      "question": "Create PersistentVolume `q6-safari-pv` with capacity `2Gi`, access mode `ReadWriteOnce`, hostPath `/tmp/exam/q6-data`, and no dynamic storage class.\n\nCreate PersistentVolumeClaim `q6-safari-pvc` in namespace `cka-q06` requesting `2Gi` with access mode `ReadWriteOnce`, bound to that PV.\n\nCreate Deployment `q6-safari` in namespace `cka-q06` using image `httpd:2.4-alpine` and mount the claim at `/tmp/safari-data`.",
+      "concepts": [
+        "persistent volumes",
+        "persistent volume claims",
+        "deployments",
+        "storage"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "PV and PVC exist with correct storage settings and are bound",
+          "verificationScriptFile": "q6_s1_validate_pv_pvc.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment mounts q6-safari-pvc at /tmp/safari-data",
+          "verificationScriptFile": "q6_s2_validate_deployment_mount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "namespace": "cka-q07",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q07`, Deployment `q7-broken-web` was updated to a bad image and its rollout is failing.\n\nRestore the Deployment so it runs exactly `2` replicas using image `nginx:1.25`.",
+      "concepts": [
+        "deployments",
+        "rollouts",
+        "troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment image is restored to nginx:1.25",
+          "verificationScriptFile": "q7_s1_validate_image.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment has 2 desired and available replicas",
+          "verificationScriptFile": "q7_s2_validate_availability.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "namespace": "cka-q08",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q08`, Service `q8-web-svc` has no endpoints because its selector is wrong.\n\nFix the Service so it selects the existing Deployment Pods with label `app=q8-web`.\n\nKeep the Service port as `80` and target port as `80`.",
+      "concepts": [
+        "services",
+        "selectors",
+        "endpoints",
+        "troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Service selector is app=q8-web",
+          "verificationScriptFile": "q8_s1_validate_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Service has endpoints",
+          "verificationScriptFile": "q8_s2_validate_endpoints.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "namespace": "cka-q09",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q09`, create a NetworkPolicy named `q9-egress-lockdown`.\n\nIt must select Pods with label `app=backend`.\n\nIt must allow egress only to Pods with label `app=db` on TCP port `5432`.",
+      "concepts": [
+        "network policies",
+        "egress",
+        "networking"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "NetworkPolicy exists and selects backend Pods for egress",
+          "verificationScriptFile": "q9_s1_validate_policy_selector.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "NetworkPolicy allows egress to app=db on TCP 5432",
+          "verificationScriptFile": "q9_s2_validate_egress_rule.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "namespace": "cka-q10",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q10`, create ServiceAccount `processor`.\n\nCreate Role `processor` allowing only `create` on `secrets` and `configmaps`.\n\nCreate RoleBinding `processor` binding that Role to the ServiceAccount.",
+      "concepts": [
+        "RBAC",
+        "service accounts",
+        "roles",
+        "rolebindings"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "ServiceAccount, Role, and RoleBinding exist",
+          "verificationScriptFile": "q10_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "processor can create secrets/configmaps but cannot delete pods",
+          "verificationScriptFile": "q10_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "namespace": "cka-q11",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q11`, ServiceAccount `node-reader` already exists.\n\nCreate ClusterRole `q11-node-reader` that allows `get`, `list`, and `watch` on `nodes`.\n\nCreate ClusterRoleBinding `q11-node-reader` binding the ClusterRole to ServiceAccount `cka-q11:node-reader`.",
+      "concepts": [
+        "clusterroles",
+        "clusterrolebindings",
+        "RBAC"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "ClusterRole and ClusterRoleBinding exist",
+          "verificationScriptFile": "q11_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "node-reader can get/list/watch nodes",
+          "verificationScriptFile": "q11_s2_validate_permissions.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "namespace": "cka-q12",
+      "machineHostname": "ckad9999",
+      "question": "Create Pod `q12-tolerant` in namespace `cka-q12` using image `nginx:1.25`.\n\nThe Pod must have nodeSelector `kubernetes.io/os=linux`.\n\nAdd a toleration for key `workload`, operator `Equal`, value `reserved`, effect `NoSchedule`.",
+      "concepts": [
+        "scheduling",
+        "nodeSelector",
+        "tolerations"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "q12-tolerant exists and uses nginx:1.25",
+          "verificationScriptFile": "q12_s1_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod has required nodeSelector and toleration",
+          "verificationScriptFile": "q12_s2_validate_scheduling.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "namespace": "cka-q13",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q13`, Job `q13-pi` is failed because its command exits with an error.\n\nReplace or recreate it so Job `q13-pi` completes successfully using image `busybox:1.36` and command `sh -c 'echo cka-q13-complete'`.",
+      "concepts": [
+        "jobs",
+        "troubleshooting",
+        "workloads"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Job q13-pi has completed successfully",
+          "verificationScriptFile": "q13_s1_validate_completed.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Job uses busybox:1.36 and the fixed command",
+          "verificationScriptFile": "q13_s2_validate_spec.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "namespace": "cka-q14",
+      "machineHostname": "ckad9999",
+      "question": "Create CronJob `q14-cleanup` in namespace `cka-q14`.\n\nIt must run every 5 minutes using schedule `*/5 * * * *`.\n\nUse image `busybox:1.36` with command `sh -c 'date; echo cleanup'`.\n\nSet `successfulJobsHistoryLimit` to `2` and `failedJobsHistoryLimit` to `1`.",
+      "concepts": [
+        "cronjobs",
+        "batch"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "CronJob exists with correct schedule",
+          "verificationScriptFile": "q14_s1_validate_schedule.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "CronJob image, command, and history limits are correct",
+          "verificationScriptFile": "q14_s2_validate_job_template.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "namespace": "cka-q15",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q15`, ConfigMap `app-settings` already exists with required keys.\n\nCreate Pod `q15-configured` using image `nginx:1.25`.\n\nExpose ConfigMap key `APP_MODE` as environment variable `APP_MODE`.\n\nMount the full ConfigMap as volume `settings` at `/etc/app-settings`.",
+      "concepts": [
+        "configmaps",
+        "environment variables",
+        "volumes"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "ConfigMap and Pod exist",
+          "verificationScriptFile": "q15_s1_validate_objects.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod uses ConfigMap as env and mounted volume",
+          "verificationScriptFile": "q15_s2_validate_pod_config.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "namespace": "cka-q16",
+      "machineHostname": "ckad9999",
+      "question": "Create Secret `q16-db-secret` in namespace `cka-q16` with literal keys `username=admin` and `password=s3cr3t`.\n\nCreate Pod `q16-db-client` using image `busybox:1.36` running `sleep 3600`.\n\nExpose `username` as env var `DB_USER`.\n\nMount the Secret read-only at `/etc/db-secret`.",
+      "concepts": [
+        "secrets",
+        "environment variables",
+        "volumes"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Secret exists with required keys",
+          "verificationScriptFile": "q16_s1_validate_secret.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod uses Secret as env var and read-only volume",
+          "verificationScriptFile": "q16_s2_validate_pod_secret_usage.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "17",
+      "namespace": "cka-q17",
+      "machineHostname": "ckad9999",
+      "question": "Create Pod `q17-resource-check` in namespace `cka-q17` using image `nginx:1.25`.\n\nSet CPU request `100m`, memory request `128Mi`, CPU limit `250m`, and memory limit `256Mi`.",
+      "concepts": [
+        "resources",
+        "requests",
+        "limits"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Resource Pod exists with correct image",
+          "verificationScriptFile": "q17_s1_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod has correct resource requests and limits",
+          "verificationScriptFile": "q17_s2_validate_resources.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "18",
+      "namespace": "cka-q18",
+      "machineHostname": "ckad9999",
+      "question": "Create Deployment `q18-web` in namespace `cka-q18` with `3` replicas using image `nginx:1.25`.\n\nUse label `app=q18-web`.\n\nConfigure preferred pod anti-affinity so replicas prefer different nodes using topology key `kubernetes.io/hostname`.",
+      "concepts": [
+        "deployments",
+        "affinity",
+        "scheduling"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment exists with 3 replicas and correct image",
+          "verificationScriptFile": "q18_s1_validate_deployment.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment has preferred pod anti-affinity by hostname",
+          "verificationScriptFile": "q18_s2_validate_anti_affinity.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "19",
+      "namespace": "cka-q19",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q19`, Pod `q19-broken` is failing with an invalid image.\n\nFix it so Pod `q19-broken` uses image `nginx:1.25` and reaches Ready state.",
+      "concepts": [
+        "pods",
+        "image troubleshooting"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Pod uses nginx:1.25",
+          "verificationScriptFile": "q19_s1_validate_image.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod is Ready",
+          "verificationScriptFile": "q19_s2_validate_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "20",
+      "namespace": "cka-q20",
+      "machineHostname": "ckad9999",
+      "question": "In namespace `cka-q20`, expose Deployment `q20-api`.\n\nCreate Service `q20-api-svc` of type `NodePort`.\n\nThe Service must select `app=q20-api`, expose port `8080`, and forward to target port `80`.",
+      "concepts": [
+        "services",
+        "nodeport",
+        "deployments"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Deployment q20-api exists with 2 replicas",
+          "verificationScriptFile": "q20_s1_validate_deployment.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "NodePort Service has correct selector and ports",
+          "verificationScriptFile": "q20_s2_validate_service.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "21",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Create `/tmp/exam/q21/node_report.txt` containing a node capacity report.\n\nThe report must be generated with `kubectl get nodes` and custom columns for node name, CPU capacity, and memory capacity.\n\nUse headers `NODE`, `CPU`, and `MEMORY`.",
+      "concepts": [
+        "nodes",
+        "custom-columns",
+        "cluster information"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "node_report.txt exists and contains all nodes",
+          "verificationScriptFile": "q21_s1_validate_file.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Report has NODE CPU MEMORY columns",
+          "verificationScriptFile": "q21_s2_validate_columns.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "22",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Create a static Pod manifest at `/etc/kubernetes/manifests/q22-static-web.yaml`.\n\nThe static Pod must be named `q22-static-web`, use image `nginx:1.25`, and expose container port `80`.",
+      "concepts": [
+        "static pods",
+        "kubelet",
+        "manifests"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Static Pod manifest exists with correct name",
+          "verificationScriptFile": "q22_s1_validate_manifest.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Static Pod manifest uses nginx:1.25 and port 80",
+          "verificationScriptFile": "q22_s2_validate_spec.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "23",
+      "namespace": "cka-q23",
+      "machineHostname": "ckad9999",
+      "question": "Create Pod `q23-logger` in namespace `cka-q23` with two containers.\n\nContainer `writer` must use image `busybox:1.36` and continuously append timestamps to `/var/log/app.log`.\n\nContainer `reader` must use image `busybox:1.36` and continuously read `/var/log/app.log`.\n\nUse one shared `emptyDir` volume named `log-volume`, mounted at `/var/log` in both containers.",
+      "concepts": [
+        "multi-container pods",
+        "emptyDir",
+        "logging"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Pod has writer and reader containers using busybox:1.36",
+          "verificationScriptFile": "q23_s1_validate_containers.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod uses shared emptyDir volume mounted at /var/log",
+          "verificationScriptFile": "q23_s2_validate_volume.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "24",
+      "namespace": "cka-q24",
+      "machineHostname": "ckad9999",
+      "question": "Create PriorityClass `q24-high-priority` with value `100000` and `globalDefault: false`.\n\nCreate Pod `q24-important` in namespace `cka-q24` using image `nginx:1.25` and assign it to PriorityClass `q24-high-priority`.",
+      "concepts": [
+        "priorityclass",
+        "scheduling",
+        "pods"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "PriorityClass exists with value 100000",
+          "verificationScriptFile": "q24_s1_validate_priorityclass.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Pod uses the PriorityClass",
+          "verificationScriptFile": "q24_s2_validate_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "25",
+      "namespace": "default",
+      "machineHostname": "ckad9999",
+      "question": "Create executable script `/tmp/exam/q25/backup-etcd.sh` that performs an etcd snapshot backup to `/tmp/exam/q25/etcd-backup.db`.\n\nThe script must set `ETCDCTL_API=3` and run `etcdctl snapshot save`.\n\nIt must use endpoint `https://127.0.0.1:2379` and include `--cacert`, `--cert`, and `--key` arguments pointing to the standard Kubernetes etcd PKI files under `/etc/kubernetes/pki/etcd/`.",
+      "concepts": [
+        "etcd",
+        "backup",
+        "cluster maintenance"
+      ],
+      "verification": [
+        {
+          "id": "1",
+          "description": "backup-etcd.sh exists, is executable, and saves the correct snapshot path",
+          "verificationScriptFile": "q25_s1_validate_script.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "backup-etcd.sh includes endpoint and TLS arguments",
+          "verificationScriptFile": "q25_s2_validate_tls_args.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    }
+  ]
+}

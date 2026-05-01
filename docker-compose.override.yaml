@@ -1,0 +1,9 @@
+services:
+  nginx:
+    ports:
+      - "127.0.0.1:30081:80"
+
+  facilitator:
+    environment:
+      - TRACK_METRICS=false
+      - ATTEMPT_HISTORY_FILE=/usr/src/app/data/attempt-history.json

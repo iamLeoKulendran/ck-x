@@ -1,0 +1,10 @@
+{
+  "id": "cka-007",
+  "assetPath": "assets/exams/cka/007",
+  "name": "Practice Question - Workloads and Scheduling -1",
+  "category": "CKA",
+  "description": "Hard CKA Workloads and Scheduling practice set with original scenario-based troubleshooting tasks.",
+  "warmUpTimeInSeconds": 360,
+  "difficulty": "Hard",
+  "examDurationInMinutes": 120
+}
