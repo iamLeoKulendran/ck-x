@@ -319,6 +319,7 @@ async function getAttempts(filters = {}) {
   const filteredAttempts = filterAttempts(sortedAttempts, filters);
 
   return {
+    version: history.version,
     attempts: filteredAttempts,
     summary: buildSummary(filteredAttempts),
     filters: buildFilterOptions(sortedAttempts),

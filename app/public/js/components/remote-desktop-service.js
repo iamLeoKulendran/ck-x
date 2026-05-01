@@ -15,8 +15,17 @@ function connectToRemoteDesktop(vncFrame, statusCallback) {
         .then(data => {
             console.log('Remote Desktop info:', data);
             
-            // Create the VNC URL with proper parameters
-            const vncUrl = `/vnc-proxy/?autoconnect=true&resize=scale&show_dot=true&reconnect=true&password=${data.defaultPassword}`;
+            // Keep noVNC fit-to-container and bias toward smooth local Docker use.
+            const params = new URLSearchParams({
+                autoconnect: '1',
+                reconnect: '1',
+                resize: 'scale',
+                quality: '6',
+                compression: '3',
+                show_dot: '0',
+                password: data.defaultPassword
+            });
+            const vncUrl = `/vnc-proxy/?${params.toString()}`;
             
             // Set the iframe source to the VNC URL
             vncFrame.src = vncUrl;

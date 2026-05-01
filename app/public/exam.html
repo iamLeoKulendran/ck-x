@@ -21,6 +21,15 @@
         </div>
     </div>
 
+    <div class="exam-paused-overlay" id="examPausedOverlay" style="display: none;">
+        <div class="exam-paused-card">
+            <div class="paused-eyebrow">Exam Paused</div>
+            <h2>Timer paused</h2>
+            <p>Your environment is still running. Resume when you are ready to continue.</p>
+            <button type="button" class="btn btn-primary" id="resumeExamOverlayBtn">Resume Exam</button>
+        </div>
+    </div>
+
     <!-- Toast Container for notifications -->
     <div class="toast-container position-fixed top-0 end-0 pt-5 pr-3" id="toastContainer">
         <!-- Toasts will be added here dynamically -->
@@ -93,24 +102,56 @@
         </div>
     </div>
 
+    <!-- Pause Exam Modal -->
+    <div class="modal fade" id="pauseExamModal" tabindex="-1" aria-labelledby="pauseExamModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="pauseExamModalLabel">Pause Exam?</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="mb-2">Pause the current exam timer? You can resume later.</p>
+                    <p class="text-muted mb-0">This does not terminate the session, reset Kubernetes, or delete your work.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-warning" id="confirmPauseExamBtn">Pause Timer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Header -->
     <div class="header">
         <div class="header-title-section">
-            <div class="header-title">CK-X Simulator</div>
+            <div>
+                <div class="header-title">CK-X Simulator</div>
+                <div class="header-subtitle">Practice Exam Mode</div>
+            </div>
             <div class="timer" id="examTimer">120:00</div>
         </div>
+        <div class="header-exam-context">
+            <div class="exam-context-label">Current exam</div>
+            <div class="exam-context-name" id="examNameDisplay">Loading exam...</div>
+        </div>
         <div class="header-controls">
+            <button type="button" class="pause-exam-btn" id="pauseExamBtn">Pause Exam</button>
+            <div class="header-connection" id="globalConnectionState">
+                <span class="connection-dot"></span>
+                <span id="globalConnectionText">Desktop not connected</span>
+            </div>
             <div class="dropdown d-inline-block">
                 <button class="btn-custom dropdown-toggle" type="button" id="examInterfaceDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                     Exam Interface
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="examInterfaceDropdown">
-                    <li><a class="dropdown-item" href="#" id="resizeTerminalBtn">Resize Terminal</a></li>
-                    <li><a class="dropdown-item" href="#" id="fullscreenBtn">Toggle Fullscreen</a></li>
+                    <li><a class="dropdown-item" href="#" id="resizeTerminalBtn">Reset panel width</a></li>
+                    <li><a class="dropdown-item" href="#" id="fullscreenBtn">Toggle page fullscreen</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="#" id="toggleViewBtn">Switch to Terminal</a></li>
+                    <li><a class="dropdown-item" href="#" id="toggleViewBtn">Switch to CK-X terminal helper</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li><a class="dropdown-item" href="https://github.com/nishanb/CK-X">Help</a></li>
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="offcanvas" data-bs-target="#examHelpDrawer">Open Exam Mode help</button></li>
                 </ul>
             </div>
             <div class="dropdown d-inline-block">
@@ -118,8 +159,12 @@
                     Exam Controls
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="examControlsDropdown">
-                    <li><a class="dropdown-item" href="#" id="endExamBtnDropdown">End Exam</a></li>
-                    <li><a class="dropdown-item text-danger" href="#" id="terminateSessionBtn">Terminate Session</a></li>
+                    <li><a class="dropdown-item" href="#" id="endExamBtnDropdown">Submit for evaluation</a></li>
+                    <li><a class="dropdown-item" href="#" id="pauseExamMenuBtn">Pause Exam</a></li>
+                    <li><a class="dropdown-item" href="#" id="reconnectDesktopMenuBtn">Reconnect Desktop (safe)</a></li>
+                    <li><button class="dropdown-item disabled" type="button" aria-disabled="true" title="Safe reset is planned for a later phase.">Reset environment (coming soon)</button></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item text-danger" href="#" id="terminateSessionBtn">Terminate active exam session</a></li>
                 </ul>
             </div>
             <div class="dropdown d-inline-block">
@@ -127,7 +172,7 @@
                     Exam Information
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="examInfoDropdown">
-                    <li><a class="dropdown-item" href="https://docs.linuxfoundation.org/tc-docs/certification" target="_blank">Exam Instructions</a></li>
+                    <li><button class="dropdown-item" type="button" data-bs-toggle="offcanvas" data-bs-target="#examHelpDrawer">ReadMe and exam help</button></li>
                     <li><a class="dropdown-item" href="https://kubernetes.io/docs/home/" target="_blank">Kubernetes Documentation</a></li>
                 </ul>
             </div>
@@ -138,9 +183,16 @@
     <div class="main-container" id="mainContainer">
         <!-- Question Panel (Left) -->
         <div class="question-panel" id="questionPanel">
+            <div class="question-panel-top">
+                <div>
+                    <div class="panel-eyebrow">Tasks</div>
+                    <div class="panel-title">Question workspace</div>
+                </div>
+                <div class="question-progress" id="questionProgress">0 / 0 answered</div>
+            </div>
             <!-- Question Navigation -->
             <div class="question-nav">
-                <button class="nav-arrow" id="prevBtn">&lt;</button>
+                <button class="nav-arrow" id="prevBtn" aria-label="Previous question">&lt;</button>
                 <div class="dropdown question-select">
                     <button class="btn btn-light w-100 dropdown-toggle" type="button" id="questionDropdown" data-bs-toggle="dropdown" aria-expanded="false">
                         Question 1
@@ -153,7 +205,7 @@
                         <li><a class="dropdown-item" href="#" data-question="5">Question 5</a></li>
                     </ul>
                 </div>
-                <button class="nav-arrow" id="nextBtn">&gt;</button>
+                <button class="nav-arrow" id="nextBtn" aria-label="Next question">&gt;</button>
             </div>
             
             <!-- Question Content -->
@@ -173,34 +225,90 @@
         <!-- VNC Panel (Right) -->
         <div class="vnc-panel" id="vncPanel">
             <div class="terminal-container">
-                <div class="terminal-controls">
-                    <button class="btn btn-sm btn-outline-secondary me-2" id="reconnectVncBtn" title="Reconnect to session">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
-                            <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
-                            <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
-                        </svg>
-                    </button>
-                    <button class="btn btn-sm btn-outline-secondary" id="fullscreenVncBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
-                        </svg>
-                    </button>
+                <div class="desktop-toolbar">
+                    <div>
+                        <div class="desktop-title">Remote Desktop</div>
+                        <div class="desktop-subtitle">Connect inside the desktop with <span class="inline-code">ssh ckad9999</span></div>
+                    </div>
+                    <div class="desktop-actions">
+                        <button class="desktop-action-btn" id="reconnectVncBtn" title="Reload the VNC iframe only. This is non-destructive.">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-repeat" viewBox="0 0 16 16">
+                                <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            Reconnect Desktop
+                        </button>
+                        <button class="desktop-action-btn" id="fullscreenVncBtn" title="Open the remote desktop iframe fullscreen">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
+                            </svg>
+                            Fullscreen
+                        </button>
+                    </div>
                 </div>
                 <iframe id="vnc-frame" class="terminal-iframe" src="about:blank"></iframe>
-                <div id="connectionStatus" class="connection-status">Connecting to Session...</div>
+                <div class="desktop-help-strip">
+                    <span><strong>Copy/paste:</strong> click highlighted task text to copy, then use Ctrl+Shift+V in the desktop terminal.</span>
+                    <span><strong>Reconnect Desktop:</strong> safe iframe reconnect only; it does not reset Kubernetes work.</span>
+                </div>
+                <div id="connectionStatus" class="connection-status">Connecting to Desktop...</div>
             </div>
             
             <!-- SSH Terminal Container (initially hidden) -->
             <div class="ssh-terminal-container" id="sshTerminalContainer" style="display: none;">
-                <div class="terminal-controls">
-                    <button class="btn btn-sm btn-outline-secondary" id="fullscreenTerminalBtn">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
-                            <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
-                        </svg>
-                    </button>
+                <div class="desktop-toolbar terminal-helper-toolbar">
+                    <div>
+                        <div class="desktop-title">CK-X Terminal Helper</div>
+                        <div class="desktop-subtitle">Practice convenience only. The remote desktop remains the primary exam workspace.</div>
+                    </div>
+                    <div class="desktop-actions">
+                        <button class="desktop-action-btn" id="fullscreenTerminalBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrows-fullscreen" viewBox="0 0 16 16">
+                                <path fill-rule="evenodd" d="M5.828 10.172a.5.5 0 0 0-.707 0l-4.096 4.096V11.5a.5.5 0 0 0-1 0v3.975a.5.5 0 0 0 .5.5H4.5a.5.5 0 0 0 0-1H1.732l4.096-4.096a.5.5 0 0 0 0-.707zm4.344 0a.5.5 0 0 1 .707 0l4.096 4.096V11.5a.5.5 0 1 1 1 0v3.975a.5.5 0 0 1-.5.5H11.5a.5.5 0 0 1 0-1h2.768l-4.096-4.096a.5.5 0 0 1 0-.707zm0-4.344a.5.5 0 0 0 .707 0l4.096-4.096V4.5a.5.5 0 1 0 1 0V.525a.5.5 0 0 0-.5-.5H11.5a.5.5 0 0 0 0 1h2.768l-4.096 4.096a.5.5 0 0 0 0 .707zm-4.344 0a.5.5 0 0 1-.707 0L1.025 1.732V4.5a.5.5 0 0 1-1 0V.525a.5.5 0 0 1 .5-.5H4.5a.5.5 0 0 1 0 1H1.732l4.096 4.096a.5.5 0 0 1 0 .707z"/>
+                            </svg>
+                            Fullscreen
+                        </button>
+                    </div>
                 </div>
                 <div id="terminal" class="terminal"></div>
                 <div id="sshConnectionStatus" class="connection-status">Connecting to SSH...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Exam Help Drawer -->
+    <div class="offcanvas offcanvas-end exam-help-drawer" tabindex="-1" id="examHelpDrawer" aria-labelledby="examHelpDrawerLabel">
+        <div class="offcanvas-header">
+            <div>
+                <div class="panel-eyebrow">ReadMe</div>
+                <h5 class="offcanvas-title" id="examHelpDrawerLabel">Exam Mode Help</h5>
+            </div>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+        </div>
+        <div class="offcanvas-body">
+            <div class="help-card">
+                <h6>Practice workflow</h6>
+                <p>This is a CK-X practice layout inspired by performance-based exam workflows. It is not an exact copy of any official exam interface.</p>
+            </div>
+            <div class="help-card">
+                <h6>Target host</h6>
+                <p>Run Kubernetes work from the remote desktop terminal with <span class="inline-code">ssh ckad9999</span>. Plain <span class="inline-code">kubectl</span> should work after you connect.</p>
+            </div>
+            <div class="help-card">
+                <h6>Copy and paste</h6>
+                <p>Click highlighted command text in the task panel to copy it. In the desktop terminal, use Ctrl+Shift+V to paste and Ctrl+Shift+C to copy.</p>
+            </div>
+            <div class="help-card">
+                <h6>Reconnect Desktop</h6>
+                <p>Reconnect Desktop reloads only the VNC frame. It is non-destructive and does not reset Kubernetes resources or previous attempts.</p>
+            </div>
+            <div class="help-card">
+                <h6>Pause and reset</h6>
+                <p>Pause Exam stops only the browser countdown until you resume. Environment reset is shown as coming soon because no safe reset backend is enabled in this UI phase.</p>
+            </div>
+            <div class="help-card warning">
+                <h6>Be careful with the session</h6>
+                <p>Avoid refreshing or closing the browser during an exam unless needed. Terminate Session ends the active environment and should only be used when you are finished or intentionally abandoning the attempt.</p>
             </div>
         </div>
     </div>

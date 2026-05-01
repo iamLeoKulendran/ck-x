@@ -19,6 +19,7 @@ COPY scripts/ /usr/local/bin/
 RUN chmod +x /usr/local/bin/env-setup
 RUN chmod +x /usr/local/bin/env-cleanup
 RUN chmod +x /usr/local/bin/k3d-install.sh
+RUN chmod +x /usr/local/bin/k3d-node-shell
 
 ENV KIND_DEFAULT_VERSION=v1.32.3
 

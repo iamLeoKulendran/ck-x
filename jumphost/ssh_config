@@ -1,0 +1,26 @@
+Host controlplane
+  HostName k8s-api-server
+  User candidate
+  RequestTTY force
+  RemoteCommand /usr/local/bin/k3d-node-shell k3d-cluster-server-0 controlplane
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  LogLevel ERROR
+
+Host node01 worker1
+  HostName k8s-api-server
+  User candidate
+  RequestTTY force
+  RemoteCommand /usr/local/bin/k3d-node-shell k3d-cluster-agent-0 node01
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  LogLevel ERROR
+
+Host node02 worker2
+  HostName k8s-api-server
+  User candidate
+  RequestTTY force
+  RemoteCommand /usr/local/bin/k3d-node-shell k3d-cluster-agent-1 node02
+  StrictHostKeyChecking no
+  UserKnownHostsFile /dev/null
+  LogLevel ERROR

@@ -25,26 +25,11 @@ class PanelResizer {
     
     init() {
         if (this.debug) console.log('Initializing panel resizer');
-        
-        // Try to restore previous panel width from localStorage
-        const savedWidth = localStorage.getItem(this.storageKey);
-        if (savedWidth) {
-            this.leftPanel.style.width = savedWidth;
-            if (this.debug) console.log('Restored width from localStorage:', savedWidth);
-        }
-        
-        // Mouse events for desktop
-        this.divider.addEventListener('mousedown', this.startDrag.bind(this));
-        window.addEventListener('mousemove', this.drag.bind(this));
-        window.addEventListener('mouseup', this.stopDrag.bind(this));
-        
-        // Touch events for mobile
-        this.divider.addEventListener('touchstart', this.startDrag.bind(this));
-        window.addEventListener('touchmove', this.drag.bind(this));
-        window.addEventListener('touchend', this.stopDrag.bind(this));
-        
-        // Double click to reset
-        this.divider.addEventListener('dblclick', this.resetPanels.bind(this));
+
+        // The splitter is intentionally locked for exam usability. A no-op
+        // resizer object remains so existing menu actions do not break.
+        localStorage.removeItem(this.storageKey);
+        this.resetPanels();
     }
     
     startDrag(e) {
@@ -125,12 +110,10 @@ class PanelResizer {
     }
     
     resetPanels() {
-        // Reset to default width (30%)
-        this.leftPanel.style.width = '30%';
-        localStorage.setItem(this.storageKey, '30%');
+        this.leftPanel.style.width = '';
         
         if (this.debug) {
-            console.log('Panels reset to default width');
+            console.log('Panels reset to locked layout');
         }
     }
 }
@@ -146,6 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
         minLeftWidth: 200, // Minimum width for question panel
         minRightWidth: 300, // Minimum width for VNC panel
         storageKey: 'examPanelWidth',
-        debug: true // Enable debug for troubleshooting
+        debug: false
     });
 }); 

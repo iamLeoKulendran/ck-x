@@ -78,8 +78,12 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') | ├── Name:  $CLUSTER_NAME"
 echo "$(date '+%Y-%m-%d %H:%M:%S') | ├── Config: /tmp/k3d-config.yaml"
 echo "$(date '+%Y-%m-%d %H:%M:%S') | └── Number of nodes: $((NUM_WORKERS + 1)) (1 server + $NUM_WORKERS agents)"
 
-# Create k3d cluster
-k3d cluster create --config /tmp/k3d-config.yaml
+# Create k3d cluster, or reuse it when Docker restored an existing exam cluster.
+if k3d cluster list | grep -q "$CLUSTER_NAME"; then
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | K3d cluster '$CLUSTER_NAME' already exists; reusing it"
+else
+    k3d cluster create --config /tmp/k3d-config.yaml
+fi
 
 # ===============================================================================
 #   Cluster Readiness Check
@@ -108,11 +112,15 @@ echo "Kubeconfig file created: /home/candidate/.kube/kubeconfig"
 
 # Save kubeconfig and set API server address
 sed -i 's|server: https://127\.0\.0\.1:\([0-9]*\)|server: https://k8s-api-server:\1|' /home/candidate/.kube/kubeconfig
+cp /home/candidate/.kube/kubeconfig /home/candidate/.kube/config
+chown candidate:candidate /home/candidate/.kube/kubeconfig /home/candidate/.kube/config
+chmod 600 /home/candidate/.kube/kubeconfig /home/candidate/.kube/config
+echo "Default kubeconfig refreshed: /home/candidate/.kube/config"
 
 echo "Kubeconfig file content:"
 cat /home/candidate/.kube/kubeconfig
 
-export KUBECONFIG=/home/candidate/.kube/kubeconfig
+export KUBECONFIG=/home/candidate/.kube/config
 
 #info on config file setup done 
 echo "$(date '+%Y-%m-%d %H:%M:%S') | Config file setup done"

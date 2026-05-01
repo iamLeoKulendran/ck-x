@@ -55,6 +55,7 @@ RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/
 RUN sed -i 's/#PermitEmptyPasswords no/PermitEmptyPasswords yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication no/' /etc/ssh/sshd_config
 RUN sed -i 's/#UsePAM yes/UsePAM no/' /etc/ssh/sshd_config
+RUN echo "SetEnv KUBECONFIG=/home/candidate/.kube/config" >> /etc/ssh/sshd_config
 
 # Completely remove password requirement
 RUN echo "root::0:0:root:/root:/bin/bash" > /etc/passwd
@@ -70,6 +71,14 @@ RUN echo "candidate:x:1000:1000:candidate:/home/candidate:/bin/bash" >> /etc/pas
 RUN mkdir -p /home/candidate/.kube /home/candidate/.minikube
 RUN chown -R candidate: /home/candidate/.kube /home/candidate/.minikube
 
+# CKA-style node helpers. These stay internal and do not expose new ports.
+COPY ssh_config /tmp/ckx-ssh-config
+RUN mkdir -p /home/candidate/.ssh && \
+    cp /tmp/ckx-ssh-config /home/candidate/.ssh/config && \
+    chown -R candidate: /home/candidate/.ssh && \
+    chmod 700 /home/candidate/.ssh && \
+    chmod 600 /home/candidate/.ssh/config
+
 # Copy exam environment scripts
 COPY scripts/prepare-exam-env.sh /usr/local/bin/prepare-exam-env
 COPY scripts/cleanup-exam-env.sh /usr/local/bin/cleanup-exam-env
@@ -84,8 +93,11 @@ RUN mkdir -p /tmp/exam-env
 EXPOSE 22
 
 RUN echo "export TERM=xterm" >> /home/candidate/.bashrc
-RUN echo "export KUBECONFIG=/home/candidate/.kube/kubeconfig" >> /home/candidate/.bashrc
+RUN echo "export KUBECONFIG=/home/candidate/.kube/config" >> /home/candidate/.bashrc
 RUN echo "PS1='\[\e[32m\]\u@\h:\w\$ \[\e[0m\]'" >> /home/candidate/.bashrc
+RUN echo "alias controlplane='ssh controlplane'" >> /home/candidate/.bashrc
+RUN echo "alias node01='ssh node01'" >> /home/candidate/.bashrc
+RUN echo "alias node02='ssh node02'" >> /home/candidate/.bashrc
 
 #set kubectl autocompletion
 RUN echo "source /usr/share/bash-completion/bash_completion" >> /home/candidate/.bashrc && \

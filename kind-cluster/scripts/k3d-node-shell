@@ -1,0 +1,155 @@
+#!/bin/sh
+set -eu
+
+NODE_CONTAINER="${1:-k3d-cluster-server-0}"
+NODE_LABEL="${2:-$NODE_CONTAINER}"
+KUBECONFIG_PATH="${CKX_NODE_KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
+BASH_RC="/tmp/ckx-node-bashrc"
+
+if ! command -v docker >/dev/null 2>&1; then
+  echo "docker is not available on the CK-X Kubernetes host." >&2
+  exit 127
+fi
+
+if ! docker ps --format '{{.Names}}' | grep -qx "$NODE_CONTAINER"; then
+  echo "Kubernetes node container '$NODE_CONTAINER' is not running yet." >&2
+  echo "Start an exam, wait for the cluster to become Ready, then retry." >&2
+  exit 1
+fi
+
+if [ "$NODE_CONTAINER" = "k3d-cluster-server-0" ]; then
+  if ! docker exec "$NODE_CONTAINER" sh -lc 'command -v kubectl >/dev/null 2>&1'; then
+    echo "kubectl is not available inside '$NODE_CONTAINER'." >&2
+    exit 1
+  fi
+fi
+
+copy_if_exists() {
+  if [ -e "$1" ]; then
+    docker cp "$1" "$NODE_CONTAINER:$1" >/dev/null 2>&1 || true
+  fi
+}
+
+ensure_bash() {
+  if docker exec "$NODE_CONTAINER" sh -lc 'command -v bash >/dev/null 2>&1 && bash --version >/dev/null 2>&1'; then
+    return 0
+  fi
+
+  docker exec "$NODE_CONTAINER" sh -lc 'mkdir -p /bin /lib /usr/lib'
+
+  copy_if_exists /bin/bash
+  for lib in /lib/ld-musl-*.so.1 /usr/lib/libreadline.so.* /usr/lib/libncursesw.so.*; do
+    copy_if_exists "$lib"
+  done
+
+  docker exec "$NODE_CONTAINER" sh -lc '
+    [ -x /bin/bash ] || exit 1
+    if [ -f /usr/lib/libreadline.so.8.3 ]; then ln -sf libreadline.so.8.3 /usr/lib/libreadline.so.8; fi
+    if [ -f /usr/lib/libncursesw.so.6.5 ]; then ln -sf libncursesw.so.6.5 /usr/lib/libncursesw.so.6; fi
+    chmod +x /bin/bash
+  '
+
+  if ! docker exec "$NODE_CONTAINER" sh -lc 'bash --version >/dev/null 2>&1'; then
+    echo "Unable to prepare bash inside '$NODE_CONTAINER' for kubectl completion." >&2
+    exit 1
+  fi
+}
+
+write_bashrc() {
+  docker exec -i "$NODE_CONTAINER" sh -lc "cat > '$BASH_RC'" <<'EOF'
+export TERM="${TERM:-xterm}"
+export KUBECONFIG="${KUBECONFIG:-/etc/rancher/k3s/k3s.yaml}"
+export do='--dry-run=client -o yaml'
+export now='--force --grace-period=0'
+
+alias k='kubectl'
+alias kg='kubectl get'
+alias kd='kubectl describe'
+alias ka='kubectl apply -f'
+alias kdel='kubectl delete'
+alias kgp='kubectl get pods'
+alias kgn='kubectl get nodes'
+alias kgs='kubectl get svc'
+alias kgd='kubectl get deploy'
+alias kn='kubectl config set-context --current --namespace'
+
+_get_comp_words_by_ref() {
+  local cur_name prev_name words_name cword_name prev_index prev_value
+
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n)
+        shift 2
+        ;;
+      cur)
+        cur_name="$1"
+        shift
+        ;;
+      prev)
+        prev_name="$1"
+        shift
+        ;;
+      words)
+        words_name="$1"
+        shift
+        ;;
+      cword)
+        cword_name="$1"
+        shift
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+
+  prev_index=$((COMP_CWORD - 1))
+  if [[ "$prev_index" -ge 0 ]]; then
+    prev_value="${COMP_WORDS[$prev_index]}"
+  else
+    prev_value=""
+  fi
+
+  [[ -n "$cur_name" ]] && printf -v "$cur_name" '%s' "${COMP_WORDS[$COMP_CWORD]}"
+  [[ -n "$prev_name" ]] && printf -v "$prev_name" '%s' "$prev_value"
+  [[ -n "$words_name" ]] && eval "$words_name=(\"\${COMP_WORDS[@]}\")"
+  [[ -n "$cword_name" ]] && printf -v "$cword_name" '%s' "$COMP_CWORD"
+}
+
+_filedir() {
+  local mode="${1:-}"
+  local IFS=$'\n'
+
+  if [[ "$mode" == "-d" ]]; then
+    COMPREPLY=( $(compgen -d -- "${cur:-}") )
+  else
+    COMPREPLY=( $(compgen -f -- "${cur:-}") )
+  fi
+}
+
+if command -v kubectl >/dev/null 2>&1; then
+  source <(kubectl completion bash) >/dev/null 2>&1 || true
+  complete -o default -F __start_kubectl kubectl >/dev/null 2>&1 || true
+  complete -o default -F __start_kubectl k >/dev/null 2>&1 || true
+fi
+
+PS1="candidate@${CKX_NODE_LABEL:-controlplane}:\w\$ "
+EOF
+}
+
+if [ -t 0 ] && [ -t 1 ]; then
+  ensure_bash
+  write_bashrc
+
+  exec docker exec \
+    -e CKX_NODE_LABEL="$NODE_LABEL" \
+    -e KUBECONFIG="$KUBECONFIG_PATH" \
+    -it "$NODE_CONTAINER" \
+    sh -lc "cd /root 2>/dev/null || cd /; echo \"Connected to CK-X simulated node: \${CKX_NODE_LABEL} (\$(hostname))\"; if command -v kubectl >/dev/null 2>&1; then echo \"kubectl: \$(command -v kubectl)\"; echo \"kubeconfig: \${KUBECONFIG}\"; echo \"shortcuts: k, kg, kd, ka, kdel, kgp, kgn, kgd, kn\"; fi; exec bash --rcfile '$BASH_RC' -i"
+fi
+
+exec docker exec \
+  -e CKX_NODE_LABEL="$NODE_LABEL" \
+  -e KUBECONFIG="$KUBECONFIG_PATH" \
+  -i "$NODE_CONTAINER" \
+  sh -lc 'cd /root 2>/dev/null || cd /; exec sh'

@@ -58,6 +58,26 @@ function processQuestionContent(content) {
     return processedContent;
 }
 
+function removeEstimatedTime(content) {
+    return String(content || '').replace(/^Estimated time:\s*`?\d+`?\s*minutes?\.\s*\n*/i, '');
+}
+
+function getQuestionWeight(question) {
+    const originalData = question.originalData || {};
+    const directWeight = Number(originalData.weightage ?? originalData.weight ?? originalData.marks);
+    if (Number.isFinite(directWeight) && directWeight > 0) {
+        return `${directWeight} ${directWeight === 1 ? 'mark' : 'marks'}`;
+    }
+
+    const verification = Array.isArray(originalData.verification) ? originalData.verification : [];
+    const derivedWeight = verification.reduce((total, step) => {
+        const stepWeight = Number(step.weightage ?? step.weight ?? 0);
+        return Number.isFinite(stepWeight) ? total + stepWeight : total;
+    }, 0);
+
+    return derivedWeight > 0 ? `${derivedWeight} ${derivedWeight === 1 ? 'mark' : 'marks'}` : 'Not specified';
+}
+
 // Generate question content HTML
 function generateQuestionContent(question) {
     try {
@@ -66,45 +86,61 @@ function generateQuestionContent(question) {
         const machineHostname = originalData.machineHostname || 'N/A';
         const namespace = originalData.namespace || 'N/A';
         const concepts = originalData.concepts || [];
-        const conceptsString = concepts.join(', ');
+        const conceptsString = concepts.join(', ') || 'Not specified';
+        const questionWeight = getQuestionWeight(question);
         
         // Format question content with improved styling
-        const formattedQuestionContent = processQuestionContent(question.content);
+        const formattedQuestionContent = processQuestionContent(removeEstimatedTime(question.content));
+        const doneState = question.answered ? 'done' : 'open';
+        const doneText = question.answered ? 'Done' : 'Open';
         
         // Create formatted content with minimal layout
         return `
-            <div class="d-flex flex-column" style="height: 100%;">
+            <div class="question-layout">
                 <div class="question-header">
-                    
-                    <div class="mb-3">
-                        <strong>Solve this question on instance:</strong> <span class="inline-code">ssh ${machineHostname}</span></span>
+                    <div class="question-header-line">
+                        <div>
+                            <div class="question-kicker">Question ${question.id}</div>
+                            <div class="question-title-line">Complete this task on <span class="inline-code">ssh ${machineHostname}</span></div>
+                        </div>
+                        <div class="question-state ${doneState}">${doneText}</div>
                     </div>
-                    
-                    <div class="mb-3">
-                        <strong>Namespace:</strong> <span class="text-primary">${namespace}</span>
+
+                    <div class="question-meta-strip">
+                        <div class="question-meta-item">
+                            <span>Question Weight</span>
+                            <strong>${questionWeight}</strong>
+                        </div>
+                        <div class="question-meta-item">
+                            <span>Namespace</span>
+                            <strong>${namespace}</strong>
+                        </div>
+                        <div class="question-meta-item wide">
+                            <span>Concepts</span>
+                            <strong>${conceptsString}</strong>
+                        </div>
+                        ${question.flagged ? '<div class="question-flag-note">Flagged for review</div>' : ''}
                     </div>
-                    
-                    <div class="mb-3">
-                        <strong>Concepts:</strong> <span class="text-primary">${conceptsString}</span>
-                    </div>
-                    
-                    <hr class="my-3">
                 </div>
                 
+                <div class="question-section-title">Task</div>
                 <div class="question-body">
                     ${formattedQuestionContent}
                 </div>
                 
                 <div class="action-buttons-container mt-auto">
-                    <div class="d-flex justify-content-between py-2">
-                        <button class="btn ${question.flagged ? 'btn-warning' : 'btn-outline-warning'}" id="flagQuestionBtn">
+                    <div class="question-actions">
+                        <button class="question-action-btn secondary ${question.flagged ? 'is-active' : ''}" id="flagQuestionBtn">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-flag${question.flagged ? '-fill' : ''} me-2" viewBox="0 0 16 16">
                                 <path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12.435 12.435 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A19.626 19.626 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a19.587 19.587 0 0 0 1.349-.476l.019-.007.004-.002h.001"/>
                             </svg>
                             ${question.flagged ? 'Flagged' : 'Flag for review'}
                         </button>
-                        <button class="btn btn-success" id="nextQuestionBtn">
-                            Satisfied with answer
+                        <button class="question-action-btn ${question.answered ? 'is-complete' : ''}" id="markDoneBtn">
+                            ${question.answered ? 'Marked done' : 'Mark as done'}
+                        </button>
+                        <button class="question-action-btn primary" id="nextQuestionBtn">
+                            Next question
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-right ms-2" viewBox="0 0 16 16">
                                 <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
                             </svg>
@@ -128,7 +164,8 @@ function transformQuestionsFromApi(data) {
             content: q.question || '', // Map 'question' field to 'content'
             title: `Question ${q.id}`,  // Create a title from the ID
             originalData: q, // Keep original data for reference if needed
-            flagged: false // Add flagged status property
+            flagged: false, // Add flagged status property
+            answered: false
         }));
     }
     return [];
@@ -143,18 +180,30 @@ function updateQuestionDropdown(questionsArray, dropdownMenu, currentId, onQuest
     questionsArray.forEach((question) => {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.className = 'dropdown-item';
+        a.className = 'dropdown-item question-dropdown-item';
         a.href = '#';
         a.dataset.question = question.id;
-        a.textContent = `Question ${question.id}`;
+        a.classList.toggle('active', String(question.id) === String(currentId));
+        const label = document.createElement('span');
+        label.textContent = `Question ${question.id}`;
+        a.appendChild(label);
+        const badges = document.createElement('span');
+        badges.className = 'question-dropdown-badges';
+        if (question.answered) {
+            const answeredBadge = document.createElement('span');
+            answeredBadge.className = 'mini-badge answered';
+            answeredBadge.textContent = 'Done';
+            badges.appendChild(answeredBadge);
+        }
         
         // Add flag icon if question is flagged
         if (question.flagged) {
-            const flagIcon = document.createElement('span');
-            flagIcon.className = 'flag-icon ms-2';
-            flagIcon.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="currentColor" class="bi bi-flag-fill text-warning" viewBox="0 0 16 16"><path d="M14.778.085A.5.5 0 0 1 15 .5V8a.5.5 0 0 1-.314.464L14.5 8l.186.464-.003.001-.006.003-.023.009a12.435 12.435 0 0 1-.397.15c-.264.095-.631.223-1.047.35-.816.252-1.879.523-2.71.523-.847 0-1.548-.28-2.158-.525l-.028-.01C7.68 8.71 7.14 8.5 6.5 8.5c-.7 0-1.638.23-2.437.477A19.626 19.626 0 0 0 3 9.342V15.5a.5.5 0 0 1-1 0V.5a.5.5 0 0 1 1 0v.282c.226-.079.496-.17.79-.26C4.606.272 5.67 0 6.5 0c.84 0 1.524.277 2.121.519l.043.018C9.286.788 9.828 1 10.5 1c.7 0 1.638-.23 2.437-.477a19.587 19.587 0 0 0 1.349-.476l.019-.007.004-.002h.001"/></svg>';
-            a.appendChild(flagIcon);
+            const flagBadge = document.createElement('span');
+            flagBadge.className = 'mini-badge flagged';
+            flagBadge.textContent = 'Flag';
+            badges.appendChild(flagBadge);
         }
+        a.appendChild(badges);
         
         // Add click event
         a.addEventListener('click', function(e) {

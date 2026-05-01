@@ -33,12 +33,23 @@ document.addEventListener('DOMContentLoaded', function() {
     const sshTerminalContainer = document.getElementById('sshTerminalContainer');
     const sshConnectionStatus = document.getElementById('sshConnectionStatus');
     const viewResultsBtn = document.getElementById('viewResultsBtn');
+    const examNameDisplay = document.getElementById('examNameDisplay');
+    const globalConnectionState = document.getElementById('globalConnectionState');
+    const globalConnectionText = document.getElementById('globalConnectionText');
+    const questionProgress = document.getElementById('questionProgress');
+    const reconnectDesktopMenuBtn = document.getElementById('reconnectDesktopMenuBtn');
+    const pauseExamBtn = document.getElementById('pauseExamBtn');
+    const pauseExamMenuBtn = document.getElementById('pauseExamMenuBtn');
+    const confirmPauseExamBtn = document.getElementById('confirmPauseExamBtn');
+    const resumeExamOverlayBtn = document.getElementById('resumeExamOverlayBtn');
+    const examPausedOverlay = document.getElementById('examPausedOverlay');
     
     // Modals
     const confirmModal = new bootstrap.Modal(document.getElementById('confirmModal'));
     const terminateModal = new bootstrap.Modal(document.getElementById('terminateModal'));
     const startExamModal = new bootstrap.Modal(document.getElementById('startExamModal'));
     const examEndModal = new bootstrap.Modal(document.getElementById('examEndModal'));
+    const pauseExamModal = new bootstrap.Modal(document.getElementById('pauseExamModal'));
     
     // State variables
     let examInfo = {}; // Store exam information
@@ -46,6 +57,9 @@ document.addEventListener('DOMContentLoaded', function() {
     let questions = [];
     let isTerminalActive = false;
     let isCompletedExamMode = false;
+    let isExamPaused = false;
+    let pausedRemainingSeconds = null;
+    let clientTimerInterval = null;
     
     // Add event listener for page unload to clean up resources
     window.addEventListener('beforeunload', cleanupResources);
@@ -83,6 +97,7 @@ document.addEventListener('DOMContentLoaded', function() {
             .then(([examInfoData, questionsData]) => {
                 // Store exam info for later use
                 examInfo = examInfoData;
+                updateExamHeader(examInfoData);
                 
                 // Hide timer for completed exam
                 examTimer.style.display = 'none';
@@ -149,11 +164,184 @@ document.addEventListener('DOMContentLoaded', function() {
     // Function to show VNC connection status
     function showVncConnectionStatus(message, type) {
         UiUtils.showConnectionStatus(connectionStatus, message, type);
+        updateGlobalConnectionState(message, type);
     }
     
     // Function to show SSH connection status
     function showSshConnectionStatus(message, type) {
         UiUtils.showConnectionStatus(sshConnectionStatus, message, type);
+    }
+
+    function updateGlobalConnectionState(message, type = 'info') {
+        if (!globalConnectionState || !globalConnectionText) {
+            return;
+        }
+
+        globalConnectionState.classList.remove('success', 'error', 'info');
+        globalConnectionState.classList.add(type);
+        globalConnectionText.textContent = message || 'Desktop status unknown';
+    }
+
+    function updateExamHeader(data) {
+        if (!examNameDisplay) {
+            return;
+        }
+
+        const name = data?.info?.name || data?.info?.id || 'Exam session';
+        examNameDisplay.textContent = name;
+        examNameDisplay.title = name;
+    }
+
+    function updateQuestionProgress() {
+        if (!questionProgress || !questions.length) {
+            return;
+        }
+
+        const answeredCount = questions.filter(question => question.answered).length;
+        const flaggedCount = questions.filter(question => question.flagged).length;
+        questionProgress.textContent = `${answeredCount} / ${questions.length} done${flaggedCount ? ` | ${flaggedCount} flagged` : ''}`;
+    }
+
+    function markQuestionAnswered(questionId) {
+        const questionIndex = questions.findIndex(q => q.id === questionId || q.id === questionId.toString());
+        if (questionIndex !== -1) {
+            questions[questionIndex].answered = true;
+            updateQuestionDropdown();
+            updateQuestionProgress();
+        }
+    }
+
+    function getPauseStorageKey() {
+        const examId = ExamApi.getExamId() || 'current';
+        return `ckx-exam-paused:${examId}`;
+    }
+
+    function parseTimerSeconds() {
+        const [minutes = '0', seconds = '0'] = (examTimer.textContent || '0:00').split(':');
+        const parsedMinutes = parseInt(minutes, 10);
+        const parsedSeconds = parseInt(seconds, 10);
+        if (Number.isNaN(parsedMinutes) || Number.isNaN(parsedSeconds)) {
+            return 0;
+        }
+        return Math.max(0, (parsedMinutes * 60) + parsedSeconds);
+    }
+
+    function formatTimerSeconds(totalSeconds) {
+        const safeSeconds = Math.max(0, Math.floor(totalSeconds));
+        const minutes = Math.floor(safeSeconds / 60);
+        const seconds = safeSeconds % 60;
+        return `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+    }
+
+    function setTimerDisplayFromSeconds(totalSeconds) {
+        examTimer.textContent = formatTimerSeconds(totalSeconds);
+        examTimer.classList.toggle('timer-warning', totalSeconds < 300);
+    }
+
+    function stopAllTimers() {
+        TimerService.stopTimer();
+        if (clientTimerInterval) {
+            clearInterval(clientTimerInterval);
+            clientTimerInterval = null;
+        }
+    }
+
+    function persistPausedState(totalSeconds) {
+        localStorage.setItem(getPauseStorageKey(), JSON.stringify({
+            remainingSeconds: totalSeconds,
+            pausedAt: Date.now()
+        }));
+    }
+
+    function clearPausedState() {
+        localStorage.removeItem(getPauseStorageKey());
+    }
+
+    function setPauseUi(paused) {
+        isExamPaused = paused;
+        document.body.classList.toggle('exam-is-paused', paused);
+        if (examPausedOverlay) {
+            examPausedOverlay.style.display = paused ? 'flex' : 'none';
+        }
+        if (pauseExamBtn) {
+            pauseExamBtn.textContent = paused ? 'Resume Exam' : 'Pause Exam';
+            pauseExamBtn.classList.toggle('is-paused', paused);
+        }
+        if (pauseExamMenuBtn) {
+            pauseExamMenuBtn.textContent = paused ? 'Resume Exam' : 'Pause Exam';
+        }
+    }
+
+    function pauseExam(remainingSeconds = parseTimerSeconds()) {
+        if (isCompletedExamMode || remainingSeconds <= 0) {
+            return;
+        }
+        stopAllTimers();
+        pausedRemainingSeconds = remainingSeconds;
+        setTimerDisplayFromSeconds(pausedRemainingSeconds);
+        persistPausedState(pausedRemainingSeconds);
+        setPauseUi(true);
+    }
+
+    function startClientTimer(remainingSeconds) {
+        stopAllTimers();
+        let secondsLeft = Math.max(0, remainingSeconds);
+        setTimerDisplayFromSeconds(secondsLeft);
+
+        clientTimerInterval = setInterval(() => {
+            secondsLeft -= 1;
+            pausedRemainingSeconds = secondsLeft;
+            setTimerDisplayFromSeconds(secondsLeft);
+
+            if (secondsLeft <= 0) {
+                stopAllTimers();
+                clearPausedState();
+                handleExamEnd();
+            }
+        }, 1000);
+    }
+
+    function resumeExam() {
+        const secondsToResume = pausedRemainingSeconds || parseTimerSeconds();
+        clearPausedState();
+        setPauseUi(false);
+        if (secondsToResume > 0) {
+            startClientTimer(secondsToResume);
+        }
+    }
+
+    function restorePausedExamIfNeeded() {
+        const savedPause = localStorage.getItem(getPauseStorageKey());
+        if (!savedPause) {
+            return false;
+        }
+
+        try {
+            const parsedPause = JSON.parse(savedPause);
+            const remainingSeconds = Number(parsedPause.remainingSeconds);
+            if (Number.isFinite(remainingSeconds) && remainingSeconds > 0) {
+                pauseExam(remainingSeconds);
+                return true;
+            }
+        } catch (error) {
+            console.warn('Ignoring invalid paused exam state:', error);
+            clearPausedState();
+        }
+
+        return false;
+    }
+
+    function togglePauseExam() {
+        if (isExamPaused) {
+            resumeExam();
+        } else {
+            pauseExamModal.show();
+        }
+    }
+
+    function reconnectDesktop() {
+        showVncConnectionStatus('Reconnecting to Remote Desktop...', 'info');
+        RemoteDesktopService.connectToRemoteDesktop(vncFrame, showVncConnectionStatus);
     }
     
     // Setup callbacks for terminal service
@@ -170,6 +358,7 @@ document.addEventListener('DOMContentLoaded', function() {
         ExamApi.fetchCurrentExamInfo()
             .then(data => {
                 examInfo = data;
+                updateExamHeader(data);
                 
                 // Connect to environment
                 connectToExamSession();
@@ -222,6 +411,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return ExamApi.fetchCurrentExamInfo()
                     .then(data => {
                         examInfo = data;
+                        updateExamHeader(data);
                         
                         // Set timer based on examDurationInMinutes and examStartTime if available
                         if (data.info) {
@@ -457,8 +647,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // Set up timer notifications
             setupTimerNotifications();
 
-        // Start the timer
+            // Start the timer
             TimerService.startTimer();
+            restorePausedExamIfNeeded();
         }
         
         // Track exam start
@@ -472,6 +663,9 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Handle exam end when timer reaches zero
     function handleExamEnd() {
+        clearPausedState();
+        setPauseUi(false);
+
         // Release wake lock as exam is ending
         WakeLockService.releaseWakeLock()
             .then(success => {
@@ -539,25 +733,36 @@ document.addEventListener('DOMContentLoaded', function() {
                             actionButtonsContainer.style.display = 'none';
                         }
                     } else {
-                    // Add functionality to flag button
-                    const flagQuestionBtn = document.getElementById('flagQuestionBtn');
-                    if (flagQuestionBtn) {
-                        flagQuestionBtn.addEventListener('click', function() {
-                            toggleQuestionFlag(questionId);
-                        });
-                    }
-                    
-                    // Add functionality to next button
-                    const nextQuestionBtn = document.getElementById('nextQuestionBtn');
-                    if (nextQuestionBtn) {
-                        nextQuestionBtn.addEventListener('click', function() {
-                                const currentIndex = questions.findIndex(q => q.id === currentQuestionId || q.id === currentQuestionId.toString());
-                            if (currentIndex < questions.length - 1) {
-                                currentQuestionId = questions[currentIndex + 1].id;
+                        // Add functionality to flag button
+                        const flagQuestionBtn = document.getElementById('flagQuestionBtn');
+                        if (flagQuestionBtn) {
+                            flagQuestionBtn.addEventListener('click', function() {
+                                toggleQuestionFlag(questionId);
+                            });
+                        }
+                        
+                        // Add functionality to done button
+                        const markDoneBtn = document.getElementById('markDoneBtn');
+                        if (markDoneBtn) {
+                            markDoneBtn.addEventListener('click', function() {
+                                markQuestionAnswered(currentQuestionId);
                                 updateQuestionContent(currentQuestionId);
-                                updateNavigationButtons();
-                            }
-                        });
+                            });
+                        }
+                        
+                        // Add functionality to next button
+                        const nextQuestionBtn = document.getElementById('nextQuestionBtn');
+                        if (nextQuestionBtn) {
+                            nextQuestionBtn.addEventListener('click', function() {
+                                const currentIndex = questions.findIndex(q => q.id === currentQuestionId || q.id === currentQuestionId.toString());
+                                if (currentIndex < questions.length - 1) {
+                                    currentQuestionId = questions[currentIndex + 1].id;
+                                    updateQuestionContent(currentQuestionId);
+                                    updateNavigationButtons();
+                                } else {
+                                    updateQuestionContent(currentQuestionId);
+                                }
+                            });
                         }
                     }
                     
@@ -593,13 +798,13 @@ document.addEventListener('DOMContentLoaded', function() {
             // Switch to VNC
             sshTerminalContainer.style.display = 'none';
             terminalContainer.style.display = 'flex';
-            toggleViewBtn.textContent = 'Switch to Terminal';
+            toggleViewBtn.textContent = 'Switch to CK-X terminal helper';
             isTerminalActive = false;
         } else {
             // Switch to Terminal
             terminalContainer.style.display = 'none';
             sshTerminalContainer.style.display = 'flex';
-            toggleViewBtn.textContent = 'Switch to Remote Desktop';
+            toggleViewBtn.textContent = 'Switch back to Remote Desktop';
             isTerminalActive = true;
             
             // Show toast notification about real exam constraints
@@ -634,6 +839,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update navigation buttons
         updateNavigationButtons();
+
+        // Update answered and flagged summary
+        updateQuestionProgress();
         
         // Setup Remote Desktop frame handlers
         RemoteDesktopService.setupRemoteDesktopFrameHandlers(vncFrame, showVncConnectionStatus);
@@ -704,8 +912,41 @@ document.addEventListener('DOMContentLoaded', function() {
         if (reconnectVncBtn) {
             reconnectVncBtn.addEventListener('click', function(e) {
                 e.preventDefault();
-                showVncConnectionStatus('Reconnecting to Remote Desktop...', 'info');
-                RemoteDesktopService.connectToRemoteDesktop(vncFrame, showVncConnectionStatus);
+                reconnectDesktop();
+            });
+        }
+
+        if (reconnectDesktopMenuBtn) {
+            reconnectDesktopMenuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                reconnectDesktop();
+            });
+        }
+
+        if (pauseExamBtn) {
+            pauseExamBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                togglePauseExam();
+            });
+        }
+
+        if (pauseExamMenuBtn) {
+            pauseExamMenuBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                togglePauseExam();
+            });
+        }
+
+        if (confirmPauseExamBtn) {
+            confirmPauseExamBtn.addEventListener('click', function() {
+                pauseExamModal.hide();
+                pauseExam();
+            });
+        }
+
+        if (resumeExamOverlayBtn) {
+            resumeExamOverlayBtn.addEventListener('click', function() {
+                resumeExam();
             });
         }
         
@@ -802,7 +1043,8 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .then(data => {
             console.log('Exam evaluation started:', data);
-                TimerService.stopTimer();
+                stopAllTimers();
+                clearPausedState();
                 
                 // Show loader for 3 seconds before redirecting
                 setTimeout(() => {
@@ -839,7 +1081,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(data => {
             console.log('Session terminated successfully:', data);
             // Stop timer
-                TimerService.stopTimer();
+                stopAllTimers();
+                clearPausedState();
             // Redirect to main page
             window.location.href = '/';
         })
@@ -885,6 +1128,7 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update the dropdown display
             updateQuestionDropdown();
+            updateQuestionProgress();
         }
     }
     
@@ -893,10 +1137,7 @@ document.addEventListener('DOMContentLoaded', function() {
         // Release wake lock
         WakeLockService.releaseWakeLock();
         
-        // Stop timer if running
-        if (TimerService.isTimerActive) {
-            TimerService.stopTimer();
-        }
+        stopAllTimers();
         
         console.log('Resources cleaned up before page unload');
     }
