@@ -99,6 +99,16 @@
       "warmUpTimeInSeconds": 260,
       "difficulty": "Medium",
       "examDurationInMinutes": 90
+    },
+    {
+      "id": "cka-005",
+      "assetPath": "assets/exams/cka/005",
+      "name": "Mock Exam - CKA revision -1",
+      "category": "CKA",
+      "description": "Original CKA-style mock exam covering troubleshooting, workloads, services, networking, storage, RBAC, Helm, Kustomize, and CRDs.",
+      "warmUpTimeInSeconds": 360,
+      "difficulty": "Hard",
+      "examDurationInMinutes": 120
     }
   ]
 }
