@@ -199,7 +199,7 @@ kubectl -n rev1-q08 patch pdb api-pdb \
   -p '{"spec":{"minAvailable":1}}'
 
 # Drain the node
-kubectl drain "$NODE" --ignore-daemonsets --delete-emptydir-data
+kubectl drain "$NODE" --ignore-daemonsets --delete-emptydir-data --force
 
 # Uncordon after maintenance
 kubectl uncordon "$NODE"
@@ -312,14 +312,20 @@ kubectl -n rev1-q12 get configmap
 **Goal:** Delete StatefulSet, recreate with `storageClassName: standard`.
 
 ```bash
-# Export current spec
+# Export current spec before deleting
 kubectl -n rev1-q13 get statefulset cache-cluster -o yaml > /tmp/cache-cluster.yaml
 
 # Edit: change premium-nvme -> standard in volumeClaimTemplates
 sed -i 's/premium-nvme/standard/g' /tmp/cache-cluster.yaml
 
-# Delete and recreate (volumeClaimTemplates immutable)
+# Delete StatefulSet (volumeClaimTemplates immutable)
 kubectl -n rev1-q13 delete statefulset cache-cluster
+
+# REQUIRED: delete stale PVCs — StatefulSet PVCs are NOT garbage-collected on deletion.
+# They still reference premium-nvme and will block fresh PVC binding.
+kubectl delete pvc -n rev1-q13 --all
+
+# Recreate with corrected storageClassName
 kubectl apply -f /tmp/cache-cluster.yaml
 ```
 

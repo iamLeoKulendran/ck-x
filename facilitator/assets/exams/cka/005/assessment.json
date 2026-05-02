@@ -4,7 +4,7 @@
       "id": "1",
       "namespace": "rev1-q01",
       "machineHostname": "ckad9999",
-      "question": "Pod `web-init` in namespace `rev1-q01` is stuck in `Init:0/1` state. The init container `wait-for-db` runs the following loop until it succeeds:\n```\nuntil nc -z db-service.rev1-q01.svc.cluster.local 5432; do sleep 2; done\n```\n**Without modifying the existing Pod**, create the missing resources:\n1. A `ClusterIP` Service named `db-service` in `rev1-q01` with selector `app: db`, `port: 5432`, `targetPort: 80`\n2. A Pod named `db-backend` in `rev1-q01` using image `nginx:1.27` with label `app: db`\n\nVerify that the init container completes and the main container reaches `Running` state.",
+      "question": "Pod web-init in namespace `rev1-q01` is stuck in Init:0/1. Its init container `wait-for-db` loops every 2 seconds trying to reach `db-service.rev1-q01.svc.cluster.loca`l on `port 5432`. The Service and its backing Pod do not exist yet.\n\nWithout modifying the existing Pod, create both missing resources:\n\n- A ClusterIP Service named `db-service` in namespace `rev1-q01`. Selector: `app=db`. Port: `5432`, `targetPort: 80`.\n- A Pod named `db-backend` in namespace `rev1-q01` using image `nginx:1.27` with label `app=db`.\n\nOnce both resources exist, the init container will complete and the main container should reach Running state.",
       "concepts": ["troubleshooting", "services", "init-containers", "pod-lifecycle"],
       "verification": [
         {
@@ -34,7 +34,7 @@
       "id": "2",
       "namespace": "rev1-q02",
       "machineHostname": "ckad9999",
-      "question": "Deployment `frontend` and Service `frontend-svc` exist in namespace `rev1-q02`. The Service has `port: 80` and `targetPort: 80`, and the Endpoint addresses are populated. However, `curl http://frontend-svc.rev1-q02.svc.cluster.local` returns `connection refused` because the container actually listens on port `8080`.\n\nPatch the Service `frontend-svc` to set `targetPort: 8080`. Do **not** modify the Deployment or the Pod spec.",
+      "question": "Deployment frontend and Service `frontend-svc` exist in namespace `rev1-q02`. The Service is configured with `port 80` and `targetPort 80`, but the container actually listens on `port 8080`. Requests through the Service return connection refused.\n\nPatch Service `frontend-svc` to set `targetPort` to `8080`. Do not modify the Deployment or the Pod spec.\n\nVerify the Service endpoints reflect the corrected port after the patch.",
       "concepts": ["services", "targetPort", "troubleshooting", "endpoints"],
       "verification": [
         {
@@ -207,7 +207,7 @@
       "id": "8",
       "namespace": "rev1-q08",
       "machineHostname": "ckad9999",
-      "question": "The target worker node name has been written to `/tmp/exam/q8/target-node.txt`.\n\nA Deployment `api-pdb-app` in namespace `rev1-q08` has 2 replicas, and a PodDisruptionBudget `api-pdb` has `minAvailable: 2`, blocking node drain.\n\nPerform these steps:\n1. Read the target node name from `/tmp/exam/q8/target-node.txt`\n2. Patch PodDisruptionBudget `api-pdb` to set `minAvailable: 1`\n3. Drain the node using: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data`\n4. Uncordon the node\n\nVerify the node is schedulable again and the Deployment has at least 1 Available replica.",
+      "question": "The target worker node name has been written to `/tmp/exam/q8/target-node.txt`.\n\nA Deployment `api-pdb-app` in namespace `rev1-q08` has 2 replicas, and a PodDisruptionBudget `api-pdb` has `minAvailable: 2`, blocking node drain.\n\nPerform these steps:\n1. Read the target node name from `/tmp/exam/q8/target-node.txt`\n2. Patch PodDisruptionBudget `api-pdb` to set `minAvailable: 1`\n3. Drain the node using: `kubectl drain <node> --ignore-daemonsets --delete-emptydir-data --force`\n4. Uncordon the node\n\nVerify the node is schedulable again and the Deployment has at least 1 Available replica.",
       "concepts": ["drain", "pdb", "poddisruptionbudget", "node-maintenance", "troubleshooting"],
       "verification": [
         {
@@ -320,7 +320,7 @@
       "id": "12",
       "namespace": "rev1-q12",
       "machineHostname": "ckad9999",
-      "question": "A properties file is staged at `/tmp/exam/q12/app.properties` with content:\n```\napp.name=myapp\napp.version=1.0\napp.env=production\n```\n\nCreate a Kustomize overlay at `/tmp/exam/q12/overlay/kustomization.yaml` with:\n- A `configMapGenerator` that creates a ConfigMap from `/tmp/exam/q12/app.properties`\n- `namePrefix: prod-`\n- `namespace: rev1-q12`\n\nApply it with `kubectl apply -k /tmp/exam/q12/overlay/`\n\nVerify a ConfigMap with name starting with `prod-` containing the application properties exists in namespace `rev1-q12`.",
+      "question": "A properties file is staged at `/tmp/exam/q12/app.properties` with content:\n\n    app.name=myapp\n    app.version=1.0\n    app.env=production\n\nCreate a Kustomize overlay at `/tmp/exam/q12/overlay/kustomization.yaml` with:\n\n- A `configMapGenerator` that creates a ConfigMap from `/tmp/exam/q12/app.properties`\n- `namePrefix: prod-`\n- `namespace: rev1-q12`\n\nApply it with:\n\n    kubectl apply -k /tmp/exam/q12/overlay/\n\nVerify a ConfigMap with name starting with `prod-` containing the application properties exists in namespace `rev1-q12`.",
       "concepts": ["kustomize", "configmapgenerator", "nameprefix", "namespace"],
       "verification": [
         {
@@ -350,7 +350,7 @@
       "id": "13",
       "namespace": "rev1-q13",
       "machineHostname": "ckad9999",
-      "question": "StatefulSet `cache-cluster` in namespace `rev1-q13` has Pods stuck in `Pending` state because its `volumeClaimTemplates` references `storageClassName: premium-nvme`, which does not exist.\n\nThe available StorageClass is `standard`.\n\nPerform these steps:\n1. Delete the existing StatefulSet `cache-cluster` (note: `volumeClaimTemplates` is immutable)\n2. Recreate it with `storageClassName: standard` in the `volumeClaimTemplates`\n\nVerify the StatefulSet Pods are `Running` and PVCs are `Bound`.\n\n**Note:** Retain all other StatefulSet spec fields (replicas, selectors, image, container ports) unchanged.",
+      "question": "StatefulSet `cache-cluster` in namespace `rev1-q13` has Pods stuck in `Pending` state because its `volumeClaimTemplates` references `storageClassName: premium-nvme`, which does not exist.\n\nThe available StorageClass is `standard`.\n\nPerform these steps:\n\n1. Delete the existing StatefulSet `cache-cluster` (note: `volumeClaimTemplates` is immutable)\n2. Delete the stale PVCs left behind — `kubectl delete pvc -n rev1-q13 --all` (StatefulSet PVCs are NOT garbage-collected on StatefulSet deletion; they still reference the non-existent StorageClass and must be removed before the new StatefulSet can bind fresh ones)\n3. Recreate the StatefulSet with `storageClassName: standard` in the `volumeClaimTemplates`\n\nVerify the StatefulSet Pods are `Running` and PVCs are `Bound`.\n\n**Note:** Retain all other StatefulSet spec fields (replicas, selectors, image, container ports) unchanged.",
       "concepts": ["statefulset", "volumeclaimtemplates", "storageclass", "troubleshooting", "storage"],
       "verification": [
         {

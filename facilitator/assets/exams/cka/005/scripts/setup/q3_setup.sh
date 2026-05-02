@@ -47,8 +47,9 @@ spec:
         - containerPort: 80
 TMPL
 
-# Package chart
+# Package chart and expose as a fixed name the question references
 helm package /tmp/exam/q3/nginx-chart -d /tmp/exam/q3/ >/dev/null 2>&1
+mv /tmp/exam/q3/nginx-chart-*.tgz /tmp/exam/q3/chart.tgz
 
 # Clean previous release
 helm uninstall web-frontend -n "$NS" 2>/dev/null || true
