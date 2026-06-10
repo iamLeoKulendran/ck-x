@@ -460,9 +460,10 @@ spec:
       allowPrivilegeEscalation: false
 ```
 
-Try to create a non-compliant pod and document the error:
+Try to create a non-compliant pod and capture the rejection error to `/tmp/violation.txt`:
 
-```yaml
+```bash
+kubectl apply -f - > /tmp/violation.txt 2>&1 <<EOF
 apiVersion: v1
 kind: Pod
 metadata:
@@ -474,7 +475,10 @@ spec:
     image: nginx
     securityContext:
       privileged: true
+EOF
 ```
+
+The pod is rejected. The `> /tmp/violation.txt 2>&1` redirect saves the `Forbidden` / `violates PodSecurity` error to the file required by the validation.
 
 ## Question 12: Secrets Management
 

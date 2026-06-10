@@ -25,10 +25,23 @@ if [[ "$POLICY_TYPES" != *"Egress"* ]]; then
   exit 1
 fi
 
-# Check if it denies traffic to API server IP
-API_SERVER_IP=$(kubectl get svc kubernetes -n default -o jsonpath='{.spec.clusterIP}')
-if ! kubectl get networkpolicy "$POLICY_NAME" -n "$NAMESPACE" -o json | grep -q "$API_SERVER_IP"; then
-  echo "❌ NetworkPolicy does not target the API server IP ($API_SERVER_IP)"
+# Check that podSelector is empty (applies to all pods in namespace)
+POD_SELECTOR=$(kubectl get networkpolicy "$POLICY_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.podSelector}')
+if [[ "$POD_SELECTOR" != "{}" ]]; then
+  echo "❌ NetworkPolicy podSelector must be empty ({}) to apply to all pods, got: $POD_SELECTOR"
+  exit 1
+fi
+
+# Check that egress is defined (policy restricts egress, not just declares the type)
+EGRESS_RULES=$(kubectl get networkpolicy "$POLICY_NAME" -n "$NAMESPACE" -o jsonpath='{.spec.egress}')
+if [ -z "$EGRESS_RULES" ]; then
+  echo "❌ NetworkPolicy has no egress rules defined"
+  exit 1
+fi
+
+# Check that egress allows traffic to pods with role=admin label
+if ! kubectl get networkpolicy "$POLICY_NAME" -n "$NAMESPACE" -o json | grep -q '"role"'; then
+  echo "❌ NetworkPolicy egress does not reference role label selector for admin access"
   exit 1
 fi
 
