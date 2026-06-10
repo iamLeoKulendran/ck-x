@@ -31,16 +31,6 @@
       "examDurationInMinutes": 120
     },
     {
-      "id": "cka-001",
-      "assetPath": "assets/exams/cka/001",
-      "name": "CKA Practice Lab - Core Concepts",
-      "category": "CKA",
-      "description": "Practice essential Kubernetes administrator tasks covering cluster management, networking, storage, and security",
-      "warmUpTimeInSeconds": 260,
-      "difficulty": "Easy",
-      "examDurationInMinutes": 60
-    },
-    {
       "id": "docker-001",
       "assetPath": "assets/exams/other/001",
       "name": "Docker Speed Run - Core Concepts",

@@ -48,14 +48,14 @@ Conclusion: the **platform** is ~80% there. The migration is mostly
 
 ## 3. CKS Curriculum Map vs. Current Backend
 
-Current CKS domains and weights (verify against the official curriculum
-when generating each mock; weights below are the post-2024 curriculum):
+Current CKS domains and weights (re-verify against the official curriculum
+when generating each mock):
 
 | # | Domain | Weight |
 | --- | --- | --- |
-| 1 | Cluster Setup | 10% |
+| 1 | Cluster Setup | 15% |
 | 2 | Cluster Hardening | 15% |
-| 3 | System Hardening | 15% |
+| 3 | System Hardening | 10% |
 | 4 | Minimize Microservice Vulnerabilities | 20% |
 | 5 | Supply Chain Security | 20% |
 | 6 | Monitoring, Logging and Runtime Security | 20% |
@@ -149,10 +149,11 @@ to a file; validation checks file contents).
   `facilitator/assets/exams/cks/001/` is a working 20-question lab. It becomes
   the smoke-test lab for every phase.
 
-Housekeeping to do first (Phase 0): the working tree has
-`facilitator/assets/exams/cka/001/` deleted but `labs.json` still registers
-`cka-001` — resolve (restore or deregister) and commit, so the registry is
-consistent before migration work starts.
+Housekeeping to do first (Phase 0): fix the `cka-001` registry entry only if
+`facilitator/assets/exams/cka/001/` is actually missing locally. Verified
+2026-06-11: the folder was deleted in commit `12e14c8` and does not exist, so
+the stale `cka-001` entry is removed from `labs.json` in Phase 0 (backup kept
+at `labs.json.phase0.bak`).
 
 ## 6. Architecture Changes
 
@@ -259,7 +260,8 @@ Create alongside, not replacing, the CKA pipeline:
 
 ### Phase 0 — Housekeeping (half a day)
 
-- Resolve the `cka/001` deleted-folder vs. `labs.json` registry mismatch;
+- Resolve the `cka/001` vs. `labs.json` registry mismatch only if the folder
+  is truly missing locally (verified missing on 2026-06-11 → deregister);
   commit a clean baseline.
 - Back up `labs.json` and the attempt-history volume.
 - Smoke-test existing `cks-001` end to end on the current stack.
