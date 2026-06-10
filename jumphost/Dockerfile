@@ -40,6 +40,63 @@ RUN curl -fsSL -o get_helm.sh https://raw.githubusercontent.com/helm/helm/main/s
     && ./get_helm.sh \
     && rm get_helm.sh
 
+# ─────────────────────────────────────────────────────
+# CKS Security Tools — pinned static binaries
+# ─────────────────────────────────────────────────────
+ARG TRIVY_VERSION=0.71.0
+ARG KUBE_BENCH_VERSION=0.15.6
+ARG KUBESEC_VERSION=2.14.2
+ARG COSIGN_VERSION=3.1.1
+ARG SYFT_VERSION=1.45.1
+ARG ETCDCTL_VERSION=3.6.12
+ARG YQ_VERSION=4.53.3
+
+# trivy
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    TRIVY_ARCH=$([ "$ARCH" = "arm64" ] && echo "ARM64" || echo "64bit") && \
+    curl -fsSL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-${TRIVY_ARCH}.tar.gz" \
+    | tar -xz -C /usr/local/bin trivy && \
+    chmod +x /usr/local/bin/trivy
+
+# kube-bench
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://github.com/aquasecurity/kube-bench/releases/download/v${KUBE_BENCH_VERSION}/kube-bench_${KUBE_BENCH_VERSION}_linux_${ARCH}.tar.gz" \
+    | tar -xz -C /usr/local/bin kube-bench && \
+    chmod +x /usr/local/bin/kube-bench
+
+# kubesec
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://github.com/controlplaneio/kubesec/releases/download/v${KUBESEC_VERSION}/kubesec_linux_${ARCH}.tar.gz" \
+    | tar -xz -C /usr/local/bin kubesec && \
+    chmod +x /usr/local/bin/kubesec
+
+# cosign (direct binary, no archive)
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://github.com/sigstore/cosign/releases/download/v${COSIGN_VERSION}/cosign-linux-${ARCH}" \
+    -o /usr/local/bin/cosign && \
+    chmod +x /usr/local/bin/cosign
+
+# syft
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://github.com/anchore/syft/releases/download/v${SYFT_VERSION}/syft_${SYFT_VERSION}_linux_${ARCH}.tar.gz" \
+    | tar -xz -C /usr/local/bin syft && \
+    chmod +x /usr/local/bin/syft
+
+# etcdctl (extract only etcdctl from the etcd release bundle)
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    mkdir -p /tmp/etcd-dl && \
+    curl -fsSL "https://github.com/etcd-io/etcd/releases/download/v${ETCDCTL_VERSION}/etcd-v${ETCDCTL_VERSION}-linux-${ARCH}.tar.gz" \
+    | tar -xz --strip-components=1 -C /tmp/etcd-dl && \
+    mv /tmp/etcd-dl/etcdctl /usr/local/bin/etcdctl && \
+    rm -rf /tmp/etcd-dl && \
+    chmod +x /usr/local/bin/etcdctl
+
+# yq (direct binary, no archive)
+RUN ARCH="${TARGETARCH:-amd64}" && \
+    curl -fsSL "https://github.com/mikefarah/yq/releases/download/v${YQ_VERSION}/yq_linux_${ARCH}" \
+    -o /usr/local/bin/yq && \
+    chmod +x /usr/local/bin/yq
+
 #override docker daemon to use cfg2group
 RUN echo '{ "exec-opts": ["native.cgroupdriver=cgroupfs"] }' > /etc/docker/daemon.json
 
