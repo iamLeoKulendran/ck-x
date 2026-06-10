@@ -12,21 +12,21 @@
           "description": "NetworkPolicy exists",
           "verificationScriptFile": "q1_s1_validate_policy_exists.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "NetworkPolicy has correct ingress rules",
           "verificationScriptFile": "q1_s2_validate_ingress.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "3",
           "description": "NetworkPolicy has correct egress rules",
           "verificationScriptFile": "q1_s3_validate_egress.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         }
       ]
     },
@@ -42,14 +42,14 @@
           "description": "Ingress exists",
           "verificationScriptFile": "q2_s1_validate_ingress_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "Ingress configured with correct hostname",
           "verificationScriptFile": "q2_s2_validate_hostname.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "3",
@@ -72,21 +72,21 @@
           "description": "Namespace exists with correct label",
           "verificationScriptFile": "q3_s1_validate_namespace.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         },
         {
           "id": "2",
           "description": "Secure pod exists",
           "verificationScriptFile": "q3_s2_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "3",
           "description": "Role and RoleBinding exist",
           "verificationScriptFile": "q3_s3_validate_rbac.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 4
         }
       ]
     },
@@ -102,21 +102,21 @@
           "description": "NetworkPolicy exists",
           "verificationScriptFile": "q4_s1_validate_policy_exists.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "NetworkPolicy blocks metadata access",
           "verificationScriptFile": "q4_s2_validate_blocks_metadata.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Test pod exists",
           "verificationScriptFile": "q4_s3_validate_test_pod.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         }
       ]
     },
@@ -132,21 +132,21 @@
           "description": "Pod exists",
           "verificationScriptFile": "q5_s1_validate_pod_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "Correct volume mount",
           "verificationScriptFile": "q5_s2_validate_volume_mount.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Hash calculation script works",
           "verificationScriptFile": "q5_s3_validate_hash_calculation.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         }
       ]
     },
@@ -162,14 +162,14 @@
           "description": "Role exists",
           "verificationScriptFile": "q6_s1_validate_role_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "Role has correct permissions",
           "verificationScriptFile": "q6_s2_validate_role_permissions.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
@@ -192,28 +192,28 @@
           "description": "ServiceAccount exists",
           "verificationScriptFile": "q7_s1_validate_sa_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "ServiceAccount has automounting disabled",
           "verificationScriptFile": "q7_s2_validate_sa_automounting.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Deployment exists and uses the ServiceAccount",
           "verificationScriptFile": "q7_s3_validate_deployment.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "4",
           "description": "Pod automounting explicitly disabled",
           "verificationScriptFile": "q7_s4_validate_pod_automounting.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         }
       ]
     },
@@ -229,21 +229,21 @@
           "description": "NetworkPolicy exists",
           "verificationScriptFile": "q8_s1_validate_policy_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "NetworkPolicy has correct selectors",
           "verificationScriptFile": "q8_s2_validate_policy_selectors.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Restricted pod cannot access API server",
           "verificationScriptFile": "q8_s4_validate_restricted_access.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         }
       ]
     },
@@ -259,28 +259,28 @@
           "description": "Pod exists",
           "verificationScriptFile": "q9_s1_validate_pod_exists.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "Pod has correct capabilities configuration",
           "verificationScriptFile": "q9_s2_validate_capabilities.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Pod uses read-only root filesystem",
           "verificationScriptFile": "q9_s3_validate_readonly_fs.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "4",
           "description": "Pod runs as correct user/group",
           "verificationScriptFile": "q9_s4_validate_user_group.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         }
       ]
     },
@@ -296,21 +296,21 @@
           "description": "Pod exists with seccomp profile",
           "verificationScriptFile": "q10_s1_validate_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "ConfigMap exists with profile",
           "verificationScriptFile": "q10_s2_validate_configmap.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Seccomp profile allows required syscalls",
           "verificationScriptFile": "q10_s3_validate_syscalls.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         }
       ]
     },
@@ -326,21 +326,21 @@
           "description": "Namespace has correct labels",
           "verificationScriptFile": "q11_s1_validate_namespace_labels.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "2",
           "description": "Compliant pod exists",
           "verificationScriptFile": "q11_s2_validate_compliant_pod.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "3",
           "description": "Non-compliant pod is rejected",
           "verificationScriptFile": "q11_s3_validate_non_compliant_pod.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         }
       ]
     },
@@ -356,23 +356,23 @@
           "description": "Secret exists with correct data",
           "verificationScriptFile": "q12_s1_validate_secret.sh",
           "expectedOutput": "0",
-          "weightage": 1
+          "weightage": 2
         },
         {
           "id": "2",
           "description": "First pod mounts secrets as files",
           "verificationScriptFile": "q12_s2_validate_secure_app.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         },
         {
           "id": "3",
           "description": "Second pod has secrets as environment variables",
           "verificationScriptFile": "q12_s3_validate_env_app.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 3
         }
       ]
     }
   ]
-} 
+}
