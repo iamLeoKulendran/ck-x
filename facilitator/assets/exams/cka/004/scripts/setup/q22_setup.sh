@@ -1,5 +1,6 @@
 #!/bin/bash
 set -euo pipefail
-rm -f /etc/kubernetes/manifests/q22-static-web.yaml 2>/dev/null || true
-kubectl delete pod -n default -l static-pod=q22-static-web --ignore-not-found=true >/dev/null 2>&1 || true
+# P1.2: bridge task — clean workspace only, no cluster-side manifest
+mkdir -p /tmp/exam/q22
+rm -f /tmp/exam/q22/q22-static-web.yaml
 exit 0

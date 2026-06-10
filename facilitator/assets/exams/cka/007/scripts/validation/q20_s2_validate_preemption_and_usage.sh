@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q20
+NS=cka007-q20
 POL=$(kubectl get priorityclass business-critical -o jsonpath='{.preemptionPolicy}' 2>/dev/null)
 PC=$(kubectl get deploy critical-api -n "$NS" -o jsonpath='{.spec.template.spec.priorityClassName}' 2>/dev/null)
 [ "$POL" = "PreemptLowerPriority" ] || [ -z "$POL" ] || fail "preemptionPolicy is $POL"

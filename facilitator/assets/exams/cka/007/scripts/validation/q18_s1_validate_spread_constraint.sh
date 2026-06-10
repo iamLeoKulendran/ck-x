@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q18
+NS=cka007-q18
 KEY=$(kubectl get deploy pay-api -n "$NS" -o jsonpath='{.spec.template.spec.topologySpreadConstraints[0].topologyKey}' 2>/dev/null)
 SKEW=$(kubectl get deploy pay-api -n "$NS" -o jsonpath='{.spec.template.spec.topologySpreadConstraints[0].maxSkew}' 2>/dev/null)
 UNSAT=$(kubectl get deploy pay-api -n "$NS" -o jsonpath='{.spec.template.spec.topologySpreadConstraints[0].whenUnsatisfiable}' 2>/dev/null)

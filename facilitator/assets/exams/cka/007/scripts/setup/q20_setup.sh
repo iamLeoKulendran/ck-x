@@ -1,15 +1,23 @@
 #!/bin/bash
 set -euo pipefail
-NS=cka-q20
-kubectl delete ns "$NS" --ignore-not-found=true --wait=true >/dev/null 2>&1 || true
+NS=cka007-q20
+
+# P2.2: remove q16 taints so this question is self-contained
+for _n in $(kubectl get nodes -o name | cut -d/ -f2); do
+  kubectl taint node "$_n" q16.pool=reserved:NoSchedule- 2>/dev/null || true
+  kubectl taint node "$_n" q16.soft=reserved:PreferNoSchedule- 2>/dev/null || true
+done
+
+kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+kubectl -n "$NS" delete deployment critical-api --ignore-not-found=true >/dev/null 2>&1 || true
 kubectl delete priorityclass business-critical --ignore-not-found=true >/dev/null 2>&1 || true
-kubectl create ns "$NS" >/dev/null
+
 cat <<'YAML' | kubectl apply -f - >/dev/null
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: critical-api
-  namespace: cka-q20
+  namespace: cka007-q20
 spec:
   replicas: 1
   selector:

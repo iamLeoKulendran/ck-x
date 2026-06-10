@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q14
+NS=cka007-q14
 SEL=$(kubectl get deploy reporting-api -n "$NS" -o jsonpath='{.spec.template.spec.nodeSelector.q14\.disk}' 2>/dev/null)
 [ "$SEL" = "ssd" ] || fail "nodeSelector q14.disk is $SEL"
 pass "nodeSelector is correct"

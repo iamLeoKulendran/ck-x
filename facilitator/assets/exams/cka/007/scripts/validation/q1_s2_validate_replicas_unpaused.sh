@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q01
+NS=cka007-q01
 REPL=$(kubectl get deploy frontend-api -n "$NS" -o jsonpath='{.spec.replicas}' 2>/dev/null)
 PAUSED=$(kubectl get deploy frontend-api -n "$NS" -o jsonpath='{.spec.paused}' 2>/dev/null)
 [ "$REPL" = "3" ] || fail "replicas is $REPL, expected 3"

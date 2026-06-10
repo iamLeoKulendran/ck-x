@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q13
+NS=cka007-q13
 NN=$(kubectl get pod pinned-cache -n "$NS" -o jsonpath='{.spec.nodeName}' 2>/dev/null)
 [ -n "$NN" ] || fail "pod is not scheduled on any node yet"
 [ "$NN" != "ghost-node" ] || fail "pod is still pinned to ghost-node"

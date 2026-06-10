@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q10
+NS=cka007-q10
 SVC_SEL=$(kubectl get svc catalog-web -n "$NS" -o jsonpath='{.spec.selector.app}' 2>/dev/null)
 POD_LABEL=$(kubectl get deploy catalog-web -n "$NS" -o jsonpath='{.spec.template.metadata.labels.app}' 2>/dev/null)
 [ "$SVC_SEL" = "catalog-web" ] || fail "service selector app is $SVC_SEL"

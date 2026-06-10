@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q04
+NS=cka007-q04
 NAME=$(kubectl get sts metrics-store -n "$NS" -o jsonpath='{.spec.volumeClaimTemplates[0].metadata.name}' 2>/dev/null)
 STORAGE=$(kubectl get sts metrics-store -n "$NS" -o jsonpath='{.spec.volumeClaimTemplates[0].spec.resources.requests.storage}' 2>/dev/null)
 ACCESS=$(kubectl get sts metrics-store -n "$NS" -o jsonpath='{.spec.volumeClaimTemplates[0].spec.accessModes[0]}' 2>/dev/null)

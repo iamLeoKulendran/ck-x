@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q07
+NS=cka007-q07
 IMG=$(kubectl get job checksum-job -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].image}' 2>/dev/null)
 CMD=$(kubectl get job checksum-job -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].command[*]}' 2>/dev/null)
 ARGS=$(kubectl get job checksum-job -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].args[*]}' 2>/dev/null)

@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q12
+NS=cka007-q12
 POD=$(kubectl get pod -n "$NS" -l app=payment-worker -o jsonpath='{.items[0].metadata.name}' 2>/dev/null)
 [ -n "$POD" ] || fail "payment-worker pod missing"
 VAL=$(kubectl exec -n "$NS" "$POD" -- printenv DB_PASSWORD 2>/dev/null)

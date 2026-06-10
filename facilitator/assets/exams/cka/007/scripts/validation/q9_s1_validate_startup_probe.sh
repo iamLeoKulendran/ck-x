@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q09
+NS=cka007-q09
 CMD=$(kubectl get deploy slow-api -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].startupProbe.exec.command[*]}' 2>/dev/null)
 THRESH=$(kubectl get deploy slow-api -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].startupProbe.failureThreshold}' 2>/dev/null)
 echo "$CMD" | grep -q '/tmp/healthy' || fail "startupProbe does not check /tmp/healthy"

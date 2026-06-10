@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q03
+NS=cka007-q03
 CLUSTER_IP=$(kubectl get svc ledger-db-hl -n "$NS" -o jsonpath='{.spec.clusterIP}' 2>/dev/null)
 SEL=$(kubectl get svc ledger-db-hl -n "$NS" -o jsonpath='{.spec.selector.app}' 2>/dev/null)
 [ "$CLUSTER_IP" = "None" ] || fail "ledger-db-hl clusterIP is $CLUSTER_IP, expected None"

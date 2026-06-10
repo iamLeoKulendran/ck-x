@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q11
+NS=cka007-q11
 CM=$(kubectl get deploy config-consumer -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="APP_MODE")].valueFrom.configMapKeyRef.name}' 2>/dev/null)
 KEY=$(kubectl get deploy config-consumer -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].env[?(@.name=="APP_MODE")].valueFrom.configMapKeyRef.key}' 2>/dev/null)
 [ "$CM" = "app-settings" ] || fail "ConfigMap name is $CM"

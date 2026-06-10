@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q02
+NS=cka007-q02
 TYPE=$(kubectl get deploy orders-web -n "$NS" -o jsonpath='{.spec.strategy.type}' 2>/dev/null)
 MAX_UNAVAIL=$(kubectl get deploy orders-web -n "$NS" -o jsonpath='{.spec.strategy.rollingUpdate.maxUnavailable}' 2>/dev/null)
 MAX_SURGE=$(kubectl get deploy orders-web -n "$NS" -o jsonpath='{.spec.strategy.rollingUpdate.maxSurge}' 2>/dev/null)

@@ -624,23 +624,24 @@ cat /tmp/exam/q21/node_report.txt
 
 ## Question 22
 
-Create a static Pod manifest at `/etc/kubernetes/manifests/q22-static-web.yaml`.
+SIMULATED BRIDGE TASK — the current backend is k3d/K3s, which does not expose `/etc/kubernetes/manifests/` on the jumphost. Do NOT attempt to copy any file into the k3d node.
 
-The static Pod must be named `q22-static-web`, use image `nginx:1.25`, and expose container port `80`.
+Write a static Pod manifest to `/tmp/exam/q22/q22-static-web.yaml`.
+
+In a real kubeadm cluster you would place this manifest at `/etc/kubernetes/manifests/` on the target node and the kubelet would create the static Pod automatically.
 
 ### Solution
 
 ```bash
-sudo tee /etc/kubernetes/manifests/q22-static-web.yaml >/dev/null <<'EOF'
+mkdir -p /tmp/exam/q22
+cat > /tmp/exam/q22/q22-static-web.yaml <<'EOF'
 apiVersion: v1
 kind: Pod
 metadata:
   name: q22-static-web
-  labels:
-    static-pod: q22-static-web
 spec:
   containers:
-  - name: nginx
+  - name: web
     image: nginx:1.25
     ports:
     - containerPort: 80
@@ -721,6 +722,8 @@ EOF
 
 
 ## Question 25
+
+> **Note: Simulated bridge task — do not execute this script.** The k3d/K3s cluster does not expose etcd at `https://127.0.0.1:2379` and does not have `/etc/kubernetes/pki/etcd/`. Validation only inspects the script file content.
 
 Create executable script `/tmp/exam/q25/backup-etcd.sh` that performs an etcd snapshot backup to `/tmp/exam/q25/etcd-backup.db`.
 

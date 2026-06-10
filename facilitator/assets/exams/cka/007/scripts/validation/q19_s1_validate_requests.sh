@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q19
+NS=cka007-q19
 CPU=$(kubectl get deploy quota-api -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].resources.requests.cpu}' 2>/dev/null)
 MEM=$(kubectl get deploy quota-api -n "$NS" -o jsonpath='{.spec.template.spec.containers[0].resources.requests.memory}' 2>/dev/null)
 [ "$CPU" = "100m" ] || fail "request cpu is $CPU"

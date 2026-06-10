@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q18
+NS=cka007-q18
 kubectl rollout status deploy/pay-api -n "$NS" --timeout=30s >/dev/null 2>&1 || fail "pay-api not available"
 AVAIL=$(kubectl get deploy pay-api -n "$NS" -o jsonpath='{.status.availableReplicas}' 2>/dev/null)
 [ "$AVAIL" = "4" ] || fail "availableReplicas is $AVAIL"

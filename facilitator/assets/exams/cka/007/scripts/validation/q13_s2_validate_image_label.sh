@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q13
+NS=cka007-q13
 IMG=$(kubectl get pod pinned-cache -n "$NS" -o jsonpath='{.spec.containers[0].image}' 2>/dev/null)
 LBL=$(kubectl get pod pinned-cache -n "$NS" -o jsonpath='{.metadata.labels.app}' 2>/dev/null)
 [ "$IMG" = "nginx:1.27" ] || fail "image is $IMG"

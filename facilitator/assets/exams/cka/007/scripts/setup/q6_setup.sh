@@ -1,15 +1,22 @@
 #!/bin/bash
 set -euo pipefail
-NS=cka-q06
-kubectl delete ns "$NS" --ignore-not-found=true --wait=true >/dev/null 2>&1 || true
-kubectl create ns "$NS" >/dev/null
+NS=cka007-q06
+
+# P2.2: remove q16 taints so this question is self-contained
+for _n in $(kubectl get nodes -o name | cut -d/ -f2); do
+  kubectl taint node "$_n" q16.pool=reserved:NoSchedule- 2>/dev/null || true
+  kubectl taint node "$_n" q16.soft=reserved:PreferNoSchedule- 2>/dev/null || true
+done
+
+kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f - >/dev/null
+kubectl -n "$NS" delete daemonset packet-capture --ignore-not-found=true >/dev/null 2>&1 || true
 kubectl label nodes --all q06.capture- >/dev/null 2>&1 || true
 cat <<'YAML' | kubectl apply -f - >/dev/null
 apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: packet-capture
-  namespace: cka-q06
+  namespace: cka007-q06
 spec:
   selector:
     matchLabels:

@@ -186,7 +186,14 @@
           "description": "Deployment has 2 desired and available replicas",
           "verificationScriptFile": "q7_s2_validate_availability.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "Rollout history shows >= 2 revisions and rollout has settled",
+          "verificationScriptFile": "q7_s3_validate_rollout_history.sh",
+          "expectedOutput": "0",
+          "weightage": 1
         }
       ]
     },
@@ -214,7 +221,14 @@
           "description": "Service has endpoints",
           "verificationScriptFile": "q8_s2_validate_endpoints.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "Service endpoints have >= 2 addresses on port 80",
+          "verificationScriptFile": "q8_s3_validate_endpoint_match.sh",
+          "expectedOutput": "0",
+          "weightage": 1
         }
       ]
     },
@@ -350,7 +364,14 @@
           "description": "Job uses busybox:1.36 and the fixed command",
           "verificationScriptFile": "q13_s2_validate_spec.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "Job completed cleanly: succeeded >= 1 and failed = 0",
+          "verificationScriptFile": "q13_s3_validate_clean_success.sh",
+          "expectedOutput": "0",
+          "weightage": 1
         }
       ]
     },
@@ -510,7 +531,14 @@
           "description": "Pod is Ready",
           "verificationScriptFile": "q19_s2_validate_ready.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "Pod container is in running state with low restart count",
+          "verificationScriptFile": "q19_s3_validate_container_state.sh",
+          "expectedOutput": "0",
+          "weightage": 1
         }
       ]
     },
@@ -572,7 +600,7 @@
       "id": "22",
       "namespace": "default",
       "machineHostname": "ckad9999",
-      "question": "Create a static Pod manifest at `/etc/kubernetes/manifests/q22-static-web.yaml`.\n\nThe static Pod must be named `q22-static-web`, use image `nginx:1.25`, and expose container port `80`.",
+      "question": "SIMULATED BRIDGE TASK — the current backend is k3d/K3s, which does not expose `/etc/kubernetes/manifests/` on the jumphost. Do NOT attempt to copy any file into the k3d node.\n\nWrite a static Pod manifest to `/tmp/exam/q22/q22-static-web.yaml` with:\n- `apiVersion: v1`, `kind: Pod`\n- `metadata.name: q22-static-web`\n- one container using image `nginx:1.25`\n- `containerPort: 80`\n\nValidation checks `/tmp/exam/q22/q22-static-web.yaml` file content only. In a real kubeadm cluster you would place this manifest at `/etc/kubernetes/manifests/` on the target node and the kubelet would create the static Pod automatically.",
       "concepts": [
         "static pods",
         "kubelet",
@@ -591,7 +619,14 @@
           "description": "Static Pod manifest uses nginx:1.25 and port 80",
           "verificationScriptFile": "q22_s2_validate_spec.sh",
           "expectedOutput": "0",
-          "weightage": 2
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "Manifest passes kubectl apply --dry-run client validation",
+          "verificationScriptFile": "q22_s3_validate_dry_run.sh",
+          "expectedOutput": "0",
+          "weightage": 1
         }
       ]
     },
@@ -653,7 +688,7 @@
       "id": "25",
       "namespace": "default",
       "machineHostname": "ckad9999",
-      "question": "Create executable script `/tmp/exam/q25/backup-etcd.sh` that performs an etcd snapshot backup to `/tmp/exam/q25/etcd-backup.db`.\n\nThe script must set `ETCDCTL_API=3` and run `etcdctl snapshot save`.\n\nIt must use endpoint `https://127.0.0.1:2379` and include `--cacert`, `--cert`, and `--key` arguments pointing to the standard Kubernetes etcd PKI files under `/etc/kubernetes/pki/etcd/`.",
+      "question": "SIMULATED BRIDGE TASK — the current cluster (k3d/K3s) does not run etcd at `https://127.0.0.1:2379` and does not have `/etc/kubernetes/pki/etcd/`. DO NOT execute the script.\n\nCreate executable script `/tmp/exam/q25/backup-etcd.sh` that performs an etcd snapshot backup to `/tmp/exam/q25/etcd-backup.db`.\n\nThe script must set `ETCDCTL_API=3` and run `etcdctl snapshot save`.\n\nIt must use endpoint `https://127.0.0.1:2379` and include `--cacert`, `--cert`, and `--key` arguments pointing to the standard Kubernetes etcd PKI files under `/etc/kubernetes/pki/etcd/`.",
       "concepts": [
         "etcd",
         "backup",

@@ -10,7 +10,7 @@ pass() {
   echo "✅ $1"
   exit 0
 }
-NS=cka-q13
+NS=cka007-q13
 PHASE=$(kubectl get pod pinned-cache -n "$NS" -o jsonpath='{.status.phase}' 2>/dev/null)
 READY=$(kubectl get pod pinned-cache -n "$NS" -o jsonpath='{.status.containerStatuses[0].ready}' 2>/dev/null)
 [ "$PHASE" = "Running" ] || fail "phase is $PHASE"
