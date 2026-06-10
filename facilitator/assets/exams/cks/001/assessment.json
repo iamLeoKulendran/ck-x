@@ -124,7 +124,7 @@
       "id": "5",
       "namespace": "binary-verify",
       "machineHostname": "ckad9999",
-      "question": "You need to verify the integrity of Kubernetes binaries before deploying them. In the `binary-verify` namespace, create a pod named `verify-bin` using the `busybox` image that mounts the host's `/usr/bin` directory as a read-only volume at `/host-bin`.\n\nInside the pod, write a script that calculates the SHA256 hash of the following files and stores the results in a file at `/tmp/verified-hashes.txt` within the pod:\n- /host-bin/kubectl\n- /host-bin/kubelet\n\nUse the command format: `sha256sum [file] >> /tmp/verified-hashes.txt`",
+      "question": "You need to verify the integrity of Kubernetes binaries before deploying them. In the `binary-verify` namespace, create a pod named `verify-bin` using the `busybox` image that mounts the host's `/bin` directory as a read-only volume at `/host-bin`.\n\nInside the pod, write a script that calculates the SHA256 hash of the following files and stores the results in a file at `/tmp/verified-hashes.txt` within the pod:\n- /host-bin/kubectl\n- /host-bin/k3s\n\nUse the command format: `sha256sum [file] >> /tmp/verified-hashes.txt`",
       "concepts": ["binary verification", "hostpath volumes"],
       "verification": [
         {

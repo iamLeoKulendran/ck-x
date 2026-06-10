@@ -3,7 +3,7 @@
 
 POD_NAME="verify-bin"
 NAMESPACE="binary-verify"
-EXPECTED_HOST_PATH="/usr/bin"
+EXPECTED_HOST_PATH="/bin"
 EXPECTED_MOUNT_PATH="/host-bin"
 
 # Check if pod exists
@@ -13,7 +13,7 @@ if [ $? -ne 0 ]; then
   exit 1
 fi
 
-# Check if pod has a volume that mounts the host's /usr/bin directory
+# Check if pod has a volume that mounts the host's /bin directory
 VOLUME_NAME=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.volumes[*].name}')
 HOST_PATH=$(kubectl get pod $POD_NAME -n $NAMESPACE -o jsonpath='{.spec.volumes[?(@.hostPath)].hostPath.path}')
 if [[ "$HOST_PATH" != *"$EXPECTED_HOST_PATH"* ]]; then

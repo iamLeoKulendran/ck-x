@@ -192,7 +192,7 @@ spec:
     args:
     - |
       sha256sum /host-bin/kubectl >> /tmp/verified-hashes.txt
-      sha256sum /host-bin/kubelet >> /tmp/verified-hashes.txt
+      sha256sum /host-bin/k3s >> /tmp/verified-hashes.txt
       sleep 3600
     volumeMounts:
     - name: host-bin
@@ -201,7 +201,7 @@ spec:
   volumes:
   - name: host-bin
     hostPath:
-      path: /usr/bin
+      path: /bin
       type: Directory
 ```
 

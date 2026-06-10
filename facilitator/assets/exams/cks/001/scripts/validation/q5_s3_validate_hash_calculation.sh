@@ -4,7 +4,7 @@
 POD_NAME="verify-bin"
 NAMESPACE="binary-verify"
 HASH_FILE="/tmp/verified-hashes.txt"
-REQUIRED_FILES=("kubectl" "kubelet")
+REQUIRED_FILES=("kubectl" "k3s")
 
 # Check if pod exists
 kubectl get pod $POD_NAME -n $NAMESPACE &> /dev/null
