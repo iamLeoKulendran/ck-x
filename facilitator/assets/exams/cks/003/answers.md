@@ -52,9 +52,7 @@ cat /tmp/exam/q2/failed-checks.txt
 # 1.4.1
 # 4.2.6
 
-echo -- '--anonymous-auth=false' > /tmp/exam/q2/remediation-1.2.1.txt
-# or simply:
-printf -- '--anonymous-auth=false\n' > /tmp/exam/q2/remediation-1.2.1.txt
+echo '--anonymous-auth=false' > /tmp/exam/q2/remediation-1.2.1.txt
 ```
 
 ## Question 3 - Certificate-based user dev-lena with least privilege
@@ -161,8 +159,8 @@ kubectl delete clusterrole telemetry-export
 Verify:
 
 ```bash
-kubectl auth can-i get secrets -A --as=system:anonymous --as-group=system:unauthenticated   # no
-kubectl get clusterrolebinding system:public-info-viewer release-bot-read                   # still present
+kubectl get clusterrolebinding telemetry-public-access   # Error: not found
+kubectl get clusterrolebinding system:public-info-viewer release-bot-read   # still present
 ```
 
 ## Question 6 - Strip host access from host-inspector
@@ -204,10 +202,7 @@ EOF
 kubectl -n node-ops rollout status deployment/host-inspector
 ```
 
-Note: `kubectl apply` performs a strategic merge, but since the new manifest omits `hostNetwork`, `hostPID`, `volumes`, and `volumeMounts`, replacing the deployment with `kubectl replace -f` (or `kubectl edit` and deleting those fields) is the safest path. With `kubectl edit`:
-
-- delete `hostNetwork: true`, `hostPID: true`, the `volumes:` block, and the `volumeMounts:` block
-- add the pod/container securityContext shown above
+Note: `kubectl apply` works here because setup also used `kubectl apply`, so the 3-way strategic merge removes fields absent from the new manifest (hostNetwork, hostPID, volumes, volumeMounts). `kubectl replace -f` is an equivalent alternative if you prefer explicit control.
 
 Verify:
 
