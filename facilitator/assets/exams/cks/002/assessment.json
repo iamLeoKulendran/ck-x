@@ -124,7 +124,7 @@
       "id": "5",
       "namespace": "cp-hardening",
       "machineHostname": "ckad9999",
-      "question": "SIMULATED TASK - this exercise uses a COPIED manifest; do not attempt to modify the live cluster or execute the manifest.\n\nA copy of a cluster's kube-apiserver static pod manifest has been placed at `/tmp/exam/q5/kube-apiserver.yaml`. An audit found it dangerously misconfigured.\n\nEdit the FILE (using `yq`, `vim`, or any editor) so that:\n\n1. Anonymous authentication is disabled: `--anonymous-auth=false`\n2. Authorization uses `--authorization-mode=Node,RBAC` (remove `AlwaysAllow`)\n3. The `NodeRestriction` admission plugin is enabled in `--enable-admission-plugins`\n\nKeep the file valid YAML. Validation only inspects the file.",
+      "question": "**SIMULATED TASK** - this exercise uses a COPIED manifest; do not attempt to modify the live cluster or execute the manifest.\n\nA copy of a cluster's kube-apiserver static pod manifest has been placed at `/tmp/exam/q5/kube-apiserver.yaml`. An audit found it dangerously misconfigured.\n\nEdit the FILE (using `yq`, `vim`, or any editor) so that:\n\n1. Anonymous authentication is disabled: `--anonymous-auth=false`\n2. Authorization uses `--authorization-mode=Node,RBAC` (remove `AlwaysAllow`)\n3. The `NodeRestriction` admission plugin is enabled in `--enable-admission-plugins`\n\nKeep the file valid YAML. Validation only inspects the file.",
       "concepts": ["api server hardening", "admission control", "bridge simulation"],
       "verification": [
         {
@@ -304,7 +304,7 @@
       "id": "11",
       "namespace": "image-audit",
       "machineHostname": "ckad9999",
-      "question": "The deployment `release-app` in the `image-audit` namespace runs `nginx:1.14.2`. Three candidate images are listed in `/tmp/exam/q11/images.txt`:\n\n- `nginx:1.14.2`\n- `python:3.4-alpine`\n- `alpine:3.20`\n\n1. Scan each image with `trivy` and save the FULL JSON reports as `/tmp/exam/q11/nginx.json`, `/tmp/exam/q11/python.json`, and `/tmp/exam/q11/alpine.json` (`trivy image -f json -o <file> <image>`).\n2. Determine which image has the FEWEST `CRITICAL` vulnerabilities and write exactly that image reference (as listed above) to `/tmp/exam/q11/safe-image.txt`.\n3. Update `release-app` to run that image and wait for the rollout to complete.\n\nNote: the first scan downloads the vulnerability database and may take a minute.",
+      "question": "The deployment `release-app` in the `image-audit` namespace runs `nginx:1.14.2`. Three candidate images are listed in `/tmp/exam/q11/images.txt`:\n\n- `nginx:1.14.2`\n- `python:3.4-alpine`\n- `alpine:3.20`\n\n1. Scan each image with `trivy` and save the FULL JSON reports as `/tmp/exam/q11/nginx.json`, `/tmp/exam/q11/python.json`, and `/tmp/exam/q11/alpine.json` (`trivy image -f json -o <file> <image>`).\n2. Determine which image has the FEWEST `CRITICAL` vulnerabilities and write exactly that image reference (as listed above) to `/tmp/exam/q11/safe-image.txt`.\n3. Update `release-app` to run that image and wait for the rollout to complete.\n\n**Note:** the first scan downloads the vulnerability database and may take a minute.",
       "concepts": ["image scanning", "trivy", "supply chain", "vulnerability management"],
       "verification": [
         {
