@@ -89,6 +89,16 @@
       "warmUpTimeInSeconds": 360,
       "difficulty": "Hard",
       "examDurationInMinutes": 120
+    },
+    {
+      "id": "cks-003",
+      "assetPath": "assets/exams/cks/003",
+      "name": "Mock Exam - CKS - 2",
+      "category": "CKS",
+      "description": "Original CKS-style full mock exam: egress NetworkPolicy, kube-bench analysis, CSR-based user provisioning, projected ServiceAccount tokens, anonymous-access audit, host de-privileging, runAsNonRoot troubleshooting, pod-to-pod TLS, ValidatingAdmissionPolicy against hostPath, trivy/kubesec manifest hardening, digest pinning, SBOM triage, audit-policy authoring, CronJob incident response, and credential-leak rotation.",
+      "warmUpTimeInSeconds": 360,
+      "difficulty": "Hard",
+      "examDurationInMinutes": 120
     }
   ]
 }
