@@ -62,25 +62,34 @@ function removeEstimatedTime(content) {
     return String(content || '').replace(/^Estimated time:\s*`?\d+`?\s*minutes?\.\s*\n*/i, '');
 }
 
-function getQuestionWeight(question) {
+function getQuestionWeight(question, totalMarks) {
+    // Resolve the total for percentage calculation. Falls back to 100 (all CK-X labs
+    // mandate totalMarks=100 in config.json, but callers may pass null if examInfo is
+    // unavailable, e.g. during unit tests or unexpected early renders).
+    const total = (Number.isFinite(totalMarks) && totalMarks > 0) ? totalMarks : 100;
+
     const originalData = question.originalData || {};
     const directWeight = Number(originalData.weightage ?? originalData.weight ?? originalData.marks);
     if (Number.isFinite(directWeight) && directWeight > 0) {
-        // totalMarks is always 100, so marks === percentage
-        return `${directWeight} ${directWeight === 1 ? 'mark' : 'marks'} (${directWeight}%)`;
+        const pct = Math.round((directWeight / total) * 100);
+        return `${directWeight} ${directWeight === 1 ? 'mark' : 'marks'} (${pct}%)`;
     }
 
     const verification = Array.isArray(originalData.verification) ? originalData.verification : [];
-    const derivedWeight = verification.reduce((total, step) => {
+    const derivedWeight = verification.reduce((sum, step) => {
         const stepWeight = Number(step.weightage ?? step.weight ?? 0);
-        return Number.isFinite(stepWeight) ? total + stepWeight : total;
+        return Number.isFinite(stepWeight) ? sum + stepWeight : sum;
     }, 0);
 
-    return derivedWeight > 0 ? `${derivedWeight} ${derivedWeight === 1 ? 'mark' : 'marks'} (${derivedWeight}%)` : 'Not specified';
+    if (derivedWeight > 0) {
+        const pct = Math.round((derivedWeight / total) * 100);
+        return `${derivedWeight} ${derivedWeight === 1 ? 'mark' : 'marks'} (${pct}%)`;
+    }
+    return 'Not specified';
 }
 
 // Generate question content HTML
-function generateQuestionContent(question) {
+function generateQuestionContent(question, totalMarks) {
     try {
         // Get original data
         const originalData = question.originalData || {};
@@ -88,7 +97,7 @@ function generateQuestionContent(question) {
         const namespace = originalData.namespace || 'N/A';
         const concepts = originalData.concepts || [];
         const conceptsString = concepts.join(', ') || 'Not specified';
-        const questionWeight = getQuestionWeight(question);
+        const questionWeight = getQuestionWeight(question, totalMarks);
         
         // Format question content with improved styling
         const formattedQuestionContent = processQuestionContent(removeEstimatedTime(question.content));

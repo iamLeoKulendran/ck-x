@@ -721,7 +721,8 @@ document.addEventListener('DOMContentLoaded', function() {
             setTimeout(() => {
                 try {
                     // Get formatted content from QuestionService
-                    const formattedContent = QuestionService.generateQuestionContent(question);
+                    const totalMarks = examInfo?.info?.config?.totalMarks ?? null;
+                    const formattedContent = QuestionService.generateQuestionContent(question, totalMarks);
                     
                     // Update content
                     questionContent.innerHTML = formattedContent;
