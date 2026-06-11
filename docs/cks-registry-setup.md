@@ -293,3 +293,69 @@ curl -s http://${REGISTRY}/v2/webserver/tags/list
 - Existing CKS labs (cks-001, cks-002, cks-003) are unaffected.
 - No new public ports added.
 - No docker login required for the internal registry.
+
+---
+
+## 8. Registry Seed Framework (Phase 2D)
+
+**Status:** Available — `seed-registry-images` script added to jumphost (2026-06-12).
+
+### What it is
+
+`seed-registry-images` is a jumphost utility script (`/usr/local/bin/seed-registry-images`) that seeds a small set of baseline CKX images into the internal registry. It is idempotent — it skips any image already present — so it is safe to call from lab setup scripts or during exam prep.
+
+### Usage
+
+```bash
+# Seed only (no pod test)
+seed-registry-images
+
+# Seed + verify k3d can pull via the containerd mirror
+seed-registry-images --verify-pod
+```
+
+### Seeded images
+
+| Registry path | Source | Purpose |
+|---|---|---|
+| `registry:5000/ckx/alpine:3.20` | `alpine:3.20` | Tiny clean baseline — cosign signing, syft SBOM, trivy scan labs |
+| `registry:5000/ckx/nginx:v1.25` | `nginx:1.25-alpine` | Minimal web server — admission-control and scan labs |
+
+### Image naming convention for CKS labs
+
+All CKX-managed images must use the `ckx/` namespace:
+
+| Context | Hostname | Example |
+|---|---|---|
+| Jumphost Docker push/pull | `registry:5000` | `docker push registry:5000/ckx/webserver:v1.0` |
+| Jumphost tool scan | `registry:5000` | `trivy image --insecure registry:5000/ckx/webserver:v1.0` |
+| **Kubernetes pod spec** | `registry.localhost:5000` | `image: registry.localhost:5000/ckx/webserver:v1.0` |
+
+The two hostnames refer to the same physical registry instance. `registry` resolves via ckx-network DNS from the jumphost; `registry.localhost:5000` is the containerd mirror alias written into k3d nodes by `env-setup` (see Section 4).
+
+### Idempotent push pattern for lab setup scripts
+
+Lab setup scripts that need lab-specific images (e.g. a vulnerable image for a trivy task) should follow this pattern:
+
+```bash
+REGISTRY="registry:5000"
+
+# Idempotent: only push if the tag is not already present
+if ! wget -q -O - "http://${REGISTRY}/v2/ckx/webserver/tags/list" 2>/dev/null \
+        | grep -q '"v1.0-vulnerable"'; then
+    docker pull nginx:1.19.0
+    docker tag  nginx:1.19.0 ${REGISTRY}/ckx/webserver:v1.0-vulnerable
+    docker push ${REGISTRY}/ckx/webserver:v1.0-vulnerable
+fi
+```
+
+Lab-specific images (vulnerable versions, signed images for cosign tasks, etc.) belong in the individual `qN_setup.sh` scripts, not in `seed-registry-images`. The seed script is for the shared baseline only.
+
+### Rebuild note
+
+`seed-registry-images` is baked into the jumphost image via `COPY scripts/seed-registry-images /usr/local/bin/seed-registry-images` in `jumphost/Dockerfile`. A `docker compose build jumphost` is required for the script to be available in freshly built containers. For the currently running container, hot-copy with:
+
+```bash
+docker cp jumphost/scripts/seed-registry-images ck-x-jumphost-1:/usr/local/bin/seed-registry-images
+docker exec ck-x-jumphost-1 chmod +x /usr/local/bin/seed-registry-images
+```

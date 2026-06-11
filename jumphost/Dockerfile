@@ -139,10 +139,12 @@ RUN mkdir -p /home/candidate/.ssh && \
 # Copy exam environment scripts
 COPY scripts/prepare-exam-env.sh /usr/local/bin/prepare-exam-env
 COPY scripts/cleanup-exam-env.sh /usr/local/bin/cleanup-exam-env
+COPY scripts/seed-registry-images /usr/local/bin/seed-registry-images
 
 # Make scripts executable
 RUN chmod +x /usr/local/bin/prepare-exam-env
 RUN chmod +x /usr/local/bin/cleanup-exam-env
+RUN chmod +x /usr/local/bin/seed-registry-images
 
 RUN mkdir -p /tmp/exam-env
 

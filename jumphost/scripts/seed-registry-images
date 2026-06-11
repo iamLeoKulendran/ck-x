@@ -1,0 +1,106 @@
+#!/bin/bash
+# seed-registry-images — seed baseline CKX images into the internal CK-X registry.
+#
+# Runs on the jumphost (ckad9999). Requires Docker daemon with insecure-registries
+# configured for registry:5000 (set in /etc/docker/daemon.json since Phase 2B).
+#
+# Usage:
+#   seed-registry-images               # seed only
+#   seed-registry-images --verify-pod  # seed + verify k3d pod pull via containerd mirror
+
+set -euo pipefail
+exec >> /proc/1/fd/1 2>&1
+
+REGISTRY="registry:5000"
+NS="ckx"
+VERIFY_POD=false
+[ "${1:-}" = "--verify-pod" ] && VERIFY_POD=true
+export KUBECONFIG="/home/candidate/.kube/config"
+
+log() { echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1"; }
+fail() { log "ERROR: $1"; exit 1; }
+
+# ── 1. Registry health ────────────────────────────────────────────────────────
+log "Checking registry at http://${REGISTRY}/v2/ ..."
+wget -q -O - "http://${REGISTRY}/v2/" >/dev/null 2>&1 \
+    || fail "Registry unreachable at ${REGISTRY}. Ensure compose is up."
+log "Registry OK"
+
+# ── 2. Idempotent push helper ─────────────────────────────────────────────────
+# tag_present returns 0 if <image>:<tag> is already in the registry, 1 if not.
+tag_present() {
+    local image="$1" tag="$2"
+    local result
+    result=$(wget -q -O - "http://${REGISTRY}/v2/${image}/tags/list" 2>/dev/null) || true
+    echo "${result}" | grep -q "\"${tag}\""
+}
+
+push_image() {
+    local src="$1" dst_image="$2" dst_tag="$3"
+    local dst="${REGISTRY}/${dst_image}:${dst_tag}"
+    if tag_present "${dst_image}" "${dst_tag}"; then
+        log "SKIP  ${dst} (already present)"
+        return
+    fi
+    log "PULL  ${src}"
+    docker pull "${src}"
+    docker tag  "${src}" "${dst}"
+    log "PUSH  ${dst}"
+    docker push "${dst}"
+    log "OK    ${dst}"
+}
+
+# ── 3. Seed baseline images ───────────────────────────────────────────────────
+# ckx/alpine:3.20 — tiny clean baseline; cosign signing, syft SBOM, trivy scan
+push_image "alpine:3.20"       "${NS}/alpine" "3.20"
+
+# ckx/nginx:v1.25 — minimal web server; admission-control and scan labs
+push_image "nginx:1.25-alpine" "${NS}/nginx"  "v1.25"
+
+# ── 4. Print catalog ──────────────────────────────────────────────────────────
+log "Registry catalog after seed:"
+wget -q -O - "http://${REGISTRY}/v2/_catalog"
+echo
+
+# ── 5. Optional pod pull verification ────────────────────────────────────────
+# Verifies that k3d pods can pull ckx/alpine:3.20 via the containerd mirror
+# (registry.localhost:5000 → http://<REGISTRY_IP>:5000, set in env-setup).
+if $VERIFY_POD; then
+    POD="seed-verify-pod"
+    IMG="registry.localhost:5000/${NS}/alpine:3.20"
+    log "Launching pod ${POD} to verify k3d can pull ${IMG} ..."
+
+    kubectl delete pod "${POD}" --grace-period=0 --ignore-not-found=true 2>/dev/null || true
+    kubectl run "${POD}" \
+        --image="${IMG}" \
+        --restart=Never \
+        --command -- sh -c "echo seed-registry-pull-success"
+
+    VERIFIED=false
+    STATUS="Pending"
+    for i in $(seq 1 12); do
+        STATUS=$(kubectl get pod "${POD}" -o jsonpath='{.status.phase}' 2>/dev/null || echo "Pending")
+        log "  Pod phase: ${STATUS} (${i}/12)"
+        if [ "${STATUS}" = "Succeeded" ]; then
+            VERIFIED=true
+            break
+        elif [ "${STATUS}" = "Failed" ]; then
+            log "  Pod failed — check registry mirror config in env-setup"
+            break
+        fi
+        sleep 5
+    done
+
+    LOGS=$(kubectl logs "${POD}" 2>/dev/null || echo "")
+    kubectl delete pod "${POD}" --grace-period=0 2>/dev/null || true
+
+    if $VERIFIED; then
+        log "Pod logs: ${LOGS}"
+        log "Pod pull verification PASSED"
+    else
+        log "WARNING: Pod did not reach Succeeded (final phase: ${STATUS})"
+        exit 1
+    fi
+fi
+
+log "Done — ${REGISTRY}/${NS}/alpine:3.20 and ${REGISTRY}/${NS}/nginx:v1.25 available."
