@@ -99,6 +99,16 @@
       "warmUpTimeInSeconds": 360,
       "difficulty": "Hard",
       "examDurationInMinutes": 120
+    },
+    {
+      "id": "cks-004",
+      "assetPath": "assets/exams/cks/004",
+      "name": "Mock Exam - CKS - 3",
+      "category": "CKS",
+      "description": "Original registry-backed CKS full mock: default-deny + trusted-only ingress, TLS Ingress, RBAC least-privilege and exec lockdown, ValidatingAdmissionPolicy trusted-registry enforcement, capability/seccomp hardening, restricted Pod Security Admission, secret hygiene with token automount disabled, zero-trust egress, internal-registry digest pinning, trivy config scanning, syft SBOM + cosign signature verification, audit-log investigation, runtime incident containment, and immutable root filesystem.",
+      "warmUpTimeInSeconds": 360,
+      "difficulty": "Hard",
+      "examDurationInMinutes": 120
     }
   ]
 }

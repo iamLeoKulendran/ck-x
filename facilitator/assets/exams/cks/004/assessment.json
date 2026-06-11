@@ -1,0 +1,197 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "namespace": "frontend-zone",
+      "machineHostname": "ckad9999",
+      "question": "The `frontend-zone` namespace runs the deployment `storefront` (label `app=storefront`) which serves on port `80` and pulls its image from the internal registry as `registry.localhost:5000/ckx/nginx:v1.25`. Right now every pod in the cluster can reach it. Lock the namespace down:\n\n1. Apply a default-deny ingress policy named `default-deny-ingress` in `frontend-zone` that selects all pods and denies all ingress.\n2. Apply a second NetworkPolicy named `allow-trusted-clients` that allows ingress to pods with label `app=storefront` on TCP port `80` ONLY from pods in namespaces carrying the label `tier=trusted` (the namespace `trusted-clients` already has this label and runs a `client` pod).\n\nThe trusted client must be able to reach `storefront` on port 80; pods in the namespace `untrusted-clients` must be blocked.",
+      "concepts": ["network policies", "ingress", "default deny", "namespace isolation"],
+      "verification": [
+        {"id": "1", "description": "default-deny-ingress policy selects all pods and denies all ingress", "verificationScriptFile": "q1_s1_validate_default_deny.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "allow-trusted-clients policy selects app=storefront and admits port 80 only from tier=trusted namespaces", "verificationScriptFile": "q1_s2_validate_allow_policy.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "trusted-clients pod can reach storefront on TCP 80 with both policies in place (allowed path works)", "verificationScriptFile": "q1_s3_validate_allowed_ingress.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "4", "description": "allow-trusted-clients admits ingress only from tier=trusted namespaces (untrusted denied by policy)", "verificationScriptFile": "q1_s4_validate_denied_ingress.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "2",
+      "namespace": "gateway-edge",
+      "machineHostname": "ckad9999",
+      "question": "The `gateway-edge` namespace exposes the deployment `portal` (label `app=portal`, image `registry.localhost:5000/ckx/nginx:v1.25`) through the Service `portal-svc` on port `80`. External traffic must be served over TLS only.\n\n1. Create a TLS Secret named `portal-tls` of type `kubernetes.io/tls` in `gateway-edge`. A self-signed certificate and key for host `portal.ckx.local` are already provided at `/tmp/exam/q2/tls.crt` and `/tmp/exam/q2/tls.key`.\n2. Create an Ingress named `portal-ingress` in `gateway-edge` that routes host `portal.ckx.local` (path `/`, `pathType: Prefix`) to `portal-svc` on port `80`, and terminates TLS for host `portal.ckx.local` using the `portal-tls` secret.\n\nThe backend `portal` deployment must be Running from the internal registry image.",
+      "concepts": ["ingress tls", "secrets", "certificates", "cluster setup"],
+      "verification": [
+        {"id": "1", "description": "portal-tls secret exists, is type kubernetes.io/tls, and carries the provided cert/key", "verificationScriptFile": "q2_s1_validate_tls_secret.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "2", "description": "portal-ingress routes host portal.ckx.local path / (Prefix) to portal-svc:80", "verificationScriptFile": "q2_s2_validate_ingress_routing.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "portal-ingress terminates TLS for portal.ckx.local using the portal-tls secret", "verificationScriptFile": "q2_s3_validate_ingress_tls.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "3",
+      "namespace": "audit-team",
+      "machineHostname": "ckad9999",
+      "question": "A security review of the `audit-team` namespace found that the ServiceAccount `report-sa` is bound, through the RoleBinding `report-sa-binding`, to a Role named `report-role` that grants `verbs: [\"*\"]` on `resources: [\"*\"]`. Apply least privilege:\n\nReshape `report-role` so that `report-sa` can only `get`, `list`, and `watch` `configmaps` in `audit-team` and nothing else. Keep the RoleBinding pointing the same ServiceAccount at the same Role.\n\nAfter your change, `report-sa` must still be able to `list configmaps`, but must NOT be able to `delete pods` in `audit-team`.",
+      "concepts": ["rbac", "least privilege", "role"],
+      "verification": [
+        {"id": "1", "description": "report-sa can get configmaps but can NOT get secrets in audit-team (scoped allow)", "verificationScriptFile": "q3_s1_validate_allowed.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "report-sa cannot delete pods in audit-team (privilege removed)", "verificationScriptFile": "q3_s2_validate_denied.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "report-role rules are scoped to configmaps get/list/watch only (no wildcards)", "verificationScriptFile": "q3_s3_validate_role_scope.sh", "expectedOutput": "0", "weightage": 1}
+      ]
+    },
+    {
+      "id": "4",
+      "namespace": "support-rbac",
+      "machineHostname": "ckad9999",
+      "question": "On-call engineers in the `support-rbac` namespace use the ServiceAccount `oncall-sa`. They must be able to read pods and pod logs for debugging, but the security team requires that they can NOT open shells in containers. The Role `oncall-role` and its RoleBinding `oncall-binding` already exist but are misconfigured.\n\nConfigure `oncall-role` so that `oncall-sa` can `get`, `list`, and `watch` `pods` and `get` `pods/log`, but is denied `create` on `pods/exec`.\n\nAfter your change, `oncall-sa` must be able to `get pods/log`, but must NOT be able to `create pods/exec` in `support-rbac`.",
+      "concepts": ["rbac", "least privilege", "service accounts"],
+      "verification": [
+        {"id": "1", "description": "oncall-sa can get pods and pods/log but can no longer create pods in support-rbac", "verificationScriptFile": "q4_s1_validate_allowed.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "oncall-sa cannot create pods/exec in support-rbac (exec denied)", "verificationScriptFile": "q4_s2_validate_exec_denied.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "oncall-role grants only pods get/list/watch and pods/log get", "verificationScriptFile": "q4_s3_validate_role_scope.sh", "expectedOutput": "0", "weightage": 1}
+      ]
+    },
+    {
+      "id": "5",
+      "namespace": "registry-guard",
+      "machineHostname": "ckad9999",
+      "question": "The cluster must only run images served by the internal registry. The namespace `registry-guard` is labelled `registry-policy=enforced`.\n\nUsing a `ValidatingAdmissionPolicy` (CEL-based, built into the cluster):\n\n1. Create a `ValidatingAdmissionPolicy` named `trusted-registry-only` that, for `CREATE`/`UPDATE` of `pods`, requires every container image to start with the prefix `registry.localhost:5000/`.\n2. Bind it with a `ValidatingAdmissionPolicyBinding` named `trusted-registry-only-binding` whose `matchResources` targets namespaces with label `registry-policy=enforced`, with `validationActions: [Deny]`.\n\nA pod that references a public image such as `nginx:1.25` must be rejected in `registry-guard`; a pod that uses `registry.localhost:5000/ckx/nginx:v1.25` must be admitted.",
+      "concepts": ["admission control", "validating admission policy", "supply chain", "cluster hardening"],
+      "verification": [
+        {"id": "1", "description": "ValidatingAdmissionPolicy and binding exist and target the registry-policy=enforced namespace with Deny", "verificationScriptFile": "q5_s1_validate_policy_exists.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "a pod using a non-registry image is rejected in registry-guard (violation captured)", "verificationScriptFile": "q5_s2_validate_violation_blocked.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "a pod using registry.localhost:5000/ckx/nginx:v1.25 is admitted in registry-guard", "verificationScriptFile": "q5_s3_validate_compliant_allowed.sh", "expectedOutput": "0", "weightage": 1}
+      ]
+    },
+    {
+      "id": "6",
+      "namespace": "system-lockdown",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `edge-cache` in the `system-lockdown` namespace runs the internal-registry image `registry.localhost:5000/ckx/alpine:3.20` (command `sleep infinity`) but was created by a contractor with an over-permissive container: it adds the `SYS_ADMIN` and `NET_RAW` capabilities and allows privilege escalation. Harden the container security context so that the pod keeps running:\n\n1. Drop ALL capabilities (`capabilities.drop: [\"ALL\"]`) and add none back.\n2. Set `runAsNonRoot: true` and `runAsUser: 10001`.\n3. Set `allowPrivilegeEscalation: false` and `readOnlyRootFilesystem: true`.\n\nThe `edge-cache` pod must end up Running from the internal registry image with the hardened context applied.",
+      "concepts": ["security context", "capabilities", "read-only filesystem", "system hardening"],
+      "verification": [
+        {"id": "1", "description": "edge-cache container drops ALL capabilities, runs as non-root user 10001, no privilege escalation, read-only rootfs", "verificationScriptFile": "q6_s1_validate_securitycontext.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "2", "description": "edge-cache pod is Running from registry.localhost:5000/ckx/alpine:3.20", "verificationScriptFile": "q6_s2_validate_running.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "7",
+      "namespace": "syscall-lockdown",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `metrics-shipper` in the `syscall-lockdown` namespace runs `registry.localhost:5000/ckx/alpine:3.20` (command `sleep infinity`) but explicitly sets its seccomp profile to `Unconfined`, leaving every syscall open. Restore syscall filtering:\n\nSet the pod-level seccomp profile to `RuntimeDefault` (`spec.securityContext.seccompProfile.type: RuntimeDefault`) and remove the `Unconfined` setting.\n\nThe `metrics-shipper` pod must be Running from the internal registry image with the `RuntimeDefault` seccomp profile applied.",
+      "concepts": ["seccomp", "syscalls", "system hardening"],
+      "verification": [
+        {"id": "1", "description": "metrics-shipper uses seccompProfile type RuntimeDefault (Unconfined removed)", "verificationScriptFile": "q7_s1_validate_seccomp.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "2", "description": "metrics-shipper pod is Running from registry.localhost:5000/ckx/alpine:3.20", "verificationScriptFile": "q7_s2_validate_running.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "8",
+      "namespace": "microsvc-restricted",
+      "machineHostname": "ckad9999",
+      "question": "The `microsvc-restricted` namespace must be brought up to the `restricted` Pod Security Standard. It currently runs the deployment `orders-ui` (image `registry.localhost:5000/ckx/alpine:3.20`, command `sleep infinity`) which is NOT compliant.\n\n1. Label the namespace to `enforce` the `restricted` standard at the current version, and also set `warn` and `audit` to `restricted`.\n2. Patch `orders-ui` so it satisfies the restricted policy: `runAsNonRoot: true`, `allowPrivilegeEscalation: false`, `capabilities.drop: [\"ALL\"]`, and `seccompProfile.type: RuntimeDefault`. Use `runAsUser: 10001`.\n\nThe `orders-ui` pod must be Running. A pod that violates the restricted policy (for example a privileged pod) must be rejected by the namespace.",
+      "concepts": ["pod security admission", "security context", "namespace labels"],
+      "verification": [
+        {"id": "1", "description": "namespace enforces restricted PSA and sets warn/audit to restricted", "verificationScriptFile": "q8_s1_validate_ns_labels.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "orders-ui pod is compliant and Running from the internal registry image", "verificationScriptFile": "q8_s2_validate_compliant_running.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "a privileged pod is rejected by the restricted namespace (violation captured)", "verificationScriptFile": "q8_s3_validate_violation_blocked.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "4", "description": "warn and audit modes are both set to restricted", "verificationScriptFile": "q8_s4_validate_warn_audit.sh", "expectedOutput": "0", "weightage": 1}
+      ]
+    },
+    {
+      "id": "9",
+      "namespace": "payments-svc",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `billing` in the `payments-svc` namespace injects a database password directly as a plaintext environment variable (`DB_PASSWORD: S3cr3t-P@ss!`) in its pod spec, and it automounts the default ServiceAccount token even though it never calls the API. Fix the credential hygiene:\n\n1. Create a Secret named `billing-db` in `payments-svc` with key `password` set to `S3cr3t-P@ss!`.\n2. Update `billing` so the container reads `DB_PASSWORD` from the `billing-db` secret (via `secretKeyRef`) instead of a plaintext value. No plaintext password may remain in the pod spec.\n3. Set `automountServiceAccountToken: false` for the `billing` pod.\n\nThe `billing` pod must be Running from `registry.localhost:5000/ckx/nginx:v1.25`.",
+      "concepts": ["secrets", "credential hygiene", "service accounts", "automounting"],
+      "verification": [
+        {"id": "1", "description": "billing-db secret exists with password=S3cr3t-P@ss!", "verificationScriptFile": "q9_s1_validate_secret.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "billing reads DB_PASSWORD via secretKeyRef and has no plaintext password in the pod spec", "verificationScriptFile": "q9_s2_validate_no_plaintext.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "3", "description": "billing pod disables ServiceAccount token automount and is Running from the registry image", "verificationScriptFile": "q9_s3_validate_automount_running.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "10",
+      "namespace": "txn-mesh",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `processor` (label `app=processor`, image `registry.localhost:5000/ckx/alpine:3.20`, command `sleep infinity`) in the `txn-mesh` namespace currently has unrestricted egress. Apply zero-trust egress:\n\n1. Create a NetworkPolicy named `processor-egress` that selects pods with label `app=processor` and denies all egress except:\n   - DNS resolution (UDP and TCP port `53` to any destination), and\n   - TCP port `80` to pods in the namespace labelled `tier=ledger` (the namespace `txn-ledger` already carries this label and runs the service `ledger-svc`).\n\nAfter your change, `processor` must be able to reach `ledger-svc.txn-ledger` on port 80, but egress to any other namespace (for example the `ledger-svc` equivalent in `txn-public`) must be blocked.",
+      "concepts": ["network policies", "egress control", "zero trust"],
+      "verification": [
+        {"id": "1", "description": "processor-egress policy exists, selects app=processor, and is an Egress policy that permits DNS", "verificationScriptFile": "q10_s1_validate_policy.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "processor can reach ledger-svc.txn-ledger on TCP 80 (allowed egress works)", "verificationScriptFile": "q10_s2_validate_allowed_egress.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "processor-egress scopes port-80 egress to tier=ledger only (txn-public denied by policy)", "verificationScriptFile": "q10_s3_validate_denied_egress.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "11",
+      "namespace": "supply-frontend",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `web-frontend` in the `supply-frontend` namespace references its image by the MUTABLE tag `registry.localhost:5000/ckx/nginx:v1.25`. Supply-chain policy requires immutable digest pinning.\n\n1. Determine the current manifest digest of `ckx/nginx:v1.25` in the internal registry. (From the jumphost you can query the registry HTTP API, for example: `curl -sI -H 'Accept: application/vnd.oci.image.manifest.v1+json' http://registry:5000/v2/ckx/nginx/manifests/v1.25 | grep -i docker-content-digest`.)\n2. Update `web-frontend` so the container image is pinned by digest as `registry.localhost:5000/ckx/nginx@sha256:<digest>`.\n\nThe `web-frontend` pod must be Running using the digest-pinned reference, and the digest must match the registry's current digest for that tag.",
+      "concepts": ["image digest pinning", "supply chain", "image integrity"],
+      "verification": [
+        {"id": "1", "description": "web-frontend image is pinned by @sha256 digest (no mutable tag)", "verificationScriptFile": "q11_s1_validate_digest_ref.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "2", "description": "the pinned digest matches the registry's current digest for ckx/nginx:v1.25", "verificationScriptFile": "q11_s2_validate_digest_matches.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "web-frontend pod is Running with the digest-pinned image", "verificationScriptFile": "q11_s3_validate_running.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "12",
+      "namespace": "supply-scan",
+      "machineHostname": "ckad9999",
+      "question": "A third-party Kubernetes manifest was delivered to `/tmp/exam/q12/workload.yaml`. It defines a Deployment that runs privileged, allows privilege escalation, and runs as root. Use the jumphost `trivy` tool (offline config scanning, no database download needed) to find the misconfigurations, then deploy a hardened version:\n\n1. Run `trivy config /tmp/exam/q12/workload.yaml` and save the full report to `/tmp/exam/q12/findings.txt`. The report must contain the Trivy Kubernetes security check IDs (the `KSV` identifiers) for the privileged container and the missing `runAsNonRoot`/`allowPrivilegeEscalation` settings.\n2. Deploy a hardened Deployment named `scanner-api` in the `supply-scan` namespace using image `registry.localhost:5000/ckx/alpine:3.20` (command `sleep infinity`) with a secure context: `privileged` removed, `allowPrivilegeEscalation: false`, `runAsNonRoot: true` (`runAsUser: 10001`), and `capabilities.drop: [\"ALL\"]`.\n\nThe `scanner-api` pod must be Running from the internal registry image.",
+      "concepts": ["image scanning", "trivy", "manifest hardening", "supply chain"],
+      "verification": [
+        {"id": "1", "description": "findings.txt exists and contains the KSV check IDs for the privileged/root misconfigurations", "verificationScriptFile": "q12_s1_validate_findings.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "scanner-api deployment is hardened and Running from the internal registry image", "verificationScriptFile": "q12_s2_validate_hardened_running.sh", "expectedOutput": "0", "weightage": 3},
+        {"id": "3", "description": "scanner-api container security context drops ALL caps, no privilege escalation, runs non-root", "verificationScriptFile": "q12_s3_validate_securitycontext.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "13",
+      "namespace": "supply-trust",
+      "machineHostname": "ckad9999",
+      "question": "Two release manifests were delivered to `/tmp/exam/q13/` together with detached cosign signatures and the releaser's public key:\n\n- `release-good.yaml` with signature `release-good.sig`\n- `release-bad.yaml` with signature `release-bad.sig`\n- public key `releaser.pub`\n\nOne manifest was modified after it was signed. You must also produce a software bill of materials for the base image.\n\n1. Generate an SPDX-JSON SBOM for the internal-registry image `ckx/alpine:3.20` and save it to `/tmp/exam/q13/sbom.json` (the image is available to the jumphost docker daemon as `registry:5000/ckx/alpine:3.20`; `syft docker:registry:5000/ckx/alpine:3.20 -o spdx-json` works offline).\n2. Use `cosign verify-blob` with `releaser.pub` (offline, transparency log disabled with `--insecure-ignore-tlog`) to determine which manifest still matches its signature. Write the filename of the authentic manifest (just `release-good.yaml` or `release-bad.yaml`) to `/tmp/exam/q13/verified.txt`.\n3. Apply ONLY the authentic manifest. It creates the deployment `trusted-release` in `supply-trust`. The tampered manifest must NOT be deployed.",
+      "concepts": ["sbom", "syft", "image signing", "cosign", "supply chain", "artifact verification"],
+      "verification": [
+        {"id": "1", "description": "sbom.json is valid SPDX-JSON for ckx/alpine and lists packages", "verificationScriptFile": "q13_s1_validate_sbom.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "verified.txt names release-good.yaml as the authentic manifest", "verificationScriptFile": "q13_s2_validate_verified_choice.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "only the authentic deployment trusted-release exists; the tampered one was not deployed", "verificationScriptFile": "q13_s3_validate_only_trusted.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    },
+    {
+      "id": "14",
+      "namespace": "runtime-audit",
+      "machineHostname": "ckad9999",
+      "question": "**ANALYSIS TASK** - An API server audit log extract has been collected at `/tmp/exam/q14/audit.log` (one JSON event per line). A ServiceAccount is suspected of reading Secrets it should not. Investigate the log with `jq` and record your findings.\n\nWrite a file `/tmp/exam/q14/findings.txt` containing exactly three lines, in this order:\n\n1. `user=<the user/serviceaccount username that performed `get` requests on `secrets`>`\n2. `count=<the total number of audit events where that user performed verb `get` on resource `secrets`>`\n3. `namespace=<the namespace those secret reads targeted>`\n\nUse the exact `key=value` format with no extra spaces.",
+      "concepts": ["audit logs", "runtime security", "incident investigation"],
+      "verification": [
+        {"id": "1", "description": "findings.txt identifies the correct offending serviceaccount username", "verificationScriptFile": "q14_s1_validate_user.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "findings.txt records the correct namespace of the secret reads", "verificationScriptFile": "q14_s2_validate_namespace.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "findings.txt records the correct count of get-secrets events for that user", "verificationScriptFile": "q14_s3_validate_count.sh", "expectedOutput": "0", "weightage": 3}
+      ]
+    },
+    {
+      "id": "15",
+      "namespace": "runtime-soc",
+      "machineHostname": "ckad9999",
+      "question": "The SOC flagged the deployment `ingest-api` in the `runtime-soc` namespace as compromised. It runs its legitimate main container `api` (image `registry.localhost:5000/ckx/alpine:3.20`, command `sleep infinity`) alongside an injected sidecar named `debug` that runs privileged, and the namespace has no egress restrictions. Contain the workload without deleting the deployment:\n\n1. Remove the malicious `debug` sidecar container entirely from `ingest-api`.\n2. Harden the remaining `api` container: `allowPrivilegeEscalation: false`, `readOnlyRootFilesystem: true`, `capabilities.drop: [\"ALL\"]`.\n3. Apply a default-deny-all NetworkPolicy named `soc-default-deny` in `runtime-soc` that selects all pods and denies both ingress and egress.\n\nThe `ingest-api` pod (single container, hardened) must be Running from the internal registry image.",
+      "concepts": ["incident response", "runtime security", "network policies", "security context"],
+      "verification": [
+        {"id": "1", "description": "the privileged debug sidecar is removed from ingest-api (only the api container remains)", "verificationScriptFile": "q15_s1_validate_sidecar_removed.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "the api container is hardened (no privilege escalation, read-only rootfs, all caps dropped)", "verificationScriptFile": "q15_s2_validate_api_hardened.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "soc-default-deny denies all ingress and egress for all pods in runtime-soc", "verificationScriptFile": "q15_s3_validate_default_deny.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "4", "description": "ingest-api pod is Running from registry.localhost:5000/ckx/nginx:v1.25", "verificationScriptFile": "q15_s4_validate_running.sh", "expectedOutput": "0", "weightage": 1}
+      ]
+    },
+    {
+      "id": "16",
+      "namespace": "runtime-immutable",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `log-rotator` in the `runtime-immutable` namespace (image `registry.localhost:5000/ckx/alpine:3.20`) writes to `/var/spool/app` on its container's writable root filesystem. Enforce immutable infrastructure so the root filesystem cannot be modified at runtime while the workload keeps functioning:\n\n1. Set `readOnlyRootFilesystem: true` on the `log-rotator` container.\n2. Provide a writable `emptyDir` volume named `spool` mounted at `/var/spool/app` so the application can still write there.\n\nThe container's command is `sh -c 'while true; do echo tick >> /var/spool/app/out.log; sleep 5; done'`. The `log-rotator` pod must be Running from the internal registry image with a read-only root filesystem and the writable emptyDir mounted.",
+      "concepts": ["immutability", "read-only filesystem", "runtime security"],
+      "verification": [
+        {"id": "1", "description": "log-rotator container has readOnlyRootFilesystem: true", "verificationScriptFile": "q16_s1_validate_readonly.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "2", "description": "an emptyDir volume is mounted at /var/spool/app", "verificationScriptFile": "q16_s2_validate_emptydir.sh", "expectedOutput": "0", "weightage": 2},
+        {"id": "3", "description": "log-rotator pod is Running from registry.localhost:5000/ckx/alpine:3.20", "verificationScriptFile": "q16_s3_validate_running.sh", "expectedOutput": "0", "weightage": 2}
+      ]
+    }
+  ]
+}
