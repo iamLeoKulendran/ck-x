@@ -193,21 +193,31 @@ async function endExam(req, res) {
  */
 async function getExamAnswers(req, res) {
   const examId = req.params.examId;
-  
+
   logger.info('Received request to get exam answers', { examId });
-  
+
   try {
     // Check if exam exists
     const examInfo = await redisClient.getExamInfo(examId);
-    
+
     if (!examInfo) {
       logger.error(`Exam not found with ID: ${examId}`);
-      return res.status(404).json({ 
+      return res.status(404).json({
         error: 'Not Found',
-        message: 'Exam not found' 
+        message: 'Exam not found'
       });
     }
-    
+
+    // Solutions are only available after evaluation
+    const examStatus = await redisClient.getExamStatus(examId);
+    if (examStatus !== 'EVALUATED') {
+      logger.info(`Answers requested before evaluation for exam: ${examId}, status: ${examStatus}`);
+      return res.status(403).json({
+        error: 'Access Denied',
+        message: 'Solutions are only available after the exam has been evaluated.'
+      });
+    }
+
     // Get answers path directly from the exam info config
     if (!examInfo.config || !examInfo.config.answers) {
       logger.error(`Answers path not found in config for exam: ${examId}`);

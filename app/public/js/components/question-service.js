@@ -66,7 +66,8 @@ function getQuestionWeight(question) {
     const originalData = question.originalData || {};
     const directWeight = Number(originalData.weightage ?? originalData.weight ?? originalData.marks);
     if (Number.isFinite(directWeight) && directWeight > 0) {
-        return `${directWeight} ${directWeight === 1 ? 'mark' : 'marks'}`;
+        // totalMarks is always 100, so marks === percentage
+        return `${directWeight} ${directWeight === 1 ? 'mark' : 'marks'} (${directWeight}%)`;
     }
 
     const verification = Array.isArray(originalData.verification) ? originalData.verification : [];
@@ -75,7 +76,7 @@ function getQuestionWeight(question) {
         return Number.isFinite(stepWeight) ? total + stepWeight : total;
     }, 0);
 
-    return derivedWeight > 0 ? `${derivedWeight} ${derivedWeight === 1 ? 'mark' : 'marks'}` : 'Not specified';
+    return derivedWeight > 0 ? `${derivedWeight} ${derivedWeight === 1 ? 'mark' : 'marks'} (${derivedWeight}%)` : 'Not specified';
 }
 
 // Generate question content HTML

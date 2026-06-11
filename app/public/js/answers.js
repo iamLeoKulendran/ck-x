@@ -62,16 +62,21 @@ document.addEventListener('DOMContentLoaded', function() {
         pageLoader.style.display = 'flex';
         errorMessage.style.display = 'none';
         answersContent.style.display = 'none';
-        
+
         // Fetch answers file
         fetch(`/facilitator/api/v1/exams/${examId}/answers`)
             .then(response => {
+                if (response.status === 403) {
+                    showError('Solutions are locked. They become available once the exam has been evaluated. Submit your exam and check back here after evaluation is complete.');
+                    return null;
+                }
                 if (!response.ok) {
                     throw new Error(`HTTP error! Status: ${response.status}`);
                 }
                 return response.text(); // Get raw text (Markdown content)
             })
             .then(markdownText => {
+                if (markdownText === null) return; // 403 already handled above
                 // Render markdown
                 renderMarkdown(markdownText);
                 
