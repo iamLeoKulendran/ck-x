@@ -9,6 +9,11 @@ exec >> /proc/1/fd/1 2>&1
 NUM_WORKERS=${1:-0}  # Default to 1 worker if not provided
 CLUSTER_NAME=${2:-cluster}
 
+# Resolve compose registry IP so k3d nodes can use it as a containerd mirror.
+# getent hosts registry resolves via Docker compose DNS (ckx-network).
+REGISTRY_IP=$(getent hosts registry 2>/dev/null | awk '{print $1}')
+echo "$(date '+%Y-%m-%d %H:%M:%S') | Registry IP on ckx-network: ${REGISTRY_IP:-not resolved}"
+
 # Check if k3d is installed, if not install it
 if ! command -v k3d &> /dev/null; then
     echo "$(date '+%Y-%m-%d %H:%M:%S') | k3d not found. Attempting installation..."
@@ -70,6 +75,23 @@ options:
         nodeFilters:
           - server:*
 EOF
+
+# Append registry mirror config when the compose registry is reachable.
+# Pods use image ref registry.localhost:5000/<image>; containerd pulls via the
+# resolved IP so k3d nodes reach the single ckx-network registry instance.
+if [ -n "$REGISTRY_IP" ]; then
+cat <<REGEOF >> /tmp/k3d-config.yaml
+registries:
+  config: |
+    mirrors:
+      "registry.localhost:5000":
+        endpoint:
+          - "http://${REGISTRY_IP}:5000"
+REGEOF
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | Registry mirror added: registry.localhost:5000 → http://${REGISTRY_IP}:5000"
+else
+    echo "$(date '+%Y-%m-%d %H:%M:%S') | WARNING: registry not resolved; k3d pods cannot pull from registry.localhost:5000"
+fi
 
 echo "Cluster config with $NUM_WORKERS worker nodes generated: /tmp/k3d-config.yaml"
 

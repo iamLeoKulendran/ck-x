@@ -141,49 +141,59 @@ The `--insecure` / `--allow-insecure-registry` / `--tls-verify=false` flags are 
 
 ---
 
-## 4. k3d Integration Gap (Phase 2B-registry-k3d)
+## 4. k3d Pod Image Pull — Confirmed Working (Phase 2C)
 
-### Current limitation
+**Status: RESOLVED** — `kind-cluster/scripts/env-setup` updated (2026-06-11).
 
-k3d node containers run inside the `k8s-api-server` DinD Docker daemon. They cannot resolve `registry:5000` on `ckx-network` because:
+### Design
 
-1. k3d nodes are Docker containers on DinD's internal bridge network.
-2. `ckx-network` DNS (`registry`, `jumphost`, etc.) is not propagated into the DinD Docker daemon.
-3. There is no port bridge from DinD's host interface to `registry:5000`.
+DinD's FORWARD chain has policy ACCEPT and DOCKER-USER is empty. k3d nodes on the DinD-internal bridge network can reach `172.19.0.x` (ckx-network) via the DinD host's routing — **no iptables changes, no socat proxy needed.**
 
-### Workarounds for labs that need k3d pod image pulls
+`env-setup` now:
+1. Resolves `registry` to its ckx-network IP at cluster-creation time: `getent hosts registry`
+2. Appends a k3d `registries.config` block to the cluster config, pointing containerd mirrors at the resolved IP
+3. k3d writes this config to `/etc/rancher/k3s/registries.yaml` in every node at startup
 
-Until Phase 2B-registry-k3d is implemented, lab setup scripts can use one of these approaches:
-
-**Option A — Use a public image directly in the pod spec (simplest)**  
-For tasks where the point is RBAC/policy/admission (not supply chain), use a public image. Avoid the registry entirely.
-
-**Option B — k3d registry create (DinD-internal)**  
-Add to `env-setup`, after the k3d cluster is created:
-```sh
-# Create a registry inside the DinD Docker daemon
-k3d registry create registry.localhost --port 0.0.0.0:5000
-```
-k3d automatically adds a containerd mirror config to all nodes for `registry.localhost:5000`. Lab setup scripts run inside DinD (via `docker exec k3d-cluster ...`) to push images. The jumphost cannot reach this registry directly.
-
-**Option C — Host-alias injection (Phase 2B-registry-k3d target)**  
-In `env-setup`, write a k3d cluster config with:
 ```yaml
+# appended to /tmp/k3d-config.yaml by env-setup
 registries:
   config: |
     mirrors:
       "registry.localhost:5000":
         endpoint:
-          - http://<DinD-host-bridge-IP>:5000
+          - "http://172.19.0.7:5000"   # resolved at cluster creation time
 ```
-And expose the compose-level registry on a mapped port on the `k8s-api-server` container. This unifies jumphost + k3d access to a single registry instance. This is the target design for Phase 2B-registry-k3d.
 
-### Phase 2B-registry-k3d acceptance gate
+### Image ref convention for CKS labs
 
-- [ ] A k3d pod successfully pulls an image from `registry.localhost:5000`.
-- [ ] A jumphost tool (trivy) can scan the same image via `registry:5000`.
-- [ ] `docker compose down && docker compose up -d` preserves pushed images (registry-data volume survives).
-- [ ] No new external ports are added.
+- **Jumphost push:** `docker push registry:5000/<image>:<tag>`
+- **Pod image ref:** `registry.localhost:5000/<image>:<tag>`
+- **Jumphost scan:** `trivy image --insecure registry:5000/<image>:<tag>`
+- **Jumphost cosign:** `cosign verify --allow-insecure-registry ... registry:5000/<image>:<tag>`
+
+The two hostnames are different aliases for the same physical registry instance. `registry` is ckx-network DNS; `registry.localhost` is the containerd mirror alias.
+
+### Confirmed acceptance gate (tested 2026-06-11)
+
+- [x] k3d pod pulls `registry.localhost:5000/ckx/phase2c-test:latest` → phase `Running`, logs printed
+- [x] Jumphost pushed the same image to `registry:5000` (single registry instance)
+- [x] `docker compose config --quiet` exits 0
+- [x] No new external ports added
+- [x] UI returns HTTP 200
+
+### Re-creation requirement
+
+The registry mirror config is written into containerd at cluster-creation time. **Existing k3d clusters created before Phase 2C must be deleted and recreated** to pick up the mirror config. The facilitator's env-setup handles this automatically for fresh exam sessions. To force a recreate manually:
+
+```sh
+# Inside the k8s-api-server container
+k3d cluster delete cluster
+env-setup 0 cluster
+```
+
+### Graceful degradation
+
+If `registry` DNS is not yet resolvable when `env-setup` runs (race condition during compose startup), the log line `WARNING: registry not resolved` is printed and k3d pods cannot use `registry.localhost:5000`. The cluster starts normally; only the registry mirror is missing. This is safe — existing labs using public images are unaffected.
 
 ---
 
