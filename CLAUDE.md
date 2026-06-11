@@ -1,7 +1,8 @@
-This repository is a CK-X Simulator project for generating CKA 2026 mock exams and practice question sets.
+This repository is a CK-X Simulator project for generating CKA 2026 and CKS 2026 mock exams and practice question sets.
 
-Always use the project skill:
-/cka-exam-generator-2026
+Project skills:
+- For CKA content: /cka-exam-generator-2026
+- For CKS content: /cks-exam-generator-2026
 
 Primary goal:
 - Generate hard, original, CKA/Killer.sh-grade practice content.
@@ -31,6 +32,28 @@ CK-X file rules:
 - Every validation must check a positive final state.
 - Avoid pure-negative validations that can pass before the student solves anything.
 - Security/RBAC validations should check allowed and denied behavior where relevant.
+
+CKS exam rules:
+- All CKS content must be original. Do not copy Killer.sh, PSI, CNCF, Linux Foundation, or real exam content.
+- "Killer.sh-style" means format, rigor, timing, scoring, and review workflow only.
+- Default difficulty: Hard.
+- Full CKS mock: 16 questions, 120 minutes by default.
+- Allowed range: 15 to 18 questions only when explicitly requested.
+- Use current CKS domain weights: Cluster Setup 15%, Cluster Hardening 15%, System Hardening 10%, Minimize Microservice Vulnerabilities 20%, Supply Chain Security 20%, Monitoring/Logging/Runtime Security 20%.
+- Create CKS labs under facilitator/assets/exams/cks/NNN/ and register them in facilitator/assets/exams/labs.json with id cks-NNN and category CKS.
+- machineHostname must be ckad9999.
+- RBAC and policy validations must test both allowed and denied behavior where practical.
+- No validation may pass on the freshly broken setup state.
+- Do not commit generated assets.tar.gz.
+
+CKS backend capability rules (current k3d backend):
+- k3d-safe now (real tasks): NetworkPolicy, RBAC, ServiceAccount hardening, Pod Security Admission labels, SecurityContext, seccomp RuntimeDefault, ValidatingAdmissionPolicy, Gatekeeper/Kyverno if installed by setup, Ingress TLS if installed by setup, trivy/kubesec/cosign/syft static tasks, audit-log analysis from planted files.
+- Requires host capability later (bridge only): AppArmor, Falco/eBPF, gVisor RuntimeClass.
+- Requires kubeadm later (bridge only): real API server flag hardening, real audit logging config, EncryptionConfiguration with etcdctl verification, kubelet config hardening, kube-bench remediation against real control-plane files, static pod manifest troubleshooting.
+- Do not create impossible real tasks on k3d. Clearly label bridge/simulation tasks and validate them through files under /tmp/exam/qN/.
+- Jumphost toolbox (pinned in jumphost/Dockerfile): trivy 0.71.0, kube-bench 0.15.6, kubesec 2.14.2, cosign 3.1.1, syft 1.45.1, etcdctl 3.6.12, yq 4.53.3.
+- CKS skill validator: .claude/skills/cks-exam-generator-2026/scripts/validate_ckx_cks_lab.sh
+- CKS generation guide: docs/cks-lab-generation-guide.md
 
 CKA exam rules:
 - Default difficulty: Medium to Hard.
