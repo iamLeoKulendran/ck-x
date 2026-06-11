@@ -478,8 +478,6 @@ WORKDIR /app
 COPY package.json .
 RUN npm install
 COPY . .
-COPY agent.sh /usr/local/bin/agent.sh
-RUN chmod +x /usr/local/bin/agent.sh
 
 USER node
 
@@ -487,7 +485,7 @@ EXPOSE 3000
 CMD ["node","server.js"]
 ```
 
-Key fixes: pinned base tag, non-root `USER`, local `COPY` instead of remote `ADD`/`curl | sh`, no secret in `ENV` (inject at runtime via a Secret instead).
+Key fixes: pinned base tag (`node:20-alpine`), non-root `USER node`, remote `ADD` and `curl | sh` lines removed entirely, hardcoded `API_TOKEN` removed (inject at runtime via a Kubernetes Secret instead).
 
 ## Question 14 - Audit log investigation
 
