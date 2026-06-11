@@ -98,7 +98,7 @@ RUN ARCH="${TARGETARCH:-amd64}" && \
     chmod +x /usr/local/bin/yq
 
 #override docker daemon to use cfg2group
-RUN echo '{ "exec-opts": ["native.cgroupdriver=cgroupfs"] }' > /etc/docker/daemon.json
+RUN echo '{ "exec-opts": ["native.cgroupdriver=cgroupfs"], "insecure-registries": ["registry:5000"] }' > /etc/docker/daemon.json
 
 # Set up SSH server
 RUN mkdir -p /var/run/sshd

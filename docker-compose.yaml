@@ -229,6 +229,34 @@ services:
       timeout: 5s
       retries: 3
 
+  # Local OCI Registry — internal only, used by CKS supply-chain labs
+  # Accessible from jumphost as registry:5000 (trivy, cosign, syft, podman).
+  # NOTE: k3d nodes (inside DinD) cannot reach this service by DNS name without
+  # a separate k3d registry bridge — see docs/cks-registry-setup.md.
+  registry:
+    image: registry:2
+    hostname: registry
+    expose:
+      - "5000"
+    volumes:
+      - registry-data:/var/lib/registry
+    restart: unless-stopped
+    networks:
+      - ckx-network
+    deploy:
+      resources:
+        limits:
+          cpus: "0.3"
+          memory: 256M
+        reservations:
+          cpus: "0.1"
+          memory: 128M
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:5000/v2/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
 networks:
   ckx-network:
     name: ckx-network
@@ -237,3 +265,4 @@ networks:
 volumes:
   kube-config: # Shared volume for Kubernetes configuration
   attempt-history: # Persistent local exam attempt history
+  registry-data: # OCI registry storage for CKS supply-chain labs
