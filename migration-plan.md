@@ -1,8 +1,9 @@
 # CK-X → CKS Simulator Migration Plan (Killer.sh-Style)
 
-Status: planning document. No implementation is included in this file.
-
-Date: 2026-06-11
+Status: active — Phase 0 complete; Phase 1 complete (cks-002 reviewed)
+Last updated: 2026-06-11
+Stable checkpoint: tag `cks-phase1-stable-cks002-reviewed` on branch `feat/cks-phase1-pipeline`
+Current stable mock: `cks-002` — 16 questions, 120 min, Hard, 48 validations, runtime validated and reviewed
 Owner: Leo (CKA completed; preparing for CKS)
 Related docs: `docs/kubeadm-backend-upgrade-plan.md`, `docs/cka-lab-generation-guide.md`
 
@@ -258,28 +259,34 @@ Create alongside, not replacing, the CKA pipeline:
 
 ## 8. Phased Migration Plan
 
-### Phase 0 — Housekeeping (half a day)
+### Phase 0 — Housekeeping ✅ COMPLETE (2026-06-11)
 
-- Resolve the `cka/001` vs. `labs.json` registry mismatch only if the folder
-  is truly missing locally (verified missing on 2026-06-11 → deregister);
-  commit a clean baseline.
-- Back up `labs.json` and the attempt-history volume.
-- Smoke-test existing `cks-001` end to end on the current stack.
+- Resolved the `cka/001` vs. `labs.json` registry mismatch (folder was deleted
+  in commit `12e14c8`; stale entry removed; backup kept as `labs.json.phase0.bak`).
+- `cks-001` smoke-tested end to end; lab starts, scores, and records history.
 
-Gate: clean `git status`, `cks-001` starts, scores, and records history.
+Gate: ✅ clean `git status`, `cks-001` starts, scores, and records history.
 
-### Phase 1 — CKS content pipeline on the current k3d backend (1–2 days)
+### Phase 1 — CKS content pipeline on the current k3d backend ✅ COMPLETE (2026-06-11)
 
-- Jumphost image v2 with the CKS toolbox (Section 6.2).
-- Create the `cks-exam-generator-2026` skill, the CKS generation guide, and
-  the CLAUDE.md CKS rules.
-- Generate `cks/002`: first Killer.sh-grade domain practice lab using only
-  "works today" topics (NetworkPolicy, RBAC, PSA, SecurityContext, seccomp
-  RuntimeDefault, trivy/kubesec/cosign tasks, ValidatingAdmissionPolicy).
-- Run the full repo validation checklist (JSON valid, `bash -n`, chmod +x,
-  weightage 100, false-positive audit, validation-report.md).
+Completed sub-phases:
 
-Gate: `cks/002` passes a full simulated attempt; all tools run on jumphost.
+- **1C** ✅ Jumphost image v2 — CKS toolbox baked in: trivy 0.71.0,
+  kube-bench 0.15.6, kubesec 2.14.2, cosign 3.1.1, syft 1.45.1, etcdctl 3.6.12,
+  yq 4.53.3. (commit `51a8fa4`)
+- **1D** ✅ `cks-exam-generator-2026` skill, `docs/cks-lab-generation-guide.md`,
+  CLAUDE.md CKS rules including backend capability matrix. (commit `a5778b5`)
+- **1E** ✅ `cks-002` generated and runtime validated — 16 questions, 120 min,
+  Hard, 48 validations; false-positive audit clean (48/48 fail on broken state);
+  solved state 100/100. (commit `eda2d48`)
+- **1F** ✅ `cks-002` quality review — Q13 answers.md Dockerfile example
+  corrected; validator PASS. (commit `d3b1e11`)
+- **1G** ✅ `cks-002` candidate UX review — Q5 SIMULATED TASK label bolded,
+  Q11 Note bolded; facilitator rebuilt; validator PASS. (commit `3e3be9d`)
+
+Stable checkpoint: `cks-phase1-stable-cks002-reviewed` on `feat/cks-phase1-pipeline`.
+
+Gate: ✅ `cks-002` passes a full simulated attempt (100/100); all tools run on jumphost.
 
 ### Phase 2 — Host capability enablement (1–2 days, mostly verification)
 
