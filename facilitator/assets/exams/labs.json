@@ -79,6 +79,16 @@
       "warmUpTimeInSeconds": 360,
       "difficulty": "Hard",
       "examDurationInMinutes": 120
+    },
+    {
+      "id": "cks-002",
+      "assetPath": "assets/exams/cks/002",
+      "name": "Mock Exam - CKS - 1",
+      "category": "CKS",
+      "description": "Original CKS-style full mock exam: zero-trust NetworkPolicy, Ingress TLS, RBAC least privilege, ServiceAccount hardening, Pod Security Admission, ValidatingAdmissionPolicy, secrets hygiene, trivy/kubesec/cosign/syft supply chain tasks, audit-log investigation, incident response, and immutability.",
+      "warmUpTimeInSeconds": 360,
+      "difficulty": "Hard",
+      "examDurationInMinutes": 120
     }
   ]
 }

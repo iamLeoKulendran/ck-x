@@ -1,0 +1,484 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "namespace": "web-tier",
+      "machineHostname": "ckad9999",
+      "question": "The `web-tier` namespace runs three deployments: `web`, `api`, and `cache` (labels `app=web`, `app=api`, `app=cache`), each exposed by a Service (`web-svc`, `api-svc`, `cache-svc`) on port 80. Currently all traffic is allowed.\n\nLock the namespace down with zero-trust segmentation:\n\n1. Create a NetworkPolicy named `default-deny` in `web-tier` that selects ALL pods and denies all ingress and egress traffic.\n2. Add NetworkPolicies (names of your choice) so that ONLY these flows work:\n   - `web` pods may connect to `api` pods on TCP port `80`\n   - `api` pods may connect to `cache` pods on TCP port `80`\n   - all pods may resolve DNS (port `53` UDP and TCP)\n\nAll other pod-to-pod traffic in the namespace must be blocked, including `web` to `cache`.",
+      "concepts": ["network policies", "default deny", "zero trust", "egress control"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "default-deny policy selects all pods and blocks both directions",
+          "verificationScriptFile": "q1_s1_validate_default_deny.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Allowed paths web->api and api->cache work with segmentation in place",
+          "verificationScriptFile": "q1_s2_validate_allowed_paths.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "3",
+          "description": "Non-whitelisted paths are blocked",
+          "verificationScriptFile": "q1_s3_validate_denied_paths.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "namespace": "tls-gateway",
+      "machineHostname": "ckad9999",
+      "question": "The `tls-gateway` namespace contains a deployment `portal-web` exposed by the Service `portal-svc` on port 80. A certificate and key for the portal have been issued and placed on this machine at `/tmp/exam/q2/portal.crt` and `/tmp/exam/q2/portal.key`.\n\n1. Create a TLS secret named `portal-tls` in `tls-gateway` from the provided certificate and key.\n2. Create an Ingress named `portal-ingress` in `tls-gateway` that:\n   - serves the host `portal.ckx.local`\n   - terminates TLS using the `portal-tls` secret\n   - routes path `/` (Prefix) to `portal-svc` on port `80`",
+      "concepts": ["ingress tls", "secrets", "certificates"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "portal-tls is a kubernetes.io/tls secret holding the issued certificate",
+          "verificationScriptFile": "q2_s1_validate_tls_secret.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Ingress terminates TLS for portal.ckx.local with portal-tls",
+          "verificationScriptFile": "q2_s2_validate_ingress_tls.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Ingress routes the host to portal-svc:80",
+          "verificationScriptFile": "q2_s3_validate_ingress_backend.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "namespace": "ci-pipeline",
+      "machineHostname": "ckad9999",
+      "question": "A security review found that the ServiceAccount `build-bot` in the `ci-pipeline` namespace is bound to `cluster-admin` through the ClusterRoleBinding `build-bot-admin`. The CI system only needs to read pods and their logs in its own namespace.\n\n1. Remove the `build-bot-admin` ClusterRoleBinding.\n2. Create a Role named `build-bot-role` in `ci-pipeline` that allows only `get`, `list`, and `watch` on `pods` and `pods/log`.\n3. Create a RoleBinding named `build-bot-binding` in `ci-pipeline` that grants `build-bot-role` to the `build-bot` ServiceAccount.\n\nAfter your change, `build-bot` must NOT be able to delete pods, read secrets, or access resources outside `ci-pipeline`.",
+      "concepts": ["rbac", "least privilege", "service accounts"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Read-only Role and RoleBinding are correctly structured",
+          "verificationScriptFile": "q3_s1_validate_role_structure.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "build-bot can read pods and logs but cannot delete pods",
+          "verificationScriptFile": "q3_s2_validate_allowed_access.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "cluster-admin binding removed; secrets and cluster-wide access denied",
+          "verificationScriptFile": "q3_s3_validate_denied_access.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "4",
+      "namespace": "payments",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `payment-processor` in the `payments` namespace runs on the `default` ServiceAccount and automatically mounts an API token it never uses.\n\n1. Create a ServiceAccount named `payments-runtime` in `payments` with `automountServiceAccountToken: false`.\n2. Update `payment-processor` to run as `payments-runtime` and additionally set `automountServiceAccountToken: false` in the pod template.\n3. Ensure the rollout completes with `2` ready replicas.",
+      "concepts": ["service accounts", "automounting", "least privilege"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "payments-runtime ServiceAccount exists with automount disabled",
+          "verificationScriptFile": "q4_s1_validate_serviceaccount.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Deployment uses the SA and disables automount in the pod template",
+          "verificationScriptFile": "q4_s2_validate_deployment_sa.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Rollout complete and running pods use the hardened SA",
+          "verificationScriptFile": "q4_s3_validate_rollout.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "5",
+      "namespace": "cp-hardening",
+      "machineHostname": "ckad9999",
+      "question": "SIMULATED TASK - this exercise uses a COPIED manifest; do not attempt to modify the live cluster or execute the manifest.\n\nA copy of a cluster's kube-apiserver static pod manifest has been placed at `/tmp/exam/q5/kube-apiserver.yaml`. An audit found it dangerously misconfigured.\n\nEdit the FILE (using `yq`, `vim`, or any editor) so that:\n\n1. Anonymous authentication is disabled: `--anonymous-auth=false`\n2. Authorization uses `--authorization-mode=Node,RBAC` (remove `AlwaysAllow`)\n3. The `NodeRestriction` admission plugin is enabled in `--enable-admission-plugins`\n\nKeep the file valid YAML. Validation only inspects the file.",
+      "concepts": ["api server hardening", "admission control", "bridge simulation"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Anonymous authentication disabled in the manifest",
+          "verificationScriptFile": "q5_s1_validate_anonymous_auth.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Authorization mode hardened to Node,RBAC",
+          "verificationScriptFile": "q5_s2_validate_authorization_mode.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "NodeRestriction admission plugin enabled",
+          "verificationScriptFile": "q5_s3_validate_admission_plugins.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "6",
+      "namespace": "container-hardening",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `sensor-agent` in the `container-hardening` namespace runs as a privileged root container sharing the host PID namespace.\n\nHarden it so that:\n\n1. `hostPID` and `privileged` are removed\n2. the container runs with `runAsNonRoot: true` and `runAsUser: 10001`\n3. `allowPrivilegeEscalation: false` and `readOnlyRootFilesystem: true`\n4. ALL capabilities are dropped\n5. the seccomp profile is `RuntimeDefault`\n6. CPU and memory limits are set (for example `100m` / `64Mi`)\n\nThe deployment must be Ready afterwards. Verify your work by exporting the deployment manifest and scanning it: `kubesec scan <file>` must report a score of at least `7`.",
+      "concepts": ["security context", "capabilities", "seccomp", "kubesec"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Container security context fully hardened",
+          "verificationScriptFile": "q6_s1_validate_security_context.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Hardened deployment is Ready",
+          "verificationScriptFile": "q6_s2_validate_ready_state.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "kubesec scores the live manifest at 7 or higher",
+          "verificationScriptFile": "q6_s3_validate_kubesec_score.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "7",
+      "namespace": "syscall-guard",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `event-logger` in the `syscall-guard` namespace explicitly runs with an `Unconfined` seccomp profile, leaving every syscall open to the workload.\n\nEnforce the container runtime's default syscall filter:\n\n1. Set the pod-level seccomp profile to `RuntimeDefault`.\n2. Make sure no `Unconfined` seccomp configuration remains anywhere in the deployment spec.\n3. The deployment must finish its rollout and the running pod must carry the `RuntimeDefault` profile.",
+      "concepts": ["seccomp", "syscalls", "container hardening"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "RuntimeDefault enforced and Unconfined removed from the spec",
+          "verificationScriptFile": "q7_s1_validate_seccomp_profile.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Pod is Running with the RuntimeDefault profile",
+          "verificationScriptFile": "q7_s2_validate_running_pod.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "8",
+      "namespace": "restricted-apps",
+      "machineHostname": "ckad9999",
+      "question": "The `restricted-apps` namespace must be brought up to the `restricted` Pod Security Standard. It currently runs a non-compliant deployment `legacy-api` (privileged container).\n\n1. Label the namespace to ENFORCE the `restricted` Pod Security Standard.\n2. Fix `legacy-api` so its pods comply with `restricted` and are recreated successfully: `runAsNonRoot: true`, `runAsUser: 10001`, `allowPrivilegeEscalation: false`, drop ALL capabilities, seccomp `RuntimeDefault`, and remove `privileged`.\n3. A teammate's pod manifest is at `/tmp/exam/q8/bad-pod.yaml`. Attempt to apply it and capture the full admission error: `kubectl apply -f /tmp/exam/q8/bad-pod.yaml > /tmp/exam/q8/rejection.txt 2>&1`. The pod must NOT be created.",
+      "concepts": ["pod security admission", "security context", "namespace labels"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Namespace enforces the restricted profile",
+          "verificationScriptFile": "q8_s1_validate_psa_labels.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "legacy-api complies with restricted and is Ready",
+          "verificationScriptFile": "q8_s2_validate_compliant_workload.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "3",
+          "description": "Violating pod rejected and the admission error captured",
+          "verificationScriptFile": "q8_s3_validate_rejection_capture.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "9",
+      "namespace": "admission-control",
+      "machineHostname": "ckad9999",
+      "question": "Production namespaces (label `env=prod`) must refuse container images that use the `latest` tag or no tag at all. The `admission-control` namespace is labeled `env=prod`.\n\nUsing CEL-based admission control (no webhook servers):\n\n1. Create a `ValidatingAdmissionPolicy` named `deny-latest-tag` that matches `CREATE` and `UPDATE` of `apps/v1` Deployments and rejects any deployment where a container image does not have an explicit, non-`latest` tag.\n2. Create a `ValidatingAdmissionPolicyBinding` named `deny-latest-tag-binding` that enforces the policy (validationActions `Deny`) in namespaces labeled `env=prod`.\n\nAfterwards, creating a deployment with image `nginx:latest` in `admission-control` must fail, while `nginx:1.27-alpine` must be accepted.",
+      "concepts": ["admission control", "validating admission policy", "supply chain"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Policy exists with a latest-tag CEL rule targeting deployments",
+          "verificationScriptFile": "q9_s1_validate_policy_exists.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Binding enforces the policy with Deny",
+          "verificationScriptFile": "q9_s2_validate_binding.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        },
+        {
+          "id": "3",
+          "description": "latest-tag deployment is rejected",
+          "verificationScriptFile": "q9_s3_validate_violation_rejected.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "4",
+          "description": "Pinned-tag deployment is accepted while enforcing",
+          "verificationScriptFile": "q9_s4_validate_compliant_accepted.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "10",
+      "namespace": "credential-hygiene",
+      "machineHostname": "ckad9999",
+      "question": "A database password is stored in plaintext somewhere in the `credential-hygiene` namespace configuration and injected into the `billing` deployment.\n\n1. Find the leaked password and write its exact value to `/tmp/exam/q10/found.txt`.\n2. Create a Secret named `db-creds` in `credential-hygiene` with the key `password` holding that value.\n3. Update the `billing` deployment so the `DB_PASSWORD` environment variable comes from the `db-creds` secret (key `password`) instead of the current source.\n4. Remove the plaintext password key from the original object.\n5. The deployment must be Ready afterwards.",
+      "concepts": ["secrets", "configmaps", "credential hygiene"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Leaked credential identified in found.txt",
+          "verificationScriptFile": "q10_s1_validate_found_credential.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Credential migrated to the db-creds Secret and removed from plaintext",
+          "verificationScriptFile": "q10_s2_validate_secret_migration.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "billing consumes the Secret and is Ready",
+          "verificationScriptFile": "q10_s3_validate_deployment_env.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "11",
+      "namespace": "image-audit",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `release-app` in the `image-audit` namespace runs `nginx:1.14.2`. Three candidate images are listed in `/tmp/exam/q11/images.txt`:\n\n- `nginx:1.14.2`\n- `python:3.4-alpine`\n- `alpine:3.20`\n\n1. Scan each image with `trivy` and save the FULL JSON reports as `/tmp/exam/q11/nginx.json`, `/tmp/exam/q11/python.json`, and `/tmp/exam/q11/alpine.json` (`trivy image -f json -o <file> <image>`).\n2. Determine which image has the FEWEST `CRITICAL` vulnerabilities and write exactly that image reference (as listed above) to `/tmp/exam/q11/safe-image.txt`.\n3. Update `release-app` to run that image and wait for the rollout to complete.\n\nNote: the first scan downloads the vulnerability database and may take a minute.",
+      "concepts": ["image scanning", "trivy", "supply chain", "vulnerability management"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Three valid trivy JSON reports for the listed images",
+          "verificationScriptFile": "q11_s1_validate_scan_reports.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Image with fewest CRITICAL findings correctly identified",
+          "verificationScriptFile": "q11_s2_validate_safest_choice.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "3",
+          "description": "release-app updated to the chosen image and Ready",
+          "verificationScriptFile": "q11_s3_validate_deployment_image.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "12",
+      "namespace": "artifact-trust",
+      "machineHostname": "ckad9999",
+      "question": "Two release manifests were delivered to `/tmp/exam/q12/` together with detached signatures and the releaser's public key:\n\n- `release-a.yaml` with `release-a.sig`\n- `release-b.yaml` with `release-b.sig`\n- public key: `signer.pub`\n\nOne of the manifests was modified after it was signed.\n\n1. Verify each manifest with `cosign verify-blob --key /tmp/exam/q12/signer.pub --signature <sig> --insecure-ignore-tlog <file>`.\n2. Record the outcome in `/tmp/exam/q12/verify-result.txt` with exactly two lines:\n   - `release-a.yaml: VERIFIED` or `release-a.yaml: FAILED`\n   - `release-b.yaml: VERIFIED` or `release-b.yaml: FAILED`\n3. Apply ONLY the authentic manifest to the cluster and wait for it to become Ready. The tampered manifest must NOT be applied.",
+      "concepts": ["image signing", "cosign", "supply chain", "artifact verification"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Verification outcomes recorded correctly",
+          "verificationScriptFile": "q12_s1_validate_verification_results.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Authentic release deployed and Ready",
+          "verificationScriptFile": "q12_s2_validate_trusted_deployed.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "3",
+          "description": "Tampered release identified and not deployed",
+          "verificationScriptFile": "q12_s3_validate_tampered_blocked.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    },
+    {
+      "id": "13",
+      "namespace": "sbom-lab",
+      "machineHostname": "ckad9999",
+      "question": "Your team must produce a software inventory for the base image `alpine:3.20` and clean up a dangerous Dockerfile.\n\n1. Generate an SPDX JSON SBOM for `alpine:3.20` with syft: `syft alpine:3.20 -o spdx-json=/tmp/exam/q13/sbom.json`.\n2. Using ONLY the SBOM, determine whether the packages `busybox` and `bash` are present in the image. Write the result to `/tmp/exam/q13/pkg-report.txt` as two lines:\n   - `busybox=present` or `busybox=absent`\n   - `bash=present` or `bash=absent`\n3. Fix the Dockerfile at `/tmp/exam/q13/Dockerfile`:\n   - pin the base image to an explicit version tag (for example `node:20-alpine`)\n   - run as a non-root user (add a `USER` instruction)\n   - remove the `curl ... | sh` install and the remote `ADD` of a script\n   - remove the hardcoded `API_TOKEN` secret",
+      "concepts": ["sbom", "syft", "dockerfile security", "supply chain"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "SPDX SBOM generated for alpine:3.20",
+          "verificationScriptFile": "q13_s1_validate_sbom.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Package presence determined correctly from the SBOM",
+          "verificationScriptFile": "q13_s2_validate_pkg_report.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Dockerfile hardened",
+          "verificationScriptFile": "q13_s3_validate_dockerfile_fixed.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "14",
+      "namespace": "audit-analysis",
+      "machineHostname": "ckad9999",
+      "question": "An API server audit log extract has been collected at `/tmp/exam/q14/audit.log` (one JSON event per line). Investigate it with `jq`/`grep` and answer:\n\n1. Which user read the secret `payroll-db` in the `finance` namespace? Write ONLY the username to `/tmp/exam/q14/secret-reader.txt`.\n2. Which ServiceAccount deleted the deployment `legacy-web` in the `staging` namespace? Write the full username (`system:serviceaccount:...`) to `/tmp/exam/q14/deleter.txt`.\n3. How many requests by `system:anonymous` were DENIED (HTTP `403`)? Write only the number to `/tmp/exam/q14/anonymous-denied.txt`.",
+      "concepts": ["audit logs", "runtime security", "incident investigation"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "payroll-db secret reader identified",
+          "verificationScriptFile": "q14_s1_validate_secret_reader.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Deployment deleter identified",
+          "verificationScriptFile": "q14_s2_validate_deleter.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Denied anonymous request count correct",
+          "verificationScriptFile": "q14_s3_validate_anonymous_count.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "15",
+      "namespace": "incident-response",
+      "machineHostname": "ckad9999",
+      "question": "The SOC suspects one workload in the `incident-response` namespace is compromised: it runs privileged, mounts the host root filesystem, and beacons to an external IP.\n\n1. Inspect the deployments in the namespace and identify the compromised one. Write `deployment=<name>` to `/tmp/exam/q15/incident.txt`.\n2. Quarantine it: create a NetworkPolicy named `quarantine` in `incident-response` that selects ONLY that workload's pods (by its `app` label) and blocks ALL ingress and egress traffic.\n3. Preserve evidence: scale the compromised deployment to `0` replicas but do NOT delete it.\n4. Leave the other workloads in the namespace running.",
+      "concepts": ["incident response", "runtime security", "network policies", "forensics"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Compromised workload identified in the incident report",
+          "verificationScriptFile": "q15_s1_validate_incident_report.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "2",
+          "description": "Quarantine NetworkPolicy isolates the workload completely",
+          "verificationScriptFile": "q15_s2_validate_quarantine_policy.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "3",
+          "description": "Workload scaled to zero with evidence preserved; benign workloads untouched",
+          "verificationScriptFile": "q15_s3_validate_evidence_preserved.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        }
+      ]
+    },
+    {
+      "id": "16",
+      "namespace": "immutable-infra",
+      "machineHostname": "ckad9999",
+      "question": "The deployment `report-writer` in the `immutable-infra` namespace appends a report to `/data/report.log` every few seconds - directly on its writable container root filesystem.\n\nMake the container immutable without breaking the application:\n\n1. Set `readOnlyRootFilesystem: true` on the container.\n2. Add an `emptyDir` volume mounted at `/data` so the report can still be written.\n3. The deployment must be Ready and `/data/report.log` must keep receiving entries.\n\nAfterwards, any write outside `/data` (for example `touch /probe`) must fail inside the container.",
+      "concepts": ["immutability", "read-only filesystem", "runtime security"],
+      "verification": [
+        {
+          "id": "1",
+          "description": "Immutable container spec with emptyDir for the data path",
+          "verificationScriptFile": "q16_s1_validate_immutable_spec.sh",
+          "expectedOutput": "0",
+          "weightage": 3
+        },
+        {
+          "id": "2",
+          "description": "Immutable workload is Ready",
+          "verificationScriptFile": "q16_s2_validate_workload_ready.sh",
+          "expectedOutput": "0",
+          "weightage": 2
+        },
+        {
+          "id": "3",
+          "description": "Root filesystem immutable at runtime while the app still writes to /data",
+          "verificationScriptFile": "q16_s3_validate_runtime_immutability.sh",
+          "expectedOutput": "0",
+          "weightage": 1
+        }
+      ]
+    }
+  ]
+}
