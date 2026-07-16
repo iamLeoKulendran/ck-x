@@ -45,6 +45,30 @@ The current stable version supports:
 - Persistent Previous Attempts and Weak Areas history.
 - Attempt history stored in a Docker volume at
   `/usr/src/app/data/attempt-history.json` inside the facilitator container.
+- Multiple-choice exam engine for KCNA/KCSA-style practice (no cluster
+  needed; answers are scored server-side and the answer key is never sent to
+  the browser before evaluation). Sample original packs: `kcna-001`,
+  `kcsa-001`.
+- Certification profiles as configuration
+  (`facilitator/assets/certifications.json`): blueprint versions, domain
+  weights, pass thresholds, and first-party source metadata for CKA, CKAD,
+  CKS, KCNA, and KCSA. Served at `/facilitator/api/v1/certifications`.
+- Analytics page (`/analytics.html`): score trends, blueprint-domain mastery,
+  and transparent rule-based readiness evidence, all derived from stored
+  attempts.
+- Mistakes & retests page (`/mistakes.html`): capture failed questions from
+  results, record root causes and corrections, schedule delayed retests. A
+  mistake counts as resolved only when the correction is done AND the latest
+  retest passed.
+- Question packs page (`/packs.html`): export any lab as a JSON bundle,
+  import community packs with validation and duplicate detection, and build
+  original multiple-choice packs in the browser.
+- Settings page (`/settings.html`): backup (export), restore, and reset of
+  local data, with automatic pre-write backups.
+- Exam-workspace keyboard shortcuts: `[` previous, `]` next, `F` flag,
+  `D` mark done, `?` help.
+- Mid-exam reload safety: timer, flags, done-marks, current question, and
+  MCQ answers are restored after a browser reload or crash.
 - CKA lab authoring guide for AI tools:
   `docs/cka-lab-generation-guide.md`.
 
@@ -527,6 +551,60 @@ Current local security posture:
   simulation require it.
 
 Do not expose this Compose stack directly to the public internet.
+
+## Question Packs: Import, Export, and Authoring
+
+Every lab can be exported as a single JSON bundle from `/packs.html` (or
+`GET /facilitator/api/v1/packs/<id>/export`) and re-imported on another CK-X
+installation. Imports are validated before anything is written: schema, marks
+sum, verification-script references, file-name safety (no path traversal),
+size limits, and duplicate pack ids. Imported packs land under
+`facilitator/assets/exams/imported/<pack-id>/` and can be deleted from the
+packs page.
+
+**Trust boundary:** performance packs contain shell scripts that execute
+inside the CK-X exam sandbox (jumphost and practice cluster) when the lab
+runs. They never execute on your host machine or at import time — but inside
+the sandbox they can do anything the lab environment can. Only import packs
+from sources you trust. Multiple-choice packs are data-only; the importer
+rejects any bundled scripts. Note also that a pack's `answers.md` is rendered
+as Markdown in the post-evaluation answers page, so a malicious pack could
+include hostile markup there — another reason to import only trusted packs.
+
+The packs page also includes a browser-based builder for original
+multiple-choice packs. Performance-lab authoring remains file-based — see
+`docs/cka-lab-generation-guide.md` and `docs/cks-lab-generation-guide.md`.
+
+## Local Data: Backup, Restore, Reset
+
+Use `/settings.html` for all of this without touching Docker:
+
+- **Backup** downloads a JSON bundle of attempts and mistakes
+  (`GET /facilitator/api/v1/data/export`).
+- **Restore** replaces the history from a bundle; the current file is backed
+  up automatically first.
+- **Reset** requires typing `RESET` and also writes a backup first.
+- Deleting a single attempt from the API also backs the file up first.
+
+Schema versioning: attempt records are stored with a version envelope
+(currently v2). Older v1 files are read as-is and backed up to
+`attempt-history.json.v1.bak` before the first v2 write; existing records are
+never rewritten.
+
+## Testing
+
+Facilitator unit tests (Jest):
+
+```bash
+cd facilitator
+npm install
+npm test
+```
+
+Covers attempt-history schema v2 and the v1 migration/backup path,
+export/restore round trips, certification-profile invariants (weights sum to
+100), analytics metric definitions, mistake-resolution rules, MCQ scoring,
+and pack-import validation (malformed, traversal, oversize, duplicate).
 
 ## Backing Up And Resetting Attempt History
 
