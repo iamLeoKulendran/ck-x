@@ -103,7 +103,21 @@ function generateQuestionContent(question, totalMarks) {
         const formattedQuestionContent = processQuestionContent(removeEstimatedTime(question.content));
         const doneState = question.answered ? 'done' : 'open';
         const doneText = question.answered ? 'Done' : 'Open';
-        
+        const isMcq = originalData.type === 'multiple-choice';
+
+        const titleLine = isMcq
+            ? 'Choose the correct answer(s) below'
+            : `Complete this task on <span class="inline-code">ssh ${machineHostname}</span>`;
+        const secondMetaItem = isMcq
+            ? `<div class="question-meta-item">
+                    <span>Domain</span>
+                    <strong>${originalData.domain || 'N/A'}</strong>
+                </div>`
+            : `<div class="question-meta-item">
+                    <span>Namespace</span>
+                    <strong>${namespace}</strong>
+                </div>`;
+
         // Create formatted content with minimal layout
         return `
             <div class="question-layout">
@@ -111,7 +125,7 @@ function generateQuestionContent(question, totalMarks) {
                     <div class="question-header-line">
                         <div>
                             <div class="question-kicker">Question ${question.id}</div>
-                            <div class="question-title-line">Complete this task on <span class="inline-code">ssh ${machineHostname}</span></div>
+                            <div class="question-title-line">${titleLine}</div>
                         </div>
                         <div class="question-state ${doneState}">${doneText}</div>
                     </div>
@@ -121,10 +135,7 @@ function generateQuestionContent(question, totalMarks) {
                             <span>Question Weight</span>
                             <strong>${questionWeight}</strong>
                         </div>
-                        <div class="question-meta-item">
-                            <span>Namespace</span>
-                            <strong>${namespace}</strong>
-                        </div>
+                        ${secondMetaItem}
                         <div class="question-meta-item wide">
                             <span>Concepts</span>
                             <strong>${conceptsString}</strong>
@@ -132,12 +143,13 @@ function generateQuestionContent(question, totalMarks) {
                         ${question.flagged ? '<div class="question-flag-note">Flagged for review</div>' : ''}
                     </div>
                 </div>
-                
-                <div class="question-section-title">Task</div>
+
+                <div class="question-section-title">${isMcq ? 'Question' : 'Task'}</div>
                 <div class="question-body">
                     ${formattedQuestionContent}
                 </div>
-                
+                ${isMcq ? generateMcqOptions(question) : ''}
+
                 <div class="action-buttons-container mt-auto">
                     <div class="question-actions">
                         <button class="question-action-btn secondary ${question.flagged ? 'is-active' : ''}" id="flagQuestionBtn">
@@ -175,10 +187,42 @@ function transformQuestionsFromApi(data) {
             title: `Question ${q.id}`,  // Create a title from the ID
             originalData: q, // Keep original data for reference if needed
             flagged: false, // Add flagged status property
-            answered: false
+            answered: false,
+            selectedOptions: [] // MCQ: chosen option indexes
         }));
     }
     return [];
+}
+
+// Render the options block for a multiple-choice question. Selection state
+// comes from question.selectedOptions; exam.js binds the change events.
+function generateMcqOptions(question) {
+    const originalData = question.originalData || {};
+    const options = Array.isArray(originalData.options) ? originalData.options : [];
+    const multiSelect = Array.isArray(originalData.correctOptionIndexes)
+        ? originalData.correctOptionIndexes.length > 1
+        : Boolean(originalData.multiSelect);
+    const inputType = multiSelect ? 'checkbox' : 'radio';
+    const selected = new Set((question.selectedOptions || []).map(Number));
+
+    const items = options.map((option, index) => {
+        const inputId = `mcq-q${question.id}-opt${index}`;
+        const checked = selected.has(index) ? 'checked' : '';
+        return `
+            <li class="mcq-option">
+                <label for="${inputId}">
+                    <input type="${inputType}" id="${inputId}" name="mcq-q${question.id}"
+                           value="${index}" data-question-id="${question.id}" ${checked}>
+                    <span>${processQuestionContent(option)}</span>
+                </label>
+            </li>`;
+    }).join('');
+
+    return `
+        <div class="question-section-title">${multiSelect ? 'Select all that apply' : 'Select one answer'}</div>
+        <ul class="mcq-options" data-mcq-question="${question.id}">
+            ${items}
+        </ul>`;
 }
 
 // Update question dropdown
@@ -232,6 +276,7 @@ function updateQuestionDropdown(questionsArray, dropdownMenu, currentId, onQuest
 export {
     processQuestionContent,
     generateQuestionContent,
+    generateMcqOptions,
     transformQuestionsFromApi,
     updateQuestionDropdown
-}; 
+};

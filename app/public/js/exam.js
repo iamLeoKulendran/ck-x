@@ -63,6 +63,59 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Add event listener for page unload to clean up resources
     window.addEventListener('beforeunload', cleanupResources);
+
+    // Keyboard shortcuts for the question workspace. Disabled while typing in
+    // form fields, while the CK-X terminal is focused, while a modal is open,
+    // and while the exam is paused.
+    document.addEventListener('keydown', (event) => {
+        if (event.ctrlKey || event.metaKey || event.altKey) {
+            return;
+        }
+
+        const target = event.target;
+        const isTypingContext = target && (
+            target.tagName === 'INPUT' ||
+            target.tagName === 'TEXTAREA' ||
+            target.tagName === 'SELECT' ||
+            target.isContentEditable ||
+            target.closest?.('.ssh-terminal-container, .terminal-container')
+        );
+        const modalOpen = document.querySelector('.modal.show');
+        if (isTypingContext || modalOpen || isTerminalActive || isExamPaused || !questions.length) {
+            return;
+        }
+
+        switch (event.key) {
+            case '[':
+                event.preventDefault();
+                prevBtn.click();
+                break;
+            case ']':
+                event.preventDefault();
+                nextBtn.click();
+                break;
+            case 'f':
+            case 'F':
+                event.preventDefault();
+                toggleQuestionFlag(currentQuestionId);
+                break;
+            case 'd':
+            case 'D':
+                event.preventDefault();
+                markQuestionAnswered(currentQuestionId);
+                updateQuestionContent(currentQuestionId);
+                break;
+            case '?':
+                event.preventDefault();
+                UiUtils.showToast(
+                    'Keyboard shortcuts — [ previous question, ] next question, F flag for review, D mark as done, ? this help.',
+                    { bgColor: 'bg-dark', textColor: 'text-white', delay: 8000 }
+                );
+                break;
+            default:
+                break;
+        }
+    });
     
     // Initialize by fetching questions
     fetchExamQuestions();
@@ -208,12 +261,125 @@ document.addEventListener('DOMContentLoaded', function() {
             questions[questionIndex].answered = true;
             updateQuestionDropdown();
             updateQuestionProgress();
+            persistQuestionProgress();
         }
     }
 
     function getPauseStorageKey() {
         const examId = ExamApi.getExamId() || 'current';
         return `ckx-exam-paused:${examId}`;
+    }
+
+    function getProgressStorageKey() {
+        const examId = ExamApi.getExamId() || 'current';
+        return `ckx-exam-progress:${examId}`;
+    }
+
+    function isMcqExam() {
+        return examInfo?.info?.config?.examType === 'mcq';
+    }
+
+    function collectMcqAnswers() {
+        const answers = {};
+        questions.forEach(question => {
+            answers[String(question.id)] = (question.selectedOptions || []).map(Number);
+        });
+        return answers;
+    }
+
+    // Delegated change handler for MCQ option inputs (rendered per question)
+    questionContent.addEventListener('change', (event) => {
+        const input = event.target;
+        if (!input.matches('input[data-question-id]')) {
+            return;
+        }
+
+        const questionId = input.dataset.questionId;
+        const question = questions.find(q => String(q.id) === String(questionId));
+        if (!question) {
+            return;
+        }
+
+        const group = questionContent.querySelectorAll(`input[name="mcq-q${questionId}"]`);
+        question.selectedOptions = Array.from(group)
+            .filter(entry => entry.checked)
+            .map(entry => Number(entry.value));
+
+        // Selecting an answer marks the question done; clearing all un-marks it
+        question.answered = question.selectedOptions.length > 0;
+        updateQuestionDropdown();
+        updateQuestionProgress();
+        persistQuestionProgress();
+    });
+
+    // Persist flags, done-marks, and current question so a reload restores them.
+    // Idempotent: re-saving the same state overwrites the same key.
+    function persistQuestionProgress() {
+        if (isCompletedExamMode || !questions.length) {
+            return;
+        }
+
+        try {
+            const answers = {};
+            questions.forEach(question => {
+                if ((question.selectedOptions || []).length > 0) {
+                    answers[String(question.id)] = question.selectedOptions.map(Number);
+                }
+            });
+
+            localStorage.setItem(getProgressStorageKey(), JSON.stringify({
+                currentQuestionId: String(currentQuestionId),
+                answered: questions.filter(q => q.answered).map(q => String(q.id)),
+                flagged: questions.filter(q => q.flagged).map(q => String(q.id)),
+                answers,
+                savedAt: Date.now()
+            }));
+        } catch (error) {
+            console.warn('Failed to persist question progress:', error);
+        }
+    }
+
+    function restoreQuestionProgress() {
+        if (isCompletedExamMode || !questions.length) {
+            return;
+        }
+
+        const saved = localStorage.getItem(getProgressStorageKey());
+        if (!saved) {
+            return;
+        }
+
+        try {
+            const state = JSON.parse(saved);
+            const answered = new Set((state.answered || []).map(String));
+            const flagged = new Set((state.flagged || []).map(String));
+
+            const savedAnswers = state.answers || {};
+            questions.forEach(question => {
+                const id = String(question.id);
+                if (answered.has(id)) {
+                    question.answered = true;
+                }
+                if (flagged.has(id)) {
+                    question.flagged = true;
+                }
+                if (Array.isArray(savedAnswers[id])) {
+                    question.selectedOptions = savedAnswers[id].map(Number);
+                }
+            });
+
+            if (state.currentQuestionId &&
+                questions.some(q => String(q.id) === String(state.currentQuestionId))) {
+                currentQuestionId = state.currentQuestionId;
+            }
+        } catch (error) {
+            console.warn('Ignoring invalid exam progress state:', error);
+            localStorage.removeItem(getProgressStorageKey());
+        }
+    }
+
+    function clearQuestionProgress() {
+        localStorage.removeItem(getProgressStorageKey());
     }
 
     function parseTimerSeconds() {
@@ -612,7 +778,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Enter fullscreen mode
         UiUtils.requestFullscreen(document.documentElement);
-        
+
         // Acquire wake lock to prevent device from sleeping
         WakeLockService.acquireWakeLock()
             .then(success => {
@@ -622,9 +788,14 @@ document.addEventListener('DOMContentLoaded', function() {
                     console.warn('Wake lock not acquired, device may sleep during exam');
                 }
             });
-      
-        // Connect to Remote Desktop
-        RemoteDesktopService.connectToRemoteDesktop(vncFrame, showVncConnectionStatus);
+
+        if (isMcqExam()) {
+            // MCQ exams have no cluster or desktop: hide the workspace panel
+            document.body.classList.add('mcq-mode');
+        } else {
+            // Connect to Remote Desktop
+            RemoteDesktopService.connectToRemoteDesktop(vncFrame, showVncConnectionStatus);
+        }
 
         // Calculate remaining time
         const remainingTime = TimerService.calculateRemainingTime(examInfo);
@@ -664,6 +835,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle exam end when timer reaches zero
     function handleExamEnd() {
         clearPausedState();
+        clearQuestionProgress();
         setPauseUi(false);
 
         // Release wake lock as exam is ending
@@ -684,8 +856,11 @@ document.addEventListener('DOMContentLoaded', function() {
         // Track exam end event
         trackExamEndEvent()
             .then(() => {
-                // Make API call to end and evaluate the exam
-                return ExamApi.evaluateExam(examId);
+                // MCQ exams submit answers for server-side scoring; lab exams
+                // trigger validation-script evaluation on the jumphost
+                return isMcqExam()
+                    ? ExamApi.submitMcqAnswers(examId, collectMcqAnswers())
+                    : ExamApi.evaluateExam(examId);
             })
             .then(data => {
                 console.log('Exam evaluation started:', data);
@@ -760,6 +935,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     currentQuestionId = questions[currentIndex + 1].id;
                                     updateQuestionContent(currentQuestionId);
                                     updateNavigationButtons();
+                                    persistQuestionProgress();
                                 } else {
                                     updateQuestionContent(currentQuestionId);
                                 }
@@ -832,7 +1008,10 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize the exam UI
     function initExamUI() {
-        // Set the first question
+        // Restore flags, done-marks, and current question from a previous session
+        restoreQuestionProgress();
+
+        // Set the current question (first question unless progress was restored)
         updateQuestionContent(currentQuestionId);
         
         // Dynamically populate question dropdown with fetched questions
@@ -1007,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentQuestionId = questions[currentIndex - 1].id;
             updateQuestionContent(currentQuestionId);
             updateNavigationButtons();
+            persistQuestionProgress();
         }
     });
     
@@ -1016,6 +1196,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentQuestionId = questions[currentIndex + 1].id;
             updateQuestionContent(currentQuestionId);
             updateNavigationButtons();
+            persistQuestionProgress();
         }
     });
     
@@ -1040,13 +1221,16 @@ document.addEventListener('DOMContentLoaded', function() {
         trackExamEndEvent()
             .then(() => {
         // Make API call to end and evaluate the exam
-                return ExamApi.evaluateExam(examId);
+                return isMcqExam()
+                    ? ExamApi.submitMcqAnswers(examId, collectMcqAnswers())
+                    : ExamApi.evaluateExam(examId);
         })
         .then(data => {
             console.log('Exam evaluation started:', data);
                 stopAllTimers();
                 clearPausedState();
-                
+                clearQuestionProgress();
+
                 // Show loader for 3 seconds before redirecting
                 setTimeout(() => {
                 window.location.href = `/results?id=${examId}`;
@@ -1084,6 +1268,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Stop timer
                 stopAllTimers();
                 clearPausedState();
+                clearQuestionProgress();
             // Redirect to main page
             window.location.href = '/';
         })
@@ -1101,6 +1286,7 @@ document.addEventListener('DOMContentLoaded', function() {
             currentQuestionId = clickedQuestionId;
             updateQuestionContent(currentQuestionId);
             updateNavigationButtons();
+            persistQuestionProgress();
         });
     }
     
@@ -1130,6 +1316,7 @@ document.addEventListener('DOMContentLoaded', function() {
             // Update the dropdown display
             updateQuestionDropdown();
             updateQuestionProgress();
+            persistQuestionProgress();
         }
     }
     

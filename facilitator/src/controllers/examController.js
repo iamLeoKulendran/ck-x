@@ -5,6 +5,7 @@ const path = require('path');
 const redisClient = require('../utils/redisClient');
 const MetricService = require('../services/metricService');
 const attemptHistoryService = require('../services/attemptHistoryService');
+const mcqService = require('../services/mcqService');
 
 /**
  * Create a new exam
@@ -444,6 +445,78 @@ async function getExamAttempts(req, res) {
   }
 }
 
+/**
+ * Submit answers for a multiple-choice exam and score them server-side
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function submitMcqAnswers(req, res) {
+  const examId = req.params.examId;
+  logger.info('Received MCQ answer submission', { examId });
+
+  try {
+    const answers = req.body && typeof req.body.answers === 'object' && req.body.answers !== null
+      ? req.body.answers
+      : {};
+    const result = await mcqService.evaluateMcqExam(examId, answers);
+
+    if (!result.success) {
+      const status = result.error === 'Not Found' ? 404 : 400;
+      return res.status(status).json({ success: false, error: result.error, message: result.message });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        examId,
+        status: 'EVALUATED',
+        percentageScore: result.data.percentageScore,
+        message: 'Answers scored'
+      }
+    });
+  } catch (error) {
+    logger.error('Error submitting MCQ answers', { error: error.message });
+    return res.status(500).json({ success: false, error: 'Failed to score answers', message: error.message });
+  }
+}
+
+/**
+ * Delete one persisted exam attempt (backs up the history file first)
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+async function deleteExamAttempt(req, res) {
+  const attemptId = req.params.attemptId;
+  logger.info('Received request to delete exam attempt', { attemptId });
+
+  try {
+    const result = await attemptHistoryService.deleteAttempt(attemptId);
+
+    if (!result.deleted) {
+      return res.status(404).json({
+        success: false,
+        error: 'Not Found',
+        message: 'Attempt not found'
+      });
+    }
+
+    return res.status(200).json({
+      success: true,
+      data: {
+        attemptId,
+        message: 'Attempt deleted; a backup of the previous history file was created'
+      }
+    });
+  } catch (error) {
+    logger.error('Error deleting exam attempt', { error: error.message });
+    return res.status(500).json({
+      success: false,
+      error: 'Failed to delete exam attempt',
+      message: error.message
+    });
+  }
+}
+
 module.exports = {
   createExam,
   getCurrentExam,
@@ -456,5 +529,7 @@ module.exports = {
   getExamResult,
   updateExamEvents,
   submitMetrics,
-  getExamAttempts
+  getExamAttempts,
+  deleteExamAttempt,
+  submitMcqAnswers
 }; 

@@ -26,6 +26,13 @@ router.get('/current', examController.getCurrentExam);
 router.get('/attempts', examController.getExamAttempts);
 
 /**
+ * @route DELETE /api/v1/exams/attempts/:attemptId
+ * @desc Delete a single persisted attempt (history file is backed up first)
+ * @access Public
+ */
+router.delete('/attempts/:attemptId', examController.deleteExamAttempt);
+
+/**
  * @route GET /api/v1/exams/:examId/assets
  * @desc Get exam assets
  * @access Public
@@ -45,6 +52,13 @@ router.get('/:examId/questions', examController.getExamQuestions);
  * @access Public
  */
 router.post('/:examId/evaluate', validateEvaluateExam, examController.evaluateExam);
+
+/**
+ * @route POST /api/v1/exams/:examId/mcq-submit
+ * @desc Submit multiple-choice answers; scored server-side against the answer key
+ * @access Public
+ */
+router.post('/:examId/mcq-submit', examController.submitMcqAnswers);
 
 /**
  * @route POST /api/v1/exams/:examId/terminate

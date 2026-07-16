@@ -83,6 +83,23 @@ function evaluateExam(examId) {
     });
 }
 
+// Function to submit multiple-choice answers (scored server-side)
+function submitMcqAnswers(examId, answers) {
+    return fetch(`/facilitator/api/v1/exams/${examId}/mcq-submit`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ answers })
+    })
+    .then(response => {
+        if (!response.ok) {
+            throw new Error(`HTTP error! Status: ${response.status}`);
+        }
+        return response.json();
+    });
+}
+
 // Function to terminate session
 function terminateSession(examId) {
     return fetch(`/facilitator/api/v1/exams/${examId}/terminate`, {
@@ -159,6 +176,7 @@ export {
     fetchExamData,
     fetchCurrentExamInfo,
     evaluateExam,
+    submitMcqAnswers,
     terminateSession,
     getVncInfo,
     trackExamEvent,

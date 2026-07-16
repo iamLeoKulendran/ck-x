@@ -1,0 +1,164 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "type": "multiple-choice",
+      "domain": "kcna-kubernetes-fundamentals",
+      "concepts": ["kubernetes", "core concepts"],
+      "question": "A Deployment manages 3 replicas of a Pod. A node running one replica fails permanently. What restores the desired replica count?",
+      "options": [
+        "The kubelet on the failed node restarts the Pod locally",
+        "The ReplicaSet controller creates a replacement Pod, which the scheduler places on a healthy node",
+        "kube-proxy migrates the Pod's network identity to another node",
+        "The container runtime re-pulls the image on the failed node"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "The ReplicaSet controller (managed by the Deployment) notices the missing replica and creates a new Pod; the scheduler then assigns it to a schedulable node."
+    },
+    {
+      "id": "2",
+      "type": "multiple-choice",
+      "domain": "kcna-kubernetes-fundamentals",
+      "concepts": ["scheduling"],
+      "question": "Which component decides which node a newly created, unscheduled Pod runs on?",
+      "options": [
+        "kube-apiserver",
+        "kubelet",
+        "kube-scheduler",
+        "etcd"
+      ],
+      "correctOptionIndexes": [2],
+      "weightage": 10,
+      "explanation": "kube-scheduler watches for Pods with no assigned node and binds them to a suitable node based on resource requests, affinity, taints, and other constraints."
+    },
+    {
+      "id": "3",
+      "type": "multiple-choice",
+      "domain": "kcna-kubernetes-fundamentals",
+      "concepts": ["containerization"],
+      "question": "What is the primary difference between a container image and a running container?",
+      "options": [
+        "An image includes the kernel; a container does not",
+        "An image is an immutable, layered filesystem plus metadata; a container is a running instance with a writable layer",
+        "Images run in the cloud while containers run locally",
+        "There is no difference; the terms are interchangeable"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Images are immutable templates. Starting one creates a container: the image layers plus a writable layer and an isolated process namespace, sharing the host kernel."
+    },
+    {
+      "id": "4",
+      "type": "multiple-choice",
+      "domain": "kcna-kubernetes-fundamentals",
+      "concepts": ["administration", "api"],
+      "question": "Which statements about namespaces are true? (Select all that apply.)",
+      "options": [
+        "They can scope resource quotas and RBAC permissions",
+        "They provide hard network isolation by default",
+        "Some cluster-level resources, such as Nodes, are not namespaced",
+        "Deleting a namespace deletes the namespaced resources inside it"
+      ],
+      "correctOptionIndexes": [0, 2, 3],
+      "weightage": 10,
+      "explanation": "Namespaces scope quotas, RBAC, and object names, and deleting one removes its contents. They do NOT isolate network traffic by default — that requires NetworkPolicies."
+    },
+    {
+      "id": "5",
+      "type": "multiple-choice",
+      "domain": "kcna-container-orchestration",
+      "concepts": ["networking"],
+      "question": "In the Kubernetes network model, which requirement must every cluster network implementation satisfy?",
+      "options": [
+        "Every Pod gets its own IP address and can reach every other Pod without NAT",
+        "All Pods share the node's IP address",
+        "Pods can only communicate through Services",
+        "Cross-node Pod traffic must go through the API server"
+      ],
+      "correctOptionIndexes": [0],
+      "weightage": 10,
+      "explanation": "The flat Pod network model gives each Pod a unique IP and requires Pod-to-Pod reachability without NAT; CNI plugins implement this."
+    },
+    {
+      "id": "6",
+      "type": "multiple-choice",
+      "domain": "kcna-container-orchestration",
+      "concepts": ["storage"],
+      "question": "A Pod needs storage that survives Pod restarts and rescheduling to another node. Which combination provides that?",
+      "options": [
+        "An emptyDir volume",
+        "A hostPath volume",
+        "A PersistentVolumeClaim bound to a network-backed PersistentVolume",
+        "Container-local scratch space"
+      ],
+      "correctOptionIndexes": [2],
+      "weightage": 10,
+      "explanation": "emptyDir dies with the Pod, hostPath is tied to one node. A PVC bound to a network-backed PV survives rescheduling because the storage is independent of any node."
+    },
+    {
+      "id": "7",
+      "type": "multiple-choice",
+      "domain": "kcna-container-orchestration",
+      "concepts": ["security"],
+      "question": "Which mechanism grants a Pod's workload an identity for authenticating to the Kubernetes API?",
+      "options": [
+        "A NodePort Service",
+        "A ServiceAccount token mounted into the Pod",
+        "The container image digest",
+        "An Ingress annotation"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Pods run as a ServiceAccount; a projected token gives the workload an identity that RBAC rules can authorize."
+    },
+    {
+      "id": "8",
+      "type": "multiple-choice",
+      "domain": "kcna-app-delivery",
+      "concepts": ["gitops", "application delivery"],
+      "question": "What best describes the GitOps delivery model?",
+      "options": [
+        "Developers apply manifests manually with kubectl after each merge",
+        "A CI server pushes images directly into running Pods",
+        "The desired state lives in Git, and an in-cluster agent continuously reconciles the cluster toward it",
+        "Operators SSH into nodes to update workloads"
+      ],
+      "correctOptionIndexes": [2],
+      "weightage": 10,
+      "explanation": "GitOps treats Git as the source of truth; tools like Argo CD or Flux watch the repo and reconcile the cluster to match it, giving auditable, declarative delivery."
+    },
+    {
+      "id": "9",
+      "type": "multiple-choice",
+      "domain": "kcna-architecture",
+      "concepts": ["observability", "telemetry"],
+      "question": "Which three signals are commonly called the pillars of observability?",
+      "options": [
+        "Metrics, logs, and traces",
+        "Alerts, dashboards, and reports",
+        "CPU, memory, and disk",
+        "Uptime, latency, and cost"
+      ],
+      "correctOptionIndexes": [0],
+      "weightage": 10,
+      "explanation": "Metrics (numeric time series), logs (event records), and traces (request paths across services) are the classic observability pillars; OpenTelemetry standardizes collecting them."
+    },
+    {
+      "id": "10",
+      "type": "multiple-choice",
+      "domain": "kcna-architecture",
+      "concepts": ["autoscaling", "cloud native ecosystem"],
+      "question": "Which statement about the Horizontal Pod Autoscaler (HPA) is correct?",
+      "options": [
+        "It resizes the CPU and memory limits of existing Pods",
+        "It adds or removes Pod replicas based on observed metrics such as CPU utilization",
+        "It adds new nodes to the cluster when capacity runs out",
+        "It only works with DaemonSets"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "HPA scales replica counts of Deployments/ReplicaSets/StatefulSets from metrics. Resizing Pod resources is the Vertical Pod Autoscaler; adding nodes is the Cluster Autoscaler."
+    }
+  ]
+}

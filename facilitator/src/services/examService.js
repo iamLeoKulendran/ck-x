@@ -52,12 +52,19 @@ async function createExam(examData) {
     
     logger.info(`Exam created successfully with ID: ${examId}`);
     
-    // Determine number of nodes required for the exam (default to 1 if not specified)
-    const nodeCount = examData.config.workerNodes || 1;
-    
-    // Set up the exam environment asynchronously
-    // This will happen in the background while the response is sent back to the client
-    setupExamEnvironmentAsync(examId, nodeCount);
+    if (examData.config.examType === 'mcq') {
+      // Multiple-choice exams need no cluster, desktop, or jumphost assets.
+      // The environment is ready as soon as the session exists.
+      await redisClient.persistExamStatus(examId, 'READY');
+      logger.info(`MCQ exam ${examId} marked READY (no cluster provisioning needed)`);
+    } else {
+      // Determine number of nodes required for the exam (default to 1 if not specified)
+      const nodeCount = examData.config.workerNodes || 1;
+
+      // Set up the exam environment asynchronously
+      // This will happen in the background while the response is sent back to the client
+      setupExamEnvironmentAsync(examId, nodeCount);
+    }
     
     // send metrics to metric server
     MetricService.sendMetrics(examId, {
@@ -270,13 +277,22 @@ async function getExamQuestions(examId) {
     // Read and parse questions.json
     const questionsData = fs.readFileSync(fullQuestionsPath, 'utf8');
     const questions = JSON.parse(questionsData);
-    
+
+    // Never send answer keys or explanations to the client before evaluation
+    const sanitizedQuestions = (questions.questions || []).map((question) => {
+      if (question.type === 'multiple-choice') {
+        const { correctOptionIndexes, explanation, ...safeQuestion } = question;
+        return safeQuestion;
+      }
+      return question;
+    });
+
     logger.info(`Successfully retrieved questions for exam ${examId}`);
-    
+
     return {
       success: true,
       data: {
-        questions: questions.questions || []
+        questions: sanitizedQuestions
       }
     };
   } catch (error) {
@@ -402,9 +418,14 @@ async function endExam(examId) {
 
     // Clean up the exam environment
     try {
-      await jumphostService.cleanupExamEnvironment(examId);
-      
-      // Clear the current exam info 
+      const examInfo = await redisClient.getExamInfo(examId);
+      if (examInfo?.config?.examType === 'mcq') {
+        logger.info(`Skipping jumphost cleanup for MCQ exam ${examId}`);
+      } else {
+        await jumphostService.cleanupExamEnvironment(examId);
+      }
+
+      // Clear the current exam info
       await redisClient.deleteCurrentExamId();
       await redisClient.deleteAllExamData(examId);
     } catch (cleanupError) {

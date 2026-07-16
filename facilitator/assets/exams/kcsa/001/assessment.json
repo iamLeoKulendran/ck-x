@@ -1,0 +1,164 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "type": "multiple-choice",
+      "domain": "kcsa-cloud-native-security-overview",
+      "concepts": ["4c", "cloud native security"],
+      "question": "In the \"4 Cs\" model of cloud native security, which ordering goes from outermost to innermost layer?",
+      "options": [
+        "Cluster, Cloud, Container, Code",
+        "Cloud, Cluster, Container, Code",
+        "Code, Container, Cluster, Cloud",
+        "Container, Code, Cloud, Cluster"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "The layers nest: Cloud (or datacenter) hosts the Cluster, which runs Containers, which execute Code. Each outer layer's weaknesses undermine the inner ones."
+    },
+    {
+      "id": "2",
+      "type": "multiple-choice",
+      "domain": "kcsa-cluster-component-security",
+      "concepts": ["etcd"],
+      "question": "Why is direct read access to etcd equivalent to full cluster compromise?",
+      "options": [
+        "etcd stores container images",
+        "etcd stores all cluster state, including Secrets, which are only base64-encoded unless encryption at rest is enabled",
+        "etcd controls the container runtime directly",
+        "etcd exposes the kubelet API"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "All API objects, including Secrets, live in etcd. Base64 is encoding, not encryption; without EncryptionConfiguration, anyone reading etcd reads every Secret."
+    },
+    {
+      "id": "3",
+      "type": "multiple-choice",
+      "domain": "kcsa-cluster-component-security",
+      "concepts": ["kubelet", "api server"],
+      "question": "Which kubelet settings reduce its attack surface? (Select all that apply.)",
+      "options": [
+        "Disable anonymous authentication (--anonymous-auth=false)",
+        "Enable authorization mode Webhook so the API server authorizes kubelet API requests",
+        "Expose the read-only port 10255 to the Pod network",
+        "Require client certificates for kubelet API access"
+      ],
+      "correctOptionIndexes": [0, 1, 3],
+      "weightage": 10,
+      "explanation": "Anonymous auth off, Webhook authorization, and client-certificate auth harden the kubelet API. The read-only port is unauthenticated and should be disabled, not exposed."
+    },
+    {
+      "id": "4",
+      "type": "multiple-choice",
+      "domain": "kcsa-security-fundamentals",
+      "concepts": ["pod security standards"],
+      "question": "Under the Pod Security Standards, which profile forbids privileged containers, hostPath volumes, and host namespaces while still allowing most common workloads?",
+      "options": [
+        "privileged",
+        "baseline",
+        "restricted",
+        "default"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "baseline blocks known privilege escalations (privileged mode, host namespaces, hostPath). restricted goes further (non-root, seccomp, dropped capabilities); privileged allows everything."
+    },
+    {
+      "id": "5",
+      "type": "multiple-choice",
+      "domain": "kcsa-security-fundamentals",
+      "concepts": ["rbac"],
+      "question": "A Role grants get/list on secrets in namespace team-a. A RoleBinding in team-a binds it to user dev1. What can dev1 do?",
+      "options": [
+        "Read Secrets in every namespace",
+        "Read Secrets only in team-a",
+        "Create Secrets in team-a",
+        "Nothing until a ClusterRoleBinding also exists"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Roles and RoleBindings are namespaced: the permission applies only in team-a and only for the verbs listed (get/list, not create)."
+    },
+    {
+      "id": "6",
+      "type": "multiple-choice",
+      "domain": "kcsa-security-fundamentals",
+      "concepts": ["audit", "authentication"],
+      "question": "Which control produces a reviewable record of who did what against the Kubernetes API?",
+      "options": [
+        "NetworkPolicy",
+        "API server audit logging",
+        "Pod Security Admission",
+        "Resource quotas"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Audit logging records API requests (user, verb, resource, outcome) according to the audit policy. The other controls enforce behavior but do not record actor history."
+    },
+    {
+      "id": "7",
+      "type": "multiple-choice",
+      "domain": "kcsa-threat-model",
+      "concepts": ["privilege escalation", "trust boundary"],
+      "question": "A workload runs as a privileged container with hostPID on a node. Which threat does this most directly enable?",
+      "options": [
+        "Denial of service against the cloud provider's billing API",
+        "Escape from the container boundary and control of the host node",
+        "Phishing of cluster administrators",
+        "Compromise of the container registry"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Privileged mode plus host namespaces collapses the container/host trust boundary: the workload can access host devices and processes, effectively owning the node."
+    },
+    {
+      "id": "8",
+      "type": "multiple-choice",
+      "domain": "kcsa-threat-model",
+      "concepts": ["persistence", "attacker"],
+      "question": "Which technique would an attacker most likely use for persistence inside a compromised cluster?",
+      "options": [
+        "Creating a high-privilege ServiceAccount and a workload that uses it",
+        "Running kubectl version repeatedly",
+        "Reading public container image documentation",
+        "Increasing a Deployment's CPU requests"
+      ],
+      "correctOptionIndexes": [0],
+      "weightage": 10,
+      "explanation": "Persistence means retaining access: a privileged ServiceAccount bound to cluster-admin plus a controller-managed workload keeps the attacker's foothold alive across restarts."
+    },
+    {
+      "id": "9",
+      "type": "multiple-choice",
+      "domain": "kcsa-platform-security",
+      "concepts": ["supply chain", "signing"],
+      "question": "What does verifying a container image signature (e.g., with cosign) before admission protect against?",
+      "options": [
+        "Vulnerabilities in the application source code",
+        "Running images that were tampered with or not produced by a trusted publisher",
+        "Excessive resource consumption at runtime",
+        "Misconfigured RBAC rules"
+      ],
+      "correctOptionIndexes": [1],
+      "weightage": 10,
+      "explanation": "Signature verification proves integrity and provenance: the image is exactly what the trusted party signed. It does not scan for CVEs — that's a scanner's job (e.g., trivy)."
+    },
+    {
+      "id": "10",
+      "type": "multiple-choice",
+      "domain": "kcsa-compliance-frameworks",
+      "concepts": ["cis", "compliance"],
+      "question": "Which tool checks a cluster's configuration against the CIS Kubernetes Benchmark?",
+      "options": [
+        "kube-bench",
+        "kubectl top",
+        "Helm",
+        "CoreDNS"
+      ],
+      "correctOptionIndexes": [0],
+      "weightage": 10,
+      "explanation": "kube-bench runs the CIS Kubernetes Benchmark checks against control-plane and node configurations and reports pass/fail per recommendation."
+    }
+  ]
+}

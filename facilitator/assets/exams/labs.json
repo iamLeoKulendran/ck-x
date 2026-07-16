@@ -109,6 +109,30 @@
       "warmUpTimeInSeconds": 360,
       "difficulty": "Hard",
       "examDurationInMinutes": 120
+    },
+    {
+      "id": "kcna-001",
+      "assetPath": "assets/exams/kcna/001",
+      "name": "KCNA Practice Exam 1 - Cloud Native Foundations",
+      "category": "KCNA",
+      "description": "Original multiple-choice practice exam covering Kubernetes fundamentals, container orchestration, cloud native application delivery, and architecture. No cluster is provisioned; answers are scored instantly.",
+      "warmUpTimeInSeconds": 5,
+      "difficulty": "Medium",
+      "examDurationInMinutes": 30,
+      "certificationCode": "KCNA",
+      "blueprintVersion": "2026"
+    },
+    {
+      "id": "kcsa-001",
+      "assetPath": "assets/exams/kcsa/001",
+      "name": "KCSA Practice Exam 1 - Cloud Native Security Foundations",
+      "category": "KCSA",
+      "description": "Original multiple-choice practice exam covering the 4Cs, cluster component security, security fundamentals, threat model, platform security, and compliance frameworks. No cluster is provisioned.",
+      "warmUpTimeInSeconds": 5,
+      "difficulty": "Medium",
+      "examDurationInMinutes": 30,
+      "certificationCode": "KCSA",
+      "blueprintVersion": "2026"
     }
   ]
 }

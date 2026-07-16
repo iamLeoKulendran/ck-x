@@ -1,0 +1,11 @@
+{
+  "lab": "kcsa-001",
+  "examType": "mcq",
+  "workerNodes": 0,
+  "answers": "assets/exams/kcsa/001/answers.md",
+  "questions": "assessment.json",
+  "totalMarks": 100,
+  "lowScore": 50,
+  "mediumScore": 75,
+  "highScore": 90
+}
