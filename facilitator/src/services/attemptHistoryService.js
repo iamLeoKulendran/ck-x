@@ -2,8 +2,14 @@ const fs = require('fs');
 const path = require('path');
 const { randomUUID } = require('crypto');
 const logger = require('../utils/logger');
+const certificationCatalog = require('../utils/certificationCatalog');
 
-const HISTORY_VERSION = 1;
+// v2 adds per-attempt mode, durationUsedSeconds, certificationCode,
+// blueprintVersion, and domainBreakdown. v1 records remain valid and are
+// never rewritten; the file envelope upgrades to 2 on the next write after
+// a one-time .v1.bak backup.
+const HISTORY_VERSION = 2;
+const SUPPORTED_HISTORY_VERSIONS = [1, 2];
 const DEFAULT_HISTORY_FILE = '/usr/src/app/data/attempt-history.json';
 const historyFilePath = process.env.ATTEMPT_HISTORY_FILE || DEFAULT_HISTORY_FILE;
 
@@ -41,10 +47,35 @@ async function readHistory() {
     throw new Error('Attempt history file has an invalid format');
   }
 
+  const version = history.version || 1;
+  if (!SUPPORTED_HISTORY_VERSIONS.includes(version)) {
+    throw new Error(`Unsupported attempt history version: ${version}`);
+  }
+
   return {
-    version: history.version || HISTORY_VERSION,
+    version,
     attempts: history.attempts
   };
+}
+
+// One-time backup of the v1 file before the envelope upgrades to v2.
+async function backupBeforeUpgrade(currentVersion) {
+  if (currentVersion >= HISTORY_VERSION) {
+    return;
+  }
+
+  const backupPath = `${historyFilePath}.v${currentVersion}.bak`;
+  try {
+    await fs.promises.access(backupPath, fs.constants.F_OK);
+    return; // backup already exists
+  } catch (error) {
+    if (error.code !== 'ENOENT') {
+      throw error;
+    }
+  }
+
+  await fs.promises.copyFile(historyFilePath, backupPath);
+  logger.info('Backed up attempt history before schema upgrade', { backupPath });
 }
 
 async function writeHistoryAtomic(history) {
@@ -153,13 +184,72 @@ function getFlatFailedValidationSteps(failedQuestions) {
   ));
 }
 
+function getDurationUsedSeconds(examInfo, result) {
+  const startTime = examInfo.events?.examStartTime;
+  const endTime = result.completedAt || examInfo.events?.examEndTime;
+
+  if (!startTime || !endTime) {
+    return null;
+  }
+
+  const durationMs = new Date(endTime) - new Date(startTime);
+  if (!Number.isFinite(durationMs) || durationMs < 0) {
+    return null;
+  }
+
+  return Math.round(durationMs / 1000);
+}
+
+// Aggregate earned/possible marks per blueprint domain using the
+// concept→domain keyword mapping. Unmatched questions land in "unmapped".
+function getDomainBreakdown(certificationCode, evaluationResults) {
+  if (!certificationCode) {
+    return [];
+  }
+
+  const domainMap = new Map();
+
+  (evaluationResults || []).forEach((questionResult) => {
+    const domainId = certificationCatalog.mapConceptsToDomain(
+      certificationCode,
+      questionResult.concepts || []
+    );
+
+    const current = domainMap.get(domainId) || {
+      domainId,
+      domainName: certificationCatalog.getDomainName(certificationCode, domainId),
+      earned: 0,
+      possible: 0,
+      questionCount: 0
+    };
+
+    current.earned += getQuestionScore(questionResult);
+    current.possible += getQuestionPossibleScore(questionResult);
+    current.questionCount += 1;
+    domainMap.set(domainId, current);
+  });
+
+  return Array.from(domainMap.values())
+    .sort((a, b) => b.possible - a.possible || a.domainName.localeCompare(b.domainName));
+}
+
 function buildAttemptRecord(examId, examInfo, result) {
   const percentageScore = Number(result.percentageScore) || 0;
   const failedQuestions = getFailedQuestions(result.evaluationResults);
   const failedConcepts = getFailedConcepts(failedQuestions);
   const failedValidationSteps = getFlatFailedValidationSteps(failedQuestions);
 
+  const category = examInfo.category || 'Uncategorized';
+  const certification = certificationCatalog.getCertification(category);
+  const certificationCode = certification ? certification.code : null;
+
   return {
+    schemaVersion: HISTORY_VERSION,
+    mode: examInfo.mode || 'timed',
+    durationUsedSeconds: getDurationUsedSeconds(examInfo, result),
+    certificationCode,
+    blueprintVersion: certification?.blueprint?.version || null,
+    domainBreakdown: getDomainBreakdown(certificationCode, result.evaluationResults),
     attemptId: randomUUID(),
     examSessionId: examId,
     labId: examInfo.id || examInfo.config?.lab || '',
@@ -188,13 +278,119 @@ async function appendAttempt(examId, examInfo, result) {
 
   return enqueueWrite(async () => {
     const history = await readHistory();
+    await backupBeforeUpgrade(history.version);
     history.attempts.push(attempt);
-    await writeHistoryAtomic(history);
+    await writeHistoryAtomic({ version: HISTORY_VERSION, attempts: history.attempts });
     logger.info('Persisted exam attempt history', {
       examSessionId: examId,
       attemptId: attempt.attemptId
     });
     return attempt;
+  });
+}
+
+/**
+ * Delete a single attempt by attemptId.
+ * Writes a timestamped backup of the whole file before removing the record.
+ */
+async function deleteAttempt(attemptId) {
+  return enqueueWrite(async () => {
+    const history = await readHistory();
+    const index = history.attempts.findIndex((attempt) => attempt.attemptId === attemptId);
+
+    if (index === -1) {
+      return { deleted: false, reason: 'not-found' };
+    }
+
+    const backupPath = `${historyFilePath}.pre-delete.${Date.now()}.bak`;
+    await fs.promises.copyFile(historyFilePath, backupPath);
+
+    const [removed] = history.attempts.splice(index, 1);
+    await writeHistoryAtomic({ version: HISTORY_VERSION, attempts: history.attempts });
+
+    logger.info('Deleted exam attempt from history', { attemptId, backupPath });
+    return { deleted: true, attempt: removed, backupPath };
+  });
+}
+
+/**
+ * Return the raw history document for export/backup.
+ */
+async function exportHistory() {
+  const history = await readHistory();
+  return {
+    exportedAt: new Date().toISOString(),
+    historyVersion: history.version,
+    attempts: history.attempts
+  };
+}
+
+function validateRestorePayload(payload) {
+  if (!payload || typeof payload !== 'object') {
+    return 'Restore payload must be a JSON object';
+  }
+
+  const attempts = payload.attempts;
+  if (!Array.isArray(attempts)) {
+    return 'Restore payload must contain an "attempts" array';
+  }
+
+  for (const attempt of attempts) {
+    if (!attempt || typeof attempt !== 'object') {
+      return 'Every attempt must be an object';
+    }
+    if (!attempt.attemptId || typeof attempt.attemptId !== 'string') {
+      return 'Every attempt must have a string attemptId';
+    }
+    if (!attempt.completedAt || Number.isNaN(new Date(attempt.completedAt).getTime())) {
+      return 'Every attempt must have a valid completedAt timestamp';
+    }
+    if (typeof attempt.percentageScore !== 'number') {
+      return 'Every attempt must have a numeric percentageScore';
+    }
+  }
+
+  return null;
+}
+
+/**
+ * Replace the attempt history with an exported bundle.
+ * Backs up the current file first; validation errors leave it untouched.
+ */
+async function restoreHistory(payload) {
+  const validationError = validateRestorePayload(payload);
+  if (validationError) {
+    return { restored: false, error: validationError };
+  }
+
+  return enqueueWrite(async () => {
+    await ensureHistoryFile();
+    const backupPath = `${historyFilePath}.pre-restore.${Date.now()}.bak`;
+    await fs.promises.copyFile(historyFilePath, backupPath);
+
+    await writeHistoryAtomic({ version: HISTORY_VERSION, attempts: payload.attempts });
+
+    logger.info('Restored attempt history from export bundle', {
+      attemptCount: payload.attempts.length,
+      backupPath
+    });
+    return { restored: true, attemptCount: payload.attempts.length, backupPath };
+  });
+}
+
+/**
+ * Reset the attempt history to an empty document after backing it up.
+ */
+async function resetHistory() {
+  return enqueueWrite(async () => {
+    await ensureHistoryFile();
+    const backupPath = `${historyFilePath}.pre-reset.${Date.now()}.bak`;
+    await fs.promises.copyFile(historyFilePath, backupPath);
+
+    await writeHistoryAtomic({ version: HISTORY_VERSION, attempts: [] });
+
+    logger.info('Reset attempt history', { backupPath });
+    return { reset: true, backupPath };
   });
 }
 
@@ -331,5 +527,9 @@ module.exports = {
   appendAttempt,
   getAttempts,
   getHistoryFilePath,
-  buildAttemptRecord
+  buildAttemptRecord,
+  deleteAttempt,
+  exportHistory,
+  restoreHistory,
+  resetHistory
 };

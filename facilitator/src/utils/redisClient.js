@@ -48,14 +48,18 @@ async function getClient() {
   return redisClient.isOpen ? redisClient : await connect();
 }
 
+// Active exam state must outlive long exam sessions plus post-exam review.
+// setEx takes seconds; 7 days keeps abandoned sessions from lingering forever.
+const DEFAULT_TTL_SECONDS = 7 * 24 * 60 * 60;
+
 /**
  * Persist exam information (JSON)
  * @param {string} examId - Exam identifier
  * @param {Object} examInfo - JSON object containing exam information
- * @param {number} [ttl=3600] - Time to live in seconds (default: 1 hour)
+ * @param {number} [ttl=DEFAULT_TTL_SECONDS] - Time to live in seconds (default: 7 days)
  * @returns {Promise<string>} - Returns 'OK' if successful
  */
-async function persistExamInfo(examId, examInfo, ttl = 3600000) {
+async function persistExamInfo(examId, examInfo, ttl = DEFAULT_TTL_SECONDS) {
   try {
     const client = await getClient();
     const key = `${KEYS.EXAM_INFO}${examId}`;
@@ -73,10 +77,10 @@ async function persistExamInfo(examId, examInfo, ttl = 3600000) {
  * Persist exam status (string)
  * @param {string} examId - Exam identifier
  * @param {string} status - Exam status string
- * @param {number} [ttl=3600] - Time to live in seconds (default: 1 hour)
+ * @param {number} [ttl=DEFAULT_TTL_SECONDS] - Time to live in seconds (default: 7 days)
  * @returns {Promise<string>} - Returns 'OK' if successful
  */
-async function persistExamStatus(examId, status, ttl = 3600000) {
+async function persistExamStatus(examId, status, ttl = DEFAULT_TTL_SECONDS) {
   try {
     const client = await getClient();
     const key = `${KEYS.EXAM_STATUS}${examId}`;
@@ -93,10 +97,10 @@ async function persistExamStatus(examId, status, ttl = 3600000) {
  * Persist exam evaluation result
  * @param {string} examId - Exam identifier
  * @param {Object} result - Exam evaluation result object
- * @param {number} [ttl=3600] - Time to live in seconds (default: 1 hour)
+ * @param {number} [ttl=DEFAULT_TTL_SECONDS] - Time to live in seconds (default: 7 days)
  * @returns {Promise<string>} - Returns 'OK' if successful
  */
-async function persistExamResult(examId, result, ttl = 3600000) {
+async function persistExamResult(examId, result, ttl = DEFAULT_TTL_SECONDS) {
   try {
     const client = await getClient();
     const key = `${KEYS.EXAM_RESULT}${examId}`;
@@ -114,10 +118,10 @@ async function persistExamResult(examId, result, ttl = 3600000) {
 /**
  * Set the current exam ID
  * @param {string} examId - Exam identifier
- * @param {number} [ttl=3600] - Time to live in seconds (default: 1 hour)
+ * @param {number} [ttl=DEFAULT_TTL_SECONDS] - Time to live in seconds (default: 7 days)
  * @returns {Promise<string>} - Returns 'OK' if successful
  */
-async function setCurrentExamId(examId, ttl = 3600000) {
+async function setCurrentExamId(examId, ttl = DEFAULT_TTL_SECONDS) {
   try {
     const client = await getClient();
     const result = await client.setEx(KEYS.CURRENT_EXAM_ID, ttl, examId);

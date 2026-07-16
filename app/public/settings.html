@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings & Local Data | CK-X</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/tools-pages.css">
+</head>
+<body class="tools-page">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">CK-X Cloud</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/analytics.html">Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/mistakes.html">Mistakes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/packs.html">Packs</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/settings.html" aria-current="page">Settings</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container tools-container">
+        <header class="tools-header">
+            <h1>Settings &amp; Local Data</h1>
+            <p class="text-muted">All CK-X data lives on this machine. Back it up, restore it, or reset it here.</p>
+        </header>
+
+        <section class="card tools-card" aria-labelledby="dataInfoHeading">
+            <div class="card-body">
+                <h2 class="h5" id="dataInfoHeading">Local data</h2>
+                <dl class="row mb-0" id="dataInfoList">
+                    <dt class="col-sm-4">History file</dt>
+                    <dd class="col-sm-8" id="infoHistoryFile">Loading…</dd>
+                    <dt class="col-sm-4">Schema version</dt>
+                    <dd class="col-sm-8" id="infoHistoryVersion">Loading…</dd>
+                    <dt class="col-sm-4">Stored attempts</dt>
+                    <dd class="col-sm-8" id="infoAttemptCount">Loading…</dd>
+                    <dt class="col-sm-4">Telemetry</dt>
+                    <dd class="col-sm-8" id="infoTelemetry">Loading…</dd>
+                </dl>
+            </div>
+        </section>
+
+        <section class="card tools-card" aria-labelledby="backupHeading">
+            <div class="card-body">
+                <h2 class="h5" id="backupHeading">Backup</h2>
+                <p>Download every stored attempt as a JSON bundle. Keep it anywhere; restore it below later.</p>
+                <a class="btn btn-primary" href="/facilitator/api/v1/data/export" download>Download backup</a>
+            </div>
+        </section>
+
+        <section class="card tools-card" aria-labelledby="restoreHeading">
+            <div class="card-body">
+                <h2 class="h5" id="restoreHeading">Restore</h2>
+                <p>Replace the current attempt history with a previously exported bundle.
+                   The current file is backed up automatically before anything is written.</p>
+                <input type="file" class="form-control mb-3" id="restoreFileInput" accept="application/json" aria-label="Backup bundle file">
+                <button type="button" class="btn btn-warning" id="restoreBtn" disabled>Restore from file</button>
+                <div class="tools-status" id="restoreStatus" role="status"></div>
+            </div>
+        </section>
+
+        <section class="card tools-card border-danger" aria-labelledby="resetHeading">
+            <div class="card-body">
+                <h2 class="h5 text-danger" id="resetHeading">Reset</h2>
+                <p>Delete all stored attempts. A backup file is written next to the history file first,
+                   but the UI will show an empty history afterwards.</p>
+                <label class="form-label" for="resetConfirmInput">Type <code>RESET</code> to enable the button:</label>
+                <input type="text" class="form-control mb-3" id="resetConfirmInput" autocomplete="off" aria-describedby="resetHeading">
+                <button type="button" class="btn btn-danger" id="resetBtn" disabled>Reset attempt history</button>
+                <div class="tools-status" id="resetStatus" role="status"></div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p class="text-center">&copy; <span id="currentYear"></span> CK-X Simulator.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,171 @@
+/* Shared styles for CK-X tool pages (settings, analytics, mistakes, packs).
+   Calm neutral canvas, dense but readable cards, visible focus states. */
+
+.tools-page {
+    background-color: #f4f6f8;
+    color: #1f2933;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.tools-container {
+    max-width: 960px;
+    padding-top: 96px;
+    padding-bottom: 48px;
+    flex: 1 0 auto;
+}
+
+.tools-container--wide {
+    max-width: 1200px;
+}
+
+.tools-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.tools-header {
+    margin-bottom: 24px;
+}
+
+.tools-card {
+    margin-bottom: 20px;
+    border: 1px solid #d9e0e6;
+    border-radius: 8px;
+    box-shadow: none;
+}
+
+.tools-card .card-body h2 {
+    margin-bottom: 12px;
+}
+
+.tools-status {
+    margin-top: 12px;
+    min-height: 1.4em;
+    font-size: 0.95rem;
+}
+
+.tools-empty {
+    padding: 24px;
+    border: 1px dashed #b8c4ce;
+    border-radius: 8px;
+    text-align: center;
+    color: #52606d;
+    background-color: #fbfdfe;
+}
+
+.tools-table th {
+    white-space: nowrap;
+}
+
+.tools-chip {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+    border: 1px solid transparent;
+}
+
+.tools-chip--ok {
+    background-color: #dafbe1;
+    color: #116329;
+    border-color: #116329;
+}
+
+.tools-chip--warn {
+    background-color: #fff8c5;
+    color: #7d4e00;
+    border-color: #7d4e00;
+}
+
+.tools-chip--bad {
+    background-color: #ffebe9;
+    color: #82071e;
+    border-color: #82071e;
+}
+
+.tools-chip--muted {
+    background-color: #eef2f5;
+    color: #52606d;
+    border-color: #9aa5b1;
+}
+
+/* Horizontal bar rows for domain mastery: text + width encode the value,
+   never color alone. */
+.mastery-row {
+    display: grid;
+    grid-template-columns: minmax(160px, 260px) 1fr 90px;
+    align-items: center;
+    gap: 12px;
+    padding: 6px 0;
+}
+
+.mastery-track {
+    background-color: #e4e9ee;
+    border-radius: 4px;
+    height: 14px;
+    overflow: hidden;
+}
+
+.mastery-fill {
+    height: 100%;
+    background-color: #2569a8;
+    border-radius: 4px 0 0 4px;
+}
+
+.mastery-fill--low {
+    background-color: #a1394a;
+}
+
+.mastery-value {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 600;
+}
+
+.app-footer {
+    flex-shrink: 0;
+    padding: 16px 0;
+    color: #52606d;
+}
+
+/* Visible focus states */
+.tools-page a:focus-visible,
+.tools-page button:focus-visible,
+.tools-page input:focus-visible,
+.tools-page select:focus-visible,
+.tools-page textarea:focus-visible {
+    outline: 3px solid #2569a8;
+    outline-offset: 2px;
+}
+
+/* Respect reduced-motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    .tools-page *,
+    .tools-page *::before,
+    .tools-page *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+@media (max-width: 768px) {
+    .tools-container {
+        padding-top: 84px;
+    }
+
+    .mastery-row {
+        grid-template-columns: 1fr;
+        gap: 4px;
+    }
+
+    .mastery-value {
+        text-align: left;
+    }
+}
