@@ -7,7 +7,7 @@ document.addEventListener('DOMContentLoaded', function() {
         currentYear.textContent = new Date().getFullYear();
     }
 
-    const TREND_COLOR = '#2569a8';
+    const TREND_COLOR = '#4f46e5';
 
     function escapeHtml(value) {
         const div = document.createElement('div');

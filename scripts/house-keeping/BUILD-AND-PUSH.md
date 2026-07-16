@@ -31,7 +31,7 @@ The `build-and-push.sh` script automates the process of building and pushing all
    ```
    Or run it from anywhere by providing the full path:
    ```
-   /path/to/killer-clone/script/build-and-push.sh
+   /path/to/ck-x/script/build-and-push.sh
    ```
 
 4. When prompted, enter a tag for the images:

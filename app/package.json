@@ -1,7 +1,7 @@
 {
-  "name": "killer-sh-clone-webapp",
+  "name": "ckx-webapp",
   "version": "1.0.0",
-  "description": "Web application for killer.sh clone with VNC access",
+  "description": "CK-X — Local Kubernetes Certification Simulator web application",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

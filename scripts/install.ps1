@@ -221,7 +221,7 @@ try {
                 return $true
             } catch {
                 Write-ColorOutput "Could not automatically open browser. Please visit:" "Yellow"
-                Write-ColorOutput "https://play.sailor.sh/" "Green"
+                Write-ColorOutput "http://localhost:30080/" "Green"
                 return $false
             }
         }
@@ -341,8 +341,6 @@ try {
         Write-ColorOutput "To remove only CK-X images: " -NoNewline
         Write-ColorOutput "docker compose down --rmi all" "Green"
         Write-ColorOutput "To access CK-X Simulator: " -NoNewline
-        Write-ColorOutput "https://play.sailor.sh/" "Green"
-        Write-ColorOutput "To access CK-X Simulator locally use: " -NoNewline
         Write-ColorOutput "http://localhost:30080/" "Green"
         Write-Host ""
         Write-ColorOutput "Thank you for installing CK-X Simulator!" "Cyan"

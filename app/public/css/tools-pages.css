@@ -2,8 +2,8 @@
    Calm neutral canvas, dense but readable cards, visible focus states. */
 
 .tools-page {
-    background-color: #f4f6f8;
-    color: #1f2933;
+    background-color: transparent;
+    color: var(--ckx-ink);
     min-height: 100vh;
     display: flex;
     flex-direction: column;
@@ -32,9 +32,10 @@
 
 .tools-card {
     margin-bottom: 20px;
-    border: 1px solid #d9e0e6;
-    border-radius: 8px;
-    box-shadow: none;
+    background-color: var(--ckx-surface);
+    border: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius-lg);
+    box-shadow: var(--ckx-shadow);
 }
 
 .tools-card .card-body h2 {
@@ -49,11 +50,11 @@
 
 .tools-empty {
     padding: 24px;
-    border: 1px dashed #b8c4ce;
-    border-radius: 8px;
+    border: 1px dashed var(--ckx-border-strong);
+    border-radius: var(--ckx-radius);
     text-align: center;
-    color: #52606d;
-    background-color: #fbfdfe;
+    color: var(--ckx-ink-muted);
+    background-color: var(--ckx-surface-soft);
 }
 
 .tools-table th {
@@ -71,27 +72,27 @@
 }
 
 .tools-chip--ok {
-    background-color: #dafbe1;
-    color: #116329;
-    border-color: #116329;
+    background-color: var(--ckx-good-soft);
+    color: var(--ckx-good);
+    border-color: var(--ckx-good);
 }
 
 .tools-chip--warn {
-    background-color: #fff8c5;
-    color: #7d4e00;
-    border-color: #7d4e00;
+    background-color: var(--ckx-warn-soft);
+    color: var(--ckx-warn);
+    border-color: var(--ckx-warn);
 }
 
 .tools-chip--bad {
-    background-color: #ffebe9;
-    color: #82071e;
-    border-color: #82071e;
+    background-color: var(--ckx-bad-soft);
+    color: var(--ckx-bad);
+    border-color: var(--ckx-bad);
 }
 
 .tools-chip--muted {
-    background-color: #eef2f5;
-    color: #52606d;
-    border-color: #9aa5b1;
+    background-color: var(--ckx-surface-soft);
+    color: var(--ckx-ink-muted);
+    border-color: var(--ckx-border-strong);
 }
 
 /* Horizontal bar rows for domain mastery: text + width encode the value,
@@ -105,7 +106,7 @@
 }
 
 .mastery-track {
-    background-color: #e4e9ee;
+    background-color: var(--ckx-surface-soft);
     border-radius: 4px;
     height: 14px;
     overflow: hidden;
@@ -113,12 +114,12 @@
 
 .mastery-fill {
     height: 100%;
-    background-color: #2569a8;
+    background-color: var(--ckx-series-1);
     border-radius: 4px 0 0 4px;
 }
 
 .mastery-fill--low {
-    background-color: #a1394a;
+    background-color: var(--ckx-series-low);
 }
 
 .mastery-value {
@@ -130,7 +131,7 @@
 .app-footer {
     flex-shrink: 0;
     padding: 16px 0;
-    color: #52606d;
+    color: var(--ckx-ink-muted);
 }
 
 /* Visible focus states */
@@ -139,7 +140,7 @@
 .tools-page input:focus-visible,
 .tools-page select:focus-visible,
 .tools-page textarea:focus-visible {
-    outline: 3px solid #2569a8;
+    outline: 3px solid var(--ckx-primary);
     outline-offset: 2px;
 }
 

@@ -73,8 +73,12 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         const target = event.target;
+        // Radio/checkbox inputs (MCQ options) don't accept text, so shortcuts
+        // stay active after clicking an answer
+        const isTextInput = target && target.tagName === 'INPUT' &&
+            !['radio', 'checkbox'].includes(target.type);
         const isTypingContext = target && (
-            target.tagName === 'INPUT' ||
+            isTextInput ||
             target.tagName === 'TEXTAREA' ||
             target.tagName === 'SELECT' ||
             target.isContentEditable ||

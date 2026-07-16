@@ -11,10 +11,11 @@
     width: 100%;
     max-width: 1000px;
     margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 24px 28px;
+    background-color: var(--ckx-surface);
+    border: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius-lg);
+    box-shadow: var(--ckx-shadow);
 }
 
 .answers-header {
@@ -23,32 +24,32 @@
     align-items: center;
     margin-bottom: 20px;
     padding-bottom: 15px;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--ckx-border);
 }
 
 .answers-header h2 {
     margin: 0;
-    color: #333;
     font-size: 1.8rem;
 }
 
 .exam-info-box {
-    background-color: #f0f8ff;
-    border-left: 4px solid #3498db;
+    background-color: var(--ckx-primary-soft);
+    border: 1px solid var(--ckx-primary-border);
+    border-left: 4px solid var(--ckx-primary);
     padding: 12px 15px;
     margin-bottom: 20px;
-    border-radius: 4px;
+    border-radius: var(--ckx-radius-sm);
 }
 
 .exam-info-box p {
     margin: 0;
-    color: #333;
+    color: var(--ckx-ink);
     font-size: 14px;
 }
 
 .markdown-content {
-    background-color: #f9f9f9;
-    border-radius: 6px;
+    background-color: var(--ckx-surface-soft);
+    border-radius: var(--ckx-radius);
     padding: 20px;
     line-height: 1.6;
     margin-bottom: 30px;
@@ -57,17 +58,19 @@
 /* Enhanced code block styling for better readability */
 .markdown-content pre {
     padding: 16px;
-    background-color: #f0f0f0;
-    border-radius: 6px;
+    background-color: var(--ckx-ink);
+    border-radius: var(--ckx-radius-sm);
     overflow-x: auto;
     margin: 20px 0;
 }
 
 .markdown-content pre code {
-    font-family: 'Courier New', monospace;
+    font-family: var(--ckx-font-mono);
     font-size: 14px;
     display: block;
     line-height: 1.5;
+    color: var(--ckx-ink-inverse);
+    background-color: transparent;
 }
 
 /* Make tables more readable */
@@ -80,28 +83,44 @@
 }
 
 .markdown-content thead {
-    background-color: #e9ecef;
+    background-color: var(--ckx-surface-soft);
 }
 
 .markdown-content th,
 .markdown-content td {
     padding: 10px 12px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--ckx-border);
     text-align: left;
 }
 
 .markdown-content tr:nth-child(even) {
-    background-color: #f7f7f7;
+    background-color: var(--ckx-surface-soft);
 }
 
 /* Responsive adjustments */
+@media (max-width: 1024px) {
+    .answers-container {
+        padding: 16px;
+    }
+}
+
 @media (max-width: 768px) {
     .answers-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     .answers-actions {
         margin-top: 15px;
     }
-} 
+
+    .answers-content {
+        padding: 18px;
+    }
+}
+
+@media (max-width: 480px) {
+    .markdown-content {
+        padding: 14px;
+    }
+}

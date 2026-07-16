@@ -162,7 +162,7 @@ open_browser() {
     fi
     
     echo -e "${YELLOW}Could not automatically open browser. Please visit:${NC}"
-    echo -e "${GREEN}https://play.sailor.sh/${NC}"
+    echo -e "${GREEN}http://localhost:30080/${NC}"
     return 1
 }
 
@@ -225,8 +225,7 @@ main() {
     echo -e "${YELLOW}To Restart CK-X:${NC} ${GREEN}docker compose restart${NC}"
     echo -e "${YELLOW}To clean up all containers and images:${NC} ${GREEN}docker system prune -a${NC}"
     echo -e "${YELLOW}To remove only CK-X images:${NC} ${GREEN}docker compose down --rmi all${NC}"
-    echo -e "${YELLOW}To access CK-X Simulator:${NC} ${GREEN}https://play.sailor.sh/${NC}"
-    echo -e "${YELLOW}To access CK-X Simulator locally use:${NC} ${GREEN}http://localhost:30080/${NC}"
+    echo -e "${YELLOW}To access CK-X Simulator:${NC} ${GREEN}http://localhost:30080/${NC}"
     echo
     echo -e "${CYAN}Thank you for installing CK-X Simulator!${NC}"
 }

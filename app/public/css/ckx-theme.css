@@ -1,0 +1,335 @@
+/* CK-X design system — one consistent theme for every page.
+   Warm off-white canvas, subtle geometric grid, deep navy/indigo ink,
+   violet-blue primary actions, white cards with thin borders and soft
+   shadows. Load AFTER Bootstrap and BEFORE per-page stylesheets. */
+
+:root {
+    /* Canvas & surfaces */
+    --ckx-canvas: #faf9f6;
+    --ckx-surface: #ffffff;
+    --ckx-surface-soft: #f4f3ee;
+
+    /* Ink (deep navy/indigo typography) */
+    --ckx-ink: #1e2142;
+    --ckx-ink-secondary: #494e6e;
+    --ckx-ink-muted: #767b96;
+    --ckx-ink-inverse: #f8f8fc;
+
+    /* Primary action (vibrant violet-blue) */
+    --ckx-primary: #4f46e5;
+    --ckx-primary-hover: #4338ca;
+    --ckx-primary-active: #3730a3;
+    --ckx-primary-soft: #eef2ff;
+    --ckx-primary-border: #c7d2fe;
+
+    /* Status */
+    --ckx-good: #116329;
+    --ckx-good-soft: #dafbe1;
+    --ckx-warn: #7d4e00;
+    --ckx-warn-soft: #fff8c5;
+    --ckx-bad: #82071e;
+    --ckx-bad-soft: #ffebe9;
+
+    /* Data marks (validated palette, light surface) */
+    --ckx-series-1: #4f46e5;
+    --ckx-series-low: #a1394a;
+
+    /* Borders, radii, shadows */
+    --ckx-border: #e7e5dd;
+    --ckx-border-strong: #d8d5cb;
+    --ckx-radius-sm: 8px;
+    --ckx-radius: 10px;
+    --ckx-radius-lg: 14px;
+    --ckx-shadow-sm: 0 1px 2px rgba(30, 33, 66, 0.05);
+    --ckx-shadow: 0 1px 2px rgba(30, 33, 66, 0.05), 0 4px 16px rgba(30, 33, 66, 0.06);
+    --ckx-shadow-lg: 0 2px 4px rgba(30, 33, 66, 0.06), 0 12px 32px rgba(30, 33, 66, 0.10);
+
+    /* Typography — Geist-style grotesque stack, local-first (no webfont fetch) */
+    --ckx-font: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system,
+        "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ckx-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono",
+        Menlo, Consolas, "Liberation Mono", monospace;
+
+    /* Subtle geometric background grid on the warm canvas */
+    --ckx-grid: linear-gradient(rgba(30, 33, 66, 0.035) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(30, 33, 66, 0.035) 1px, transparent 1px);
+}
+
+/* ---------- Base ---------- */
+
+body.ckx {
+    font-family: var(--ckx-font);
+    color: var(--ckx-ink);
+    background-color: var(--ckx-canvas);
+    background-image: var(--ckx-grid);
+    background-size: 36px 36px;
+    -webkit-font-smoothing: antialiased;
+}
+
+body.ckx h1, body.ckx h2, body.ckx h3,
+body.ckx h4, body.ckx h5, body.ckx h6 {
+    color: var(--ckx-ink);
+    font-weight: 650;
+    letter-spacing: -0.015em;
+}
+
+/* :not(.btn) keeps anchor-styled buttons on Bootstrap's own text colors */
+body.ckx a:not(.btn) {
+    color: var(--ckx-primary);
+    text-decoration: none;
+}
+
+body.ckx a:not(.btn):hover {
+    color: var(--ckx-primary-hover);
+}
+
+body.ckx .text-muted,
+body.ckx .text-secondary {
+    color: var(--ckx-ink-muted) !important;
+}
+
+body.ckx code, body.ckx pre, body.ckx kbd {
+    font-family: var(--ckx-font-mono);
+}
+
+/* ---------- Navbar ---------- */
+
+.ckx-nav {
+    background-color: rgba(255, 255, 255, 0.88);
+    backdrop-filter: saturate(1.4) blur(10px);
+    -webkit-backdrop-filter: saturate(1.4) blur(10px);
+    border-bottom: 1px solid var(--ckx-border);
+    box-shadow: var(--ckx-shadow-sm);
+    padding-top: 0.55rem;
+    padding-bottom: 0.55rem;
+}
+
+.ckx-nav .navbar-brand {
+    color: var(--ckx-ink);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+}
+
+.ckx-nav .navbar-brand:hover,
+.ckx-nav .navbar-brand:focus {
+    color: var(--ckx-ink);
+}
+
+.ckx-brand-mark {
+    width: 26px;
+    height: 26px;
+    border-radius: 7px;
+    flex: 0 0 auto;
+}
+
+.ckx-nav .nav-link {
+    color: var(--ckx-ink-secondary);
+    font-weight: 500;
+    border-radius: var(--ckx-radius-sm);
+    padding: 0.4rem 0.75rem;
+}
+
+.ckx-nav .nav-link:hover {
+    color: var(--ckx-ink);
+    background-color: var(--ckx-surface-soft);
+}
+
+.ckx-nav .nav-link.active,
+.ckx-nav .nav-link[aria-current="page"] {
+    color: var(--ckx-primary);
+    background-color: var(--ckx-primary-soft);
+}
+
+.ckx-nav .navbar-toggler {
+    border-color: var(--ckx-border-strong);
+    color: var(--ckx-ink-secondary);
+}
+
+.ckx-nav .navbar-toggler-icon {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(73, 78, 110, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+
+/* ---------- Buttons ---------- */
+
+body.ckx .btn {
+    border-radius: var(--ckx-radius-sm);
+    font-weight: 550;
+    letter-spacing: 0.005em;
+}
+
+/* `body.ckx a` link color outranks Bootstrap's .btn-* color, so every
+   solid button restates its text color explicitly */
+body.ckx .btn-primary {
+    background-color: var(--ckx-primary);
+    border-color: var(--ckx-primary);
+    box-shadow: var(--ckx-shadow-sm);
+    color: #fff;
+}
+
+body.ckx .btn-primary:hover,
+body.ckx .btn-primary:focus {
+    background-color: var(--ckx-primary-hover);
+    border-color: var(--ckx-primary-hover);
+    color: #fff;
+}
+
+body.ckx .btn-primary:active,
+body.ckx .btn-primary.active {
+    background-color: var(--ckx-primary-active) !important;
+    border-color: var(--ckx-primary-active) !important;
+}
+
+body.ckx .btn-outline-primary {
+    color: var(--ckx-primary);
+    border-color: var(--ckx-primary-border);
+}
+
+body.ckx .btn-outline-primary:hover {
+    background-color: var(--ckx-primary-soft);
+    border-color: var(--ckx-primary);
+    color: var(--ckx-primary-hover);
+}
+
+body.ckx .btn-outline-secondary {
+    color: var(--ckx-ink-secondary);
+    border-color: var(--ckx-border-strong);
+}
+
+body.ckx .btn-outline-secondary:hover {
+    background-color: var(--ckx-surface-soft);
+    border-color: var(--ckx-ink-muted);
+    color: var(--ckx-ink);
+}
+
+body.ckx .btn-secondary {
+    background-color: var(--ckx-ink-secondary);
+    border-color: var(--ckx-ink-secondary);
+    color: #fff;
+}
+
+body.ckx .btn-secondary:hover,
+body.ckx .btn-secondary:focus {
+    color: #fff;
+}
+
+/* ---------- Cards & panels ---------- */
+
+body.ckx .card {
+    background-color: var(--ckx-surface);
+    border: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius-lg);
+    box-shadow: var(--ckx-shadow);
+}
+
+body.ckx .card .card-header {
+    background-color: var(--ckx-surface);
+    border-bottom: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius-lg) var(--ckx-radius-lg) 0 0;
+}
+
+/* ---------- Forms ---------- */
+
+body.ckx .form-control,
+body.ckx .form-select {
+    border-color: var(--ckx-border-strong);
+    border-radius: var(--ckx-radius-sm);
+    color: var(--ckx-ink);
+}
+
+body.ckx .form-control:focus,
+body.ckx .form-select:focus {
+    border-color: var(--ckx-primary);
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+}
+
+body.ckx .form-check-input:checked {
+    background-color: var(--ckx-primary);
+    border-color: var(--ckx-primary);
+}
+
+body.ckx .form-check-input:focus {
+    border-color: var(--ckx-primary);
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+}
+
+/* ---------- Modals, dropdowns, tables ---------- */
+
+body.ckx .modal-content {
+    border: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius-lg);
+    box-shadow: var(--ckx-shadow-lg);
+}
+
+body.ckx .modal-header {
+    border-bottom: 1px solid var(--ckx-border);
+}
+
+body.ckx .modal-footer {
+    border-top: 1px solid var(--ckx-border);
+}
+
+body.ckx .dropdown-menu {
+    border: 1px solid var(--ckx-border);
+    border-radius: var(--ckx-radius);
+    box-shadow: var(--ckx-shadow-lg);
+}
+
+body.ckx .dropdown-item:hover,
+body.ckx .dropdown-item:focus {
+    background-color: var(--ckx-primary-soft);
+    color: var(--ckx-primary-hover);
+}
+
+body.ckx .table {
+    color: var(--ckx-ink);
+}
+
+body.ckx .table thead th {
+    color: var(--ckx-ink-secondary);
+    font-size: 0.8rem;
+    font-weight: 650;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid var(--ckx-border-strong);
+}
+
+body.ckx .table td {
+    border-color: var(--ckx-border);
+}
+
+/* ---------- Accessibility ---------- */
+
+body.ckx a:focus-visible,
+body.ckx button:focus-visible,
+body.ckx input:focus-visible,
+body.ckx select:focus-visible,
+body.ckx textarea:focus-visible,
+body.ckx [tabindex]:focus-visible {
+    outline: 3px solid var(--ckx-primary);
+    outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    body.ckx *,
+    body.ckx *::before,
+    body.ckx *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+}
+
+/* ---------- Footer ---------- */
+
+.ckx-footer {
+    flex-shrink: 0;
+    padding: 20px 0;
+    color: var(--ckx-ink-muted);
+    border-top: 1px solid var(--ckx-border);
+    background-color: var(--ckx-surface);
+    font-size: 0.9rem;
+}
