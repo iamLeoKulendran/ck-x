@@ -1,0 +1,252 @@
+{
+  "version": 1,
+  "updatedAt": "2026-07-16",
+  "certifications": [
+    {
+      "code": "CKA",
+      "displayName": "Certified Kubernetes Administrator",
+      "examFormat": "performance",
+      "defaultDurationMinutes": 120,
+      "passThresholdPercent": 66,
+      "questionTypes": ["performance"],
+      "scoringPolicy": "weighted-validation-scripts",
+      "blueprint": {
+        "version": "v1.35",
+        "source": "https://github.com/cncf/curriculum",
+        "weightsSource": "https://training.linuxfoundation.org/certification/certified-kubernetes-administrator-cka/",
+        "passThresholdSource": "https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks",
+        "retrievedAt": "2026-07-16",
+        "domains": [
+          {
+            "id": "cka-storage",
+            "name": "Storage",
+            "weightPercent": 10,
+            "keywords": ["storage", "persistent volume", "pv", "pvc", "storage class", "volume", "storageclass", "csi"]
+          },
+          {
+            "id": "cka-troubleshooting",
+            "name": "Troubleshooting",
+            "weightPercent": 30,
+            "keywords": ["troubleshooting", "logs", "logging", "monitoring", "node failure", "debug", "events", "crashloop", "broken"]
+          },
+          {
+            "id": "cka-workloads-scheduling",
+            "name": "Workloads & Scheduling",
+            "weightPercent": 15,
+            "keywords": ["deployment", "scheduling", "configmap", "secret", "autoscaling", "daemonset", "rollout", "rolling update", "affinity", "taint", "toleration", "pod", "replicaset", "hpa"]
+          },
+          {
+            "id": "cka-cluster-architecture",
+            "name": "Cluster Architecture, Installation & Configuration",
+            "weightPercent": 25,
+            "keywords": ["rbac", "role", "clusterrole", "kubeadm", "cluster", "etcd", "high availability", "helm", "kustomize", "crd", "operator", "cni", "kubeconfig", "certificate"]
+          },
+          {
+            "id": "cka-services-networking",
+            "name": "Services & Networking",
+            "weightPercent": 20,
+            "keywords": ["service", "services", "networking", "network policies", "networkpolicy", "ingress", "gateway", "dns", "coredns", "endpoint", "nodeport", "clusterip"]
+          }
+        ]
+      }
+    },
+    {
+      "code": "CKAD",
+      "displayName": "Certified Kubernetes Application Developer",
+      "examFormat": "performance",
+      "defaultDurationMinutes": 120,
+      "passThresholdPercent": 66,
+      "questionTypes": ["performance"],
+      "scoringPolicy": "weighted-validation-scripts",
+      "blueprint": {
+        "version": "v1.35",
+        "source": "https://github.com/cncf/curriculum",
+        "weightsSource": "https://training.linuxfoundation.org/certification/certified-kubernetes-application-developer-ckad/",
+        "passThresholdSource": "https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks",
+        "retrievedAt": "2026-07-16",
+        "domains": [
+          {
+            "id": "ckad-design-build",
+            "name": "Application Design and Build",
+            "weightPercent": 20,
+            "keywords": ["container image", "image", "multi-container", "sidecar", "init container", "volume", "job", "cronjob", "pod design"]
+          },
+          {
+            "id": "ckad-deployment",
+            "name": "Application Deployment",
+            "weightPercent": 20,
+            "keywords": ["deployment", "rolling update", "rollout", "blue/green", "canary", "helm", "kustomize", "scale"]
+          },
+          {
+            "id": "ckad-observability-maintenance",
+            "name": "Application Observability and Maintenance",
+            "weightPercent": 15,
+            "keywords": ["probe", "liveness", "readiness", "startup", "logging", "logs", "debug", "monitoring", "api deprecation", "metrics"]
+          },
+          {
+            "id": "ckad-environment-config-security",
+            "name": "Application Environment, Configuration and Security",
+            "weightPercent": 25,
+            "keywords": ["configmap", "secret", "serviceaccount", "securitycontext", "security context", "rbac", "resource quota", "limitrange", "requests", "limits", "admission", "crd", "operator"]
+          },
+          {
+            "id": "ckad-services-networking",
+            "name": "Services and Networking",
+            "weightPercent": 20,
+            "keywords": ["service", "services", "ingress", "network policies", "networkpolicy", "dns", "networking"]
+          }
+        ]
+      }
+    },
+    {
+      "code": "CKS",
+      "displayName": "Certified Kubernetes Security Specialist",
+      "examFormat": "performance",
+      "defaultDurationMinutes": 120,
+      "passThresholdPercent": 67,
+      "questionTypes": ["performance"],
+      "scoringPolicy": "weighted-validation-scripts",
+      "blueprint": {
+        "version": "v1.34",
+        "source": "https://github.com/cncf/curriculum",
+        "weightsSource": "https://training.linuxfoundation.org/certification/certified-kubernetes-security-specialist/",
+        "passThresholdSource": "https://docs.linuxfoundation.org/tc-docs/certification/faq-cka-ckad-cks",
+        "retrievedAt": "2026-07-16",
+        "domains": [
+          {
+            "id": "cks-cluster-setup",
+            "name": "Cluster Setup",
+            "weightPercent": 15,
+            "keywords": ["network policies", "networkpolicy", "default deny", "namespace isolation", "cis benchmark", "kube-bench", "ingress", "tls", "node metadata", "verify binaries", "checksum"]
+          },
+          {
+            "id": "cks-cluster-hardening",
+            "name": "Cluster Hardening",
+            "weightPercent": 15,
+            "keywords": ["rbac", "role", "clusterrole", "service account", "serviceaccount", "api server", "anonymous", "upgrade", "least privilege", "token", "bind"]
+          },
+          {
+            "id": "cks-system-hardening",
+            "name": "System Hardening",
+            "weightPercent": 10,
+            "keywords": ["apparmor", "seccomp", "kernel", "host", "attack surface", "ssh", "sysctl", "least privilege os", "iam"]
+          },
+          {
+            "id": "cks-microservice-vulnerabilities",
+            "name": "Minimize Microservice Vulnerabilities",
+            "weightPercent": 20,
+            "keywords": ["pod security", "psa", "pod security admission", "opa", "gatekeeper", "kyverno", "admission", "secrets", "secret", "securitycontext", "security context", "gvisor", "runtimeclass", "sandbox", "mtls", "cilium"]
+          },
+          {
+            "id": "cks-supply-chain",
+            "name": "Supply Chain Security",
+            "weightPercent": 20,
+            "keywords": ["supply chain", "image", "registry", "sbom", "syft", "trivy", "kubesec", "scan", "cosign", "signature", "signing", "dockerfile", "base image", "whitelist", "allowlist", "imagepolicy"]
+          },
+          {
+            "id": "cks-monitoring-runtime",
+            "name": "Monitoring, Logging and Runtime Security",
+            "weightPercent": 20,
+            "keywords": ["falco", "audit", "audit log", "runtime", "syscall", "immutable", "immutability", "behavioral", "threat detection", "container drift"]
+          }
+        ]
+      }
+    },
+    {
+      "code": "KCNA",
+      "displayName": "Kubernetes and Cloud Native Associate",
+      "examFormat": "multiple-choice",
+      "defaultDurationMinutes": 90,
+      "passThresholdPercent": 75,
+      "questionTypes": ["multiple-choice"],
+      "scoringPolicy": "mcq-equal-weight",
+      "blueprint": {
+        "version": "2026",
+        "source": "https://github.com/cncf/curriculum",
+        "weightsSource": "https://training.linuxfoundation.org/certification/kubernetes-cloud-native-associate/",
+        "passThresholdSource": "https://docs.linuxfoundation.org/tc-docs/certification/faq-mc",
+        "retrievedAt": "2026-07-16",
+        "domains": [
+          {
+            "id": "kcna-kubernetes-fundamentals",
+            "name": "Kubernetes Fundamentals",
+            "weightPercent": 44,
+            "keywords": ["kubernetes", "core concepts", "administration", "scheduling", "containerization", "pod", "api"]
+          },
+          {
+            "id": "kcna-container-orchestration",
+            "name": "Container Orchestration",
+            "weightPercent": 28,
+            "keywords": ["orchestration", "networking", "security", "troubleshooting", "storage", "service mesh"]
+          },
+          {
+            "id": "kcna-app-delivery",
+            "name": "Cloud Native Application Delivery",
+            "weightPercent": 16,
+            "keywords": ["application delivery", "gitops", "ci/cd", "debugging", "argo", "flux"]
+          },
+          {
+            "id": "kcna-architecture",
+            "name": "Cloud Native Architecture",
+            "weightPercent": 12,
+            "keywords": ["architecture", "observability", "telemetry", "ecosystem", "community", "serverless", "autoscaling", "open standards"]
+          }
+        ]
+      }
+    },
+    {
+      "code": "KCSA",
+      "displayName": "Kubernetes and Cloud Native Security Associate",
+      "examFormat": "multiple-choice",
+      "defaultDurationMinutes": 90,
+      "passThresholdPercent": 75,
+      "questionTypes": ["multiple-choice"],
+      "scoringPolicy": "mcq-equal-weight",
+      "blueprint": {
+        "version": "2026",
+        "source": "https://github.com/cncf/curriculum",
+        "weightsSource": "https://training.linuxfoundation.org/certification/kubernetes-and-cloud-native-security-associate-kcsa/",
+        "passThresholdSource": "https://docs.linuxfoundation.org/tc-docs/certification/faq-mc",
+        "retrievedAt": "2026-07-16",
+        "domains": [
+          {
+            "id": "kcsa-cloud-native-security-overview",
+            "name": "Overview of Cloud Native Security",
+            "weightPercent": 14,
+            "keywords": ["4c", "cloud native security", "cloud provider", "infrastructure security", "controls", "isolation", "artifact repository", "workload security"]
+          },
+          {
+            "id": "kcsa-cluster-component-security",
+            "name": "Kubernetes Cluster Component Security",
+            "weightPercent": 22,
+            "keywords": ["api server", "controller manager", "scheduler", "kubelet", "etcd", "container runtime", "kube-proxy", "pod security", "storage", "component"]
+          },
+          {
+            "id": "kcsa-security-fundamentals",
+            "name": "Kubernetes Security Fundamentals",
+            "weightPercent": 22,
+            "keywords": ["pod security standards", "pod security admission", "authentication", "authorization", "rbac", "secret", "audit", "network policy", "isolation", "segmentation"]
+          },
+          {
+            "id": "kcsa-threat-model",
+            "name": "Kubernetes Threat Model",
+            "weightPercent": 16,
+            "keywords": ["threat model", "trust boundary", "persistence", "denial of service", "malicious code", "privilege escalation", "attacker", "access to sensitive data", "network attacker"]
+          },
+          {
+            "id": "kcsa-platform-security",
+            "name": "Platform Security",
+            "weightPercent": 16,
+            "keywords": ["supply chain", "image repository", "observability", "service mesh", "pki", "connectivity", "admission control", "signing"]
+          },
+          {
+            "id": "kcsa-compliance-frameworks",
+            "name": "Compliance and Security Frameworks",
+            "weightPercent": 10,
+            "keywords": ["compliance", "framework", "threat modelling", "supply chain compliance", "automation", "cis", "nist", "regulatory"]
+          }
+        ]
+      }
+    }
+  ]
+}

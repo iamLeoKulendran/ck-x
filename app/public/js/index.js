@@ -31,6 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     let labs = []; // Will store all labs fetched from the API
+    let certificationProfiles = {}; // Certification profiles keyed by code, from the facilitator API
     let selectedLab = null; // Will store the currently selected lab
     let attemptHistory = [];
     
@@ -39,8 +40,30 @@ document.addEventListener('DOMContentLoaded', function() {
     
     console.log('Loading labs on page load...');
     // Load labs data when the page loads
+    fetchCertifications();
     fetchLabs(false);
     fetchAttemptHistory();
+
+    // Remove per-exam localStorage state (pause/progress) that does not belong
+    // to the active exam session. Pass null to sweep all such keys.
+    function clearStaleExamStateKeys(activeExamId) {
+        const prefixes = ['ckx-exam-paused:', 'ckx-exam-progress:'];
+        const staleKeys = [];
+
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            const prefix = prefixes.find(p => key && key.startsWith(p));
+            if (!prefix) {
+                continue;
+            }
+            const keyExamId = key.slice(prefix.length);
+            if (!activeExamId || keyExamId !== activeExamId) {
+                staleKeys.push(key);
+            }
+        }
+
+        staleKeys.forEach(key => localStorage.removeItem(key));
+    }
 
     // Function to check current exam status
     function checkCurrentExamStatus() {
@@ -55,7 +78,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 return response.json();
             })
             .then(data => {
-                if (data && data.id) {
+                if (!data || !data.id) {
+                    // No active exam: sweep stale per-exam state left by ended sessions
+                    clearStaleExamStateKeys(null);
+                    return;
+                }
+                {
+                    // Drop per-exam state belonging to other (ended) exam sessions
+                    clearStaleExamStateKeys(data.id);
                     // Store current exam data in localStorage for the View Results functionality
                     localStorage.setItem('currentExamData', JSON.stringify(data));
                     
@@ -258,6 +288,34 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
     
+    // Fetch certification profiles (display names, blueprint versions, domain weights)
+    function fetchCertifications() {
+        fetch('/facilitator/api/v1/certifications')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Failed to fetch certifications. Status: ' + response.status);
+                }
+                return response.json();
+            })
+            .then(data => {
+                (data.certifications || []).forEach(profile => {
+                    certificationProfiles[profile.code] = profile;
+                });
+                // Refresh option labels in place if the dropdown is already populated
+                if (examCategorySelect) {
+                    Array.from(examCategorySelect.options).forEach(option => {
+                        if (option.value) {
+                            option.textContent = getCategoryLabel(option.value);
+                        }
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching certifications:', error);
+                // Static fallback labels in getCategoryLabel keep the UI usable
+            });
+    }
+
     // Fetch labs from the facilitator API
     function fetchLabs(showLoader = true) {
         console.log('Fetching labs, showLoader:', showLoader);
@@ -320,6 +378,12 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     function getCategoryLabel(category) {
+        const profile = certificationProfiles[category];
+        if (profile && profile.displayName) {
+            return `${profile.code} - ${profile.displayName}`;
+        }
+
+        // Fallback when the certifications API is unavailable
         const labels = {
             CKAD: 'CKAD - Certified Kubernetes Application Developer',
             CKA: 'CKA - Certified Kubernetes Administrator',

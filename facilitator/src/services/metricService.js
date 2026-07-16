@@ -9,7 +9,8 @@ const logger = require('../utils/logger');
 class MetricService {
     constructor() {
         this.METRIC_SERVER_URL = 'https://ck-x-metric-server.onrender.com/api/v1/collect';
-        this.TRACK_METRICS = process.env.TRACK_METRICS ? process.env.TRACK_METRICS === 'true' : true;
+        // Local-first default: telemetry stays off unless explicitly enabled
+        this.TRACK_METRICS = process.env.TRACK_METRICS === 'true';
     }
     
     /**
