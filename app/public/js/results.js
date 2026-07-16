@@ -334,6 +334,63 @@ document.addEventListener('DOMContentLoaded', function() {
             });
     }
     
+    // Render the certification pass-threshold comparison for the current exam
+    function renderPassThreshold(results) {
+        const container = document.getElementById('passThresholdInfo');
+        const totalPossible = Number(results.totalPossibleScore) || 0;
+        if (!container || totalPossible <= 0) {
+            return;
+        }
+
+        const percentage = ((Number(results.totalScore) || 0) / totalPossible) * 100;
+
+        Promise.all([
+            fetch('/facilitator/api/v1/certifications').then(response => response.ok ? response.json() : null),
+            fetch('/facilitator/api/v1/exams/current').then(response => response.ok ? response.json() : null)
+        ])
+            .then(([certData, currentExam]) => {
+                // /exams/current returns a flat {id, status, info} object
+                const examData = currentExam;
+                if (!certData || !examData || !examData.info) {
+                    return;
+                }
+
+                // Only annotate when the active session matches this results page
+                if (currentExamId && examData.id !== currentExamId) {
+                    return;
+                }
+
+                const category = examData.info.category;
+                const profile = (certData.certifications || []).find(cert => cert.code === category);
+                if (!profile || typeof profile.passThresholdPercent !== 'number') {
+                    return;
+                }
+
+                const passed = percentage >= profile.passThresholdPercent;
+                const blueprintVersion = profile.blueprint && profile.blueprint.version ? profile.blueprint.version : '';
+                const verdictText = passed ? 'PASS' : 'BELOW THRESHOLD';
+
+                container.innerHTML = '';
+
+                const verdictBadge = document.createElement('span');
+                verdictBadge.className = `pass-threshold-verdict ${passed ? 'pass' : 'fail'}`;
+                verdictBadge.textContent = verdictText;
+
+                const detailText = document.createElement('span');
+                detailText.className = 'pass-threshold-detail';
+                detailText.textContent = ` ${profile.code} pass threshold ${profile.passThresholdPercent}%` +
+                    `${blueprintVersion ? ` (curriculum ${blueprintVersion})` : ''} — your score ${percentage.toFixed(1)}%.` +
+                    ' This is a practice indicator, not an official result.';
+
+                container.appendChild(verdictBadge);
+                container.appendChild(detailText);
+                container.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error rendering pass threshold info:', error);
+            });
+    }
+
     // Check if we need to poll for results
     function checkResultsStatus(examId) {
         return fetch(`/facilitator/api/v1/exams/${examId}/status`)
@@ -378,6 +435,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Apply rank class
         rankBadgeElement.className = 'rank-badge';
         rankBadgeElement.classList.add(`rank-${results.rank}`);
+
+        // Show certification pass threshold when the exam maps to a known profile
+        renderPassThreshold(results);
         
         // Clear questions container
         questionsContainer.innerHTML = '';
@@ -410,36 +470,50 @@ document.addEventListener('DOMContentLoaded', function() {
                 // Create question header
                 const questionHeader = document.createElement('div');
                 questionHeader.className = 'question-header';
-                questionHeader.innerHTML = `
-                    <h3 class="question-title">Question ${question.id}</h3>
-                    <div class="question-score">${questionScore} of ${questionPossibleScore}</div>
-                `;
+                const questionTitle = document.createElement('h3');
+                questionTitle.className = 'question-title';
+                questionTitle.textContent = `Question ${question.id}`;
+                const questionScoreElement = document.createElement('div');
+                questionScoreElement.className = 'question-score';
+                questionScoreElement.textContent = `${questionScore} of ${questionPossibleScore}`;
+                questionHeader.appendChild(questionTitle);
+                questionHeader.appendChild(questionScoreElement);
                 
                 // Create verification list
                 const verificationList = document.createElement('ul');
                 verificationList.className = 'verification-items';
                 
-                // Add verification items
+                // Add verification items (description is pack-controlled text:
+                // build with textContent, never innerHTML)
                 sortedVerifications.forEach(verification => {
                     const item = document.createElement('li');
                     item.className = 'verification-item';
-                    
-                    item.innerHTML = `
-                        <div class="verification-description">${verification.description}</div>
-                        <div class="verification-status ${verification.validAnswer ? 'status-success' : 'status-failure'}">
-                            ${verification.validAnswer ? 
-                                '<i class="fas fa-check-circle"></i>' : 
-                                '<i class="fas fa-times-circle"></i>'}
-                        </div>
-                    `;
-                    
+
+                    const description = document.createElement('div');
+                    description.className = 'verification-description';
+                    description.textContent = verification.description || '';
+
+                    const status = document.createElement('div');
+                    status.className = `verification-status ${verification.validAnswer ? 'status-success' : 'status-failure'}`;
+                    const icon = document.createElement('i');
+                    icon.className = verification.validAnswer ? 'fas fa-check-circle' : 'fas fa-times-circle';
+                    status.appendChild(icon);
+
+                    item.appendChild(description);
+                    item.appendChild(status);
                     verificationList.appendChild(item);
                 });
                 
                 // Assemble question card
                 questionCard.appendChild(questionHeader);
                 questionCard.appendChild(verificationList);
-                
+
+                // Failed questions can be captured into the mistake log
+                const failedSteps = sortedVerifications.filter(v => !v.validAnswer);
+                if (failedSteps.length > 0) {
+                    questionCard.appendChild(buildLogMistakeControl(question, failedSteps));
+                }
+
                 // Add to container
                 questionsContainer.appendChild(questionCard);
             });
@@ -452,6 +526,81 @@ document.addEventListener('DOMContentLoaded', function() {
         resultsContent.style.display = 'block';
     }
     
+    // Find the persisted attempt record for this exam session so mistakes
+    // link back to history. Falls back to the session id when not found.
+    function resolveAttemptContext() {
+        return fetch('/facilitator/api/v1/exams/attempts')
+            .then(response => response.ok ? response.json() : null)
+            .then(payload => {
+                const attempts = payload?.data?.attempts || [];
+                return attempts.find(attempt => attempt.examSessionId === currentExamId) || null;
+            })
+            .catch(() => null);
+    }
+
+    function buildLogMistakeControl(question, failedSteps) {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'log-mistake-wrapper';
+
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'btn btn-sm btn-outline-secondary';
+        button.textContent = 'Log mistake for review';
+
+        const status = document.createElement('span');
+        status.className = 'log-mistake-status';
+        status.setAttribute('role', 'status');
+
+        button.addEventListener('click', () => {
+            button.disabled = true;
+            status.textContent = 'Saving…';
+
+            resolveAttemptContext()
+                .then(attemptRecord => {
+                    const payload = {
+                        summary: `Question ${question.id}: ${failedSteps[0].description}`,
+                        category: 'other',
+                        source: {
+                            attemptId: attemptRecord ? attemptRecord.attemptId : currentExamId,
+                            questionId: String(question.id),
+                            labId: attemptRecord ? attemptRecord.labId : '',
+                            labName: attemptRecord ? attemptRecord.labName : '',
+                            certificationCode: attemptRecord ? (attemptRecord.certificationCode || null) : null,
+                            concepts: question.concepts || [],
+                            failedValidationSteps: failedSteps.map(step => ({
+                                id: String(step.id),
+                                description: step.description
+                            }))
+                        }
+                    };
+
+                    return fetch('/facilitator/api/v1/mistakes', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                })
+                .then(response => response.json().then(data => ({ ok: response.ok, data })))
+                .then(({ ok, data }) => {
+                    if (!ok) {
+                        throw new Error(data.message || 'Request rejected');
+                    }
+                    status.textContent = data.data.duplicate
+                        ? 'Already in the mistake log.'
+                        : 'Logged. Categorize it on the Mistakes page.';
+                })
+                .catch(error => {
+                    console.error('Failed to log mistake:', error);
+                    status.textContent = 'Failed to log mistake.';
+                    button.disabled = false;
+                });
+        });
+
+        wrapper.appendChild(button);
+        wrapper.appendChild(status);
+        return wrapper;
+    }
+
     // Add retry button event listener
     retryButton.addEventListener('click', fetchExamResults);
     
