@@ -60,4 +60,4 @@ coverage/
 .terraform/
 terraform.tfstate
 terraform.tfstate.backup
-.terragrunt-cache/ 
+.terragrunt-cache/ assets.tar.gz

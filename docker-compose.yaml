@@ -209,6 +209,9 @@ services:
       - ATTEMPT_HISTORY_FILE=/usr/src/app/data/attempt-history.json
     volumes:
       - attempt-history:/usr/src/app/data
+      # Bind-mount lab assets so imported packs and registry updates persist
+      # on the host instead of dying with the container layer
+      - ./facilitator/assets/exams:/usr/src/app/assets/exams
     restart: unless-stopped
     depends_on:
       - jumphost

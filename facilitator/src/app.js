@@ -10,6 +10,11 @@ const redisClient = require('./utils/redisClient');
 const sshRoutes = require('./routes/sshRoutes');
 const examRoutes = require('./routes/examRoutes');
 const assessmentRoutes = require('./routes/assessmentRoutes');
+const certificationRoutes = require('./routes/certificationRoutes');
+const dataRoutes = require('./routes/dataRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
+const mistakeRoutes = require('./routes/mistakeRoutes');
+const packRoutes = require('./routes/packRoutes');
 const remoteDesktopRoutes = require('./routes/remoteDesktopRoutes');
 
 // Initialize Express app
@@ -18,7 +23,7 @@ const app = express();
 // Apply middleware
 app.use(helmet()); // Security headers
 app.use(cors()); // Enable CORS for all routes
-app.use(express.json()); // Parse JSON request bodies
+app.use(express.json({ limit: '10mb' })); // Parse JSON request bodies (restore bundles can be large)
 app.use(express.urlencoded({ extended: true })); // Parse URL-encoded request bodies
 
 // HTTP request logging
@@ -32,6 +37,11 @@ app.use(morgan('combined', {
 app.use('/api/v1', sshRoutes);
 app.use('/api/v1/exams', examRoutes);
 app.use('/api/v1/assements', assessmentRoutes);
+app.use('/api/v1/certifications', certificationRoutes);
+app.use('/api/v1/data', dataRoutes);
+app.use('/api/v1/analytics', analyticsRoutes);
+app.use('/api/v1/mistakes', mistakeRoutes);
+app.use('/api/v1/packs', packRoutes);
 app.use('/api/v1/remote-desktop', remoteDesktopRoutes);
 
 // Root route

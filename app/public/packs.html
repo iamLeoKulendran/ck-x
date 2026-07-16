@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Question Packs | CK-X</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/tools-pages.css">
+</head>
+<body class="tools-page">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
+        <div class="container">
+            <a class="navbar-brand" href="/">CK-X Cloud</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/analytics.html">Analytics</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/mistakes.html">Mistakes</a></li>
+                    <li class="nav-item"><a class="nav-link active" href="/packs.html" aria-current="page">Packs</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/settings.html">Settings</a></li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <main class="container tools-container tools-container--wide">
+        <header class="tools-header">
+            <h1>Question Packs</h1>
+            <p class="text-muted">Export any lab as a shareable JSON pack, import community packs, or build a
+               multiple-choice pack in the browser. Performance-lab authoring stays file-based
+               (see <code>docs/cka-lab-generation-guide.md</code>).</p>
+        </header>
+
+        <section class="card tools-card" aria-labelledby="packListHeading">
+            <div class="card-body">
+                <h2 class="h5" id="packListHeading">Installed packs</h2>
+                <div class="tools-status" id="packsStatus" role="status">Loading packs…</div>
+                <div class="table-responsive">
+                    <table class="table table-sm tools-table align-middle" id="packsTable" style="display: none;">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Category</th>
+                                <th>Type</th>
+                                <th>Questions</th>
+                                <th>Source</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="packsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="card tools-card" aria-labelledby="importHeading">
+            <div class="card-body">
+                <h2 class="h5" id="importHeading">Import a pack</h2>
+                <p class="mb-2">Select a <code>ckx-pack-*.json</code> bundle. It is validated before anything is written:
+                   schema, marks sum, script references, file-name safety, size limits, and duplicate ids.</p>
+                <div class="alert alert-warning" role="alert">
+                    <strong>Security note:</strong> performance packs contain shell scripts that will run inside the
+                    CK-X exam sandbox (jumphost and practice cluster) when you start the lab. They never run on your
+                    host machine or at import time. Only import packs from sources you trust.
+                </div>
+                <input type="file" class="form-control mb-3" id="importFileInput" accept="application/json" aria-label="Pack bundle file">
+                <button type="button" class="btn btn-primary" id="importBtn" disabled>Validate &amp; import</button>
+                <div class="tools-status" id="importStatus" role="status"></div>
+                <ul class="text-danger mb-0" id="importErrors"></ul>
+            </div>
+        </section>
+
+        <section class="card tools-card" aria-labelledby="builderHeading">
+            <div class="card-body">
+                <h2 class="h5" id="builderHeading">Build a multiple-choice pack</h2>
+                <p class="text-muted">Author an original MCQ pack (KCNA/KCSA style). Weights must sum to 100.
+                   Never copy real exam questions.</p>
+
+                <div class="row g-2 mb-3">
+                    <div class="col-md-3">
+                        <label class="form-label" for="builderPackId">Pack id</label>
+                        <input type="text" class="form-control" id="builderPackId" placeholder="kcna-my-pack-1" pattern="[a-z0-9-]+">
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label" for="builderPackName">Name</label>
+                        <input type="text" class="form-control" id="builderPackName" placeholder="My KCNA Practice Pack">
+                    </div>
+                    <div class="col-md-2">
+                        <label class="form-label" for="builderCategory">Category</label>
+                        <select class="form-select" id="builderCategory">
+                            <option value="KCNA">KCNA</option>
+                            <option value="KCSA">KCSA</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label" for="builderDuration">Duration (minutes)</label>
+                        <input type="number" class="form-control" id="builderDuration" value="30" min="5" max="180">
+                    </div>
+                </div>
+
+                <div id="builderQuestions"></div>
+
+                <div class="d-flex gap-2 flex-wrap align-items-center">
+                    <button type="button" class="btn btn-outline-secondary" id="addQuestionBtn">Add question</button>
+                    <span class="text-muted" id="builderWeightNote">Total weight: 0 / 100</span>
+                    <button type="button" class="btn btn-outline-primary ms-auto" id="builderValidateBtn">Validate</button>
+                    <button type="button" class="btn btn-primary" id="builderImportBtn">Save as pack</button>
+                    <a class="btn btn-outline-secondary" id="builderDownloadBtn" download="ckx-pack-draft.json" href="#">Download bundle</a>
+                </div>
+                <div class="tools-status" id="builderStatus" role="status"></div>
+                <ul class="text-danger mb-0" id="builderErrors"></ul>
+            </div>
+        </section>
+    </main>
+
+    <footer class="app-footer">
+        <p class="text-center">&copy; <span id="currentYear"></span> CK-X Simulator.</p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="/js/packs.js"></script>
+</body>
+</html>
