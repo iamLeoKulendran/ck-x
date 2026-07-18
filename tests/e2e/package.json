@@ -1,0 +1,12 @@
+{
+  "name": "ckx-e2e-baseline",
+  "private": true,
+  "description": "Migration-baseline e2e tests for the CK-X webapp. Run against a live compose stack.",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0"
+  }
+}
