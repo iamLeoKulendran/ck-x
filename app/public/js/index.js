@@ -903,7 +903,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         .join('; ');
                     return `<span title="${escapeHtml(steps)}">${escapeHtml(question.questionTitle)} (${question.failedValidationSteps.length} steps)</span>`;
                 })
-                .join('<br>') || 'None';
+                .join('') || 'None';
             const scoreLevel = attempt.scoreLevel || 'low';
 
             return `

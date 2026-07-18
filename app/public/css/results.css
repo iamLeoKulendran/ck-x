@@ -396,21 +396,29 @@
     margin-right: 8px;
 }
 
-.results-actions .btn:hover {
+.results-actions .btn:hover:not(:disabled) {
     transform: translateY(-2px);
     box-shadow: var(--ckx-shadow-sm);
+}
+
+/* Results pages load no Bootstrap, so disabled state is styled here */
+.results-actions .btn:disabled,
+.btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    pointer-events: none;
 }
 
 /* Button roles not covered by the shared theme defaults */
 .btn-info {
     background-color: var(--ckx-primary-soft);
-    color: var(--ckx-primary);
+    color: #a5b4fc;
     border-color: var(--ckx-primary-border);
 }
 
 .btn-info:hover {
-    background-color: var(--ckx-primary-border);
-    color: var(--ckx-primary-hover);
+    background-color: rgba(99, 102, 241, 0.28);
+    color: #c7d2fe;
 }
 
 .btn-success {
@@ -566,7 +574,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(30, 33, 66, 0.5);
+    background-color: rgba(3, 3, 8, 0.6);
     display: flex;
     justify-content: center;
     align-items: center;

@@ -7,7 +7,13 @@ document.addEventListener('DOMContentLoaded', function() {
         currentYear.textContent = new Date().getFullYear();
     }
 
-    const TREND_COLOR = '#4f46e5';
+    const rootStyles = getComputedStyle(document.documentElement);
+    const cssVar = (name, fallback) => (rootStyles.getPropertyValue(name) || '').trim() || fallback;
+    const TREND_COLOR = cssVar('--ckx-series-1', '#6d72f0');
+    const GRID_COLOR = 'rgba(255, 255, 255, 0.08)';
+    const AXIS_INK = '#8b91a8';
+    const THRESHOLD_COLOR = '#fbbf24';
+    const SURFACE = '#101016';
 
     function escapeHtml(value) {
         const div = document.createElement('div');
@@ -20,52 +26,71 @@ document.addEventListener('DOMContentLoaded', function() {
         return Number.isNaN(date.getTime()) ? '' : date.toLocaleDateString();
     }
 
-    // Single-series score trend as inline SVG: 2px line, visible points with
-    // native tooltips, plus a text table fallback rendered next to it.
+    // Single-series score trend as inline SVG: recessive grid, 2px line,
+    // surface-ringed points with native tooltips, dashed pass threshold, and
+    // a direct label on the latest score. Rendered at a fixed max width so
+    // marks never scale up into cartoon proportions.
     function renderTrendSvg(trend, threshold) {
         if (trend.length < 2) {
             return '';
         }
 
-        const width = 520;
-        const height = 140;
-        const padding = { top: 12, right: 12, bottom: 22, left: 34 };
+        const width = 720;
+        const height = 220;
+        const padding = { top: 18, right: 46, bottom: 30, left: 36 };
         const plotWidth = width - padding.left - padding.right;
         const plotHeight = height - padding.top - padding.bottom;
 
-        const xFor = (index) => padding.left + (trend.length === 1 ? 0 : (index / (trend.length - 1)) * plotWidth);
+        const xFor = (index) => padding.left + (index / (trend.length - 1)) * plotWidth;
         const yFor = (score) => padding.top + (1 - score / 100) * plotHeight;
 
         const points = trend.map((entry, index) => `${xFor(index).toFixed(1)},${yFor(entry.percentageScore).toFixed(1)}`);
 
-        const gridLines = [0, 50, 100].map((score) => {
+        const gridLines = [0, 25, 50, 75, 100].map((score) => {
             const y = yFor(score).toFixed(1);
-            return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="#dbe2e8" stroke-width="1"/>` +
-                   `<text x="${padding.left - 6}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="10" fill="#52606d">${score}</text>`;
+            return `<line x1="${padding.left}" y1="${y}" x2="${width - padding.right}" y2="${y}" stroke="${GRID_COLOR}" stroke-width="1"/>` +
+                   `<text x="${padding.left - 8}" y="${y}" text-anchor="end" dominant-baseline="middle" font-size="11" fill="${AXIS_INK}">${score}</text>`;
         }).join('');
+
+        const firstDate = formatDate(trend[0].completedAt);
+        const lastDate = formatDate(trend[trend.length - 1].completedAt);
+        const xLabels =
+            `<text x="${padding.left}" y="${height - 8}" font-size="11" fill="${AXIS_INK}">${escapeHtml(firstDate)}</text>` +
+            `<text x="${width - padding.right}" y="${height - 8}" text-anchor="end" font-size="11" fill="${AXIS_INK}">${escapeHtml(lastDate)}</text>`;
 
         const thresholdLine = typeof threshold === 'number'
             ? `<line x1="${padding.left}" y1="${yFor(threshold).toFixed(1)}" x2="${width - padding.right}" y2="${yFor(threshold).toFixed(1)}"
-                 stroke="#7d4e00" stroke-width="1.5" stroke-dasharray="5 4"/>
-               <text x="${width - padding.right}" y="${(yFor(threshold) - 5).toFixed(1)}" text-anchor="end" font-size="10" fill="#7d4e00">pass ${threshold}%</text>`
+                 stroke="${THRESHOLD_COLOR}" stroke-width="1" stroke-dasharray="4 4" opacity="0.75"/>
+               <text x="${width - padding.right}" y="${(yFor(threshold) - 6).toFixed(1)}" text-anchor="end" font-size="11" fill="${THRESHOLD_COLOR}">pass ${threshold}%</text>`
             : '';
 
         const markers = trend.map((entry, index) => {
             const cx = xFor(index).toFixed(1);
             const cy = yFor(entry.percentageScore).toFixed(1);
             const label = `${formatDate(entry.completedAt)} — ${escapeHtml(entry.labName)}: ${entry.percentageScore}%`;
-            return `<circle cx="${cx}" cy="${cy}" r="5" fill="${TREND_COLOR}" stroke="#ffffff" stroke-width="2">
+            return `<circle cx="${cx}" cy="${cy}" r="3.5" fill="${TREND_COLOR}" stroke="${SURFACE}" stroke-width="2">
                         <title>${label}</title>
                     </circle>`;
         }).join('');
 
+        // Direct label on the latest point only (selective labeling)
+        const last = trend[trend.length - 1];
+        const lastY = yFor(last.percentageScore);
+        const lastLabel = `<text x="${(width - padding.right + 8).toFixed(1)}" y="${lastY.toFixed(1)}"
+             dominant-baseline="middle" font-size="12" font-weight="600" fill="#e6e8f2">${last.percentageScore}%</text>`;
+
         return `
-            <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Score trend chart" style="max-width: 100%; height: auto;">
-                ${gridLines}
-                ${thresholdLine}
-                <polyline points="${points.join(' ')}" fill="none" stroke="${TREND_COLOR}" stroke-width="2"/>
-                ${markers}
-            </svg>`;
+            <div class="trend-chart">
+                <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Score trend chart" style="width: 100%; height: auto; display: block;">
+                    ${gridLines}
+                    ${thresholdLine}
+                    <polyline points="${points.join(' ')}" fill="none" stroke="${TREND_COLOR}" stroke-width="2"
+                              stroke-linejoin="round" stroke-linecap="round"/>
+                    ${markers}
+                    ${lastLabel}
+                    ${xLabels}
+                </svg>
+            </div>`;
     }
 
     function renderTrendTable(trend) {

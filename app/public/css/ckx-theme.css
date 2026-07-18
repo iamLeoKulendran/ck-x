@@ -1,48 +1,54 @@
-/* CK-X design system — one consistent theme for every page.
-   Warm off-white canvas, subtle geometric grid, deep navy/indigo ink,
-   violet-blue primary actions, white cards with thin borders and soft
-   shadows. Load AFTER Bootstrap and BEFORE per-page stylesheets. */
+/* CK-X design system — one consistent dark theme for every page.
+   Near-black canvas with soft indigo/amber glow, floating glass pill
+   navbar, dark bento cards with thin borders, violet-blue primary
+   actions, gradient display headlines. Load AFTER Bootstrap and BEFORE
+   per-page stylesheets. */
 
 :root {
     /* Canvas & surfaces */
-    --ckx-canvas: #faf9f6;
-    --ckx-surface: #ffffff;
-    --ckx-surface-soft: #f4f3ee;
+    --ckx-canvas: #07070b;
+    --ckx-surface: #101016;
+    --ckx-surface-soft: #16161e;
+    --ckx-surface-raised: #1b1b25;
 
-    /* Ink (deep navy/indigo typography) */
-    --ckx-ink: #1e2142;
-    --ckx-ink-secondary: #494e6e;
-    --ckx-ink-muted: #767b96;
-    --ckx-ink-inverse: #f8f8fc;
+    /* Ink (light-on-dark typography) */
+    --ckx-ink: #f2f3f8;
+    --ckx-ink-secondary: #a3a8bd;
+    --ckx-ink-muted: #8b91a8;
+    --ckx-ink-inverse: #12131a;
 
-    /* Primary action (vibrant violet-blue) */
-    --ckx-primary: #4f46e5;
-    --ckx-primary-hover: #4338ca;
-    --ckx-primary-active: #3730a3;
-    --ckx-primary-soft: #eef2ff;
-    --ckx-primary-border: #c7d2fe;
+    /* Primary action (vibrant violet-blue, brightened for dark) */
+    --ckx-primary: #6366f1;
+    --ckx-primary-hover: #818cf8;
+    --ckx-primary-active: #4f46e5;
+    --ckx-primary-soft: rgba(99, 102, 241, 0.14);
+    --ckx-primary-border: rgba(129, 140, 248, 0.35);
+
+    /* Warm accent (hero gradient tail, highlights) */
+    --ckx-accent: #f59e0b;
+    --ckx-accent-soft: rgba(245, 158, 11, 0.12);
 
     /* Status */
-    --ckx-good: #116329;
-    --ckx-good-soft: #dafbe1;
-    --ckx-warn: #7d4e00;
-    --ckx-warn-soft: #fff8c5;
-    --ckx-bad: #82071e;
-    --ckx-bad-soft: #ffebe9;
+    --ckx-good: #4ade80;
+    --ckx-good-soft: rgba(74, 222, 128, 0.12);
+    --ckx-warn: #fbbf24;
+    --ckx-warn-soft: rgba(251, 191, 36, 0.12);
+    --ckx-bad: #f87171;
+    --ckx-bad-soft: rgba(248, 113, 113, 0.12);
 
-    /* Data marks (validated palette, light surface) */
-    --ckx-series-1: #4f46e5;
-    --ckx-series-low: #a1394a;
+    /* Data marks (validated palette, dark surface #101016) */
+    --ckx-series-1: #6d72f0;
+    --ckx-series-low: #f05252;
 
     /* Borders, radii, shadows */
-    --ckx-border: #e7e5dd;
-    --ckx-border-strong: #d8d5cb;
+    --ckx-border: rgba(255, 255, 255, 0.08);
+    --ckx-border-strong: rgba(255, 255, 255, 0.14);
     --ckx-radius-sm: 8px;
-    --ckx-radius: 10px;
-    --ckx-radius-lg: 14px;
-    --ckx-shadow-sm: 0 1px 2px rgba(30, 33, 66, 0.05);
-    --ckx-shadow: 0 1px 2px rgba(30, 33, 66, 0.05), 0 4px 16px rgba(30, 33, 66, 0.06);
-    --ckx-shadow-lg: 0 2px 4px rgba(30, 33, 66, 0.06), 0 12px 32px rgba(30, 33, 66, 0.10);
+    --ckx-radius: 12px;
+    --ckx-radius-lg: 16px;
+    --ckx-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --ckx-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --ckx-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 16px 48px rgba(0, 0, 0, 0.5);
 
     /* Typography — Geist-style grotesque stack, local-first (no webfont fetch) */
     --ckx-font: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system,
@@ -50,9 +56,13 @@
     --ckx-font-mono: "Geist Mono", ui-monospace, SFMono-Regular, "SF Mono",
         Menlo, Consolas, "Liberation Mono", monospace;
 
-    /* Subtle geometric background grid on the warm canvas */
-    --ckx-grid: linear-gradient(rgba(30, 33, 66, 0.035) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(30, 33, 66, 0.035) 1px, transparent 1px);
+    /* Ambient glow blobs (indigo behind hero, amber right) over near-black */
+    --ckx-glow: radial-gradient(1000px 640px at 50% -12%,
+            rgba(80, 100, 240, 0.26), transparent 62%),
+        radial-gradient(720px 540px at 12% 10%,
+            rgba(99, 102, 241, 0.18), transparent 65%),
+        radial-gradient(880px 680px at 90% 32%,
+            rgba(245, 158, 11, 0.13), transparent 60%);
 }
 
 /* ---------- Base ---------- */
@@ -61,9 +71,11 @@ body.ckx {
     font-family: var(--ckx-font);
     color: var(--ckx-ink);
     background-color: var(--ckx-canvas);
-    background-image: var(--ckx-grid);
-    background-size: 36px 36px;
+    background-image: var(--ckx-glow);
+    background-repeat: no-repeat;
+    background-attachment: fixed;
     -webkit-font-smoothing: antialiased;
+    color-scheme: dark;
 }
 
 body.ckx h1, body.ckx h2, body.ckx h3,
@@ -75,12 +87,12 @@ body.ckx h4, body.ckx h5, body.ckx h6 {
 
 /* :not(.btn) keeps anchor-styled buttons on Bootstrap's own text colors */
 body.ckx a:not(.btn) {
-    color: var(--ckx-primary);
+    color: var(--ckx-primary-hover);
     text-decoration: none;
 }
 
 body.ckx a:not(.btn):hover {
-    color: var(--ckx-primary-hover);
+    color: #a5b4fc;
 }
 
 body.ckx .text-muted,
@@ -92,16 +104,51 @@ body.ckx code, body.ckx pre, body.ckx kbd {
     font-family: var(--ckx-font-mono);
 }
 
-/* ---------- Navbar ---------- */
+body.ckx hr {
+    border-color: var(--ckx-border);
+    opacity: 1;
+}
+
+/* Gradient display text — wrap the highlighted words in .ckx-gradient-text */
+.ckx-gradient-text {
+    background: linear-gradient(100deg, #a5b4fc 0%, #6366f1 45%, #f59e0b 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+/* Pill tag — small rounded chip under card text */
+.ckx-tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.28rem 0.75rem;
+    border-radius: 999px;
+    background: var(--ckx-primary-soft);
+    border: 1px solid var(--ckx-primary-border);
+    color: #a5b4fc;
+    font-size: 0.76rem;
+    font-weight: 550;
+    letter-spacing: 0.01em;
+    line-height: 1.2;
+}
+
+/* ---------- Navbar (floating glass pill) ---------- */
 
 .ckx-nav {
-    background-color: rgba(255, 255, 255, 0.88);
-    backdrop-filter: saturate(1.4) blur(10px);
-    -webkit-backdrop-filter: saturate(1.4) blur(10px);
-    border-bottom: 1px solid var(--ckx-border);
-    box-shadow: var(--ckx-shadow-sm);
-    padding-top: 0.55rem;
-    padding-bottom: 0.55rem;
+    top: 14px;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    max-width: 1160px;
+    width: calc(100% - 32px);
+    background-color: rgba(18, 20, 34, 0.55);
+    backdrop-filter: saturate(1.5) blur(18px);
+    -webkit-backdrop-filter: saturate(1.5) blur(18px);
+    border: 1px solid var(--ckx-border);
+    border-radius: 18px;
+    box-shadow: var(--ckx-shadow);
+    padding: 0.55rem 0.75rem;
 }
 
 .ckx-nav .navbar-brand {
@@ -134,12 +181,12 @@ body.ckx code, body.ckx pre, body.ckx kbd {
 
 .ckx-nav .nav-link:hover {
     color: var(--ckx-ink);
-    background-color: var(--ckx-surface-soft);
+    background-color: rgba(255, 255, 255, 0.06);
 }
 
 .ckx-nav .nav-link.active,
 .ckx-nav .nav-link[aria-current="page"] {
-    color: var(--ckx-primary);
+    color: #a5b4fc;
     background-color: var(--ckx-primary-soft);
 }
 
@@ -149,7 +196,7 @@ body.ckx code, body.ckx pre, body.ckx kbd {
 }
 
 .ckx-nav .navbar-toggler-icon {
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(73, 78, 110, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='rgba(163, 168, 189, 0.9)' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
 }
 
 /* ---------- Buttons ---------- */
@@ -165,32 +212,33 @@ body.ckx .btn {
 body.ckx .btn-primary {
     background-color: var(--ckx-primary);
     border-color: var(--ckx-primary);
-    box-shadow: var(--ckx-shadow-sm);
+    box-shadow: 0 0 0 1px rgba(99, 102, 241, 0.25), 0 8px 24px rgba(99, 102, 241, 0.25);
     color: #fff;
 }
 
+/* Hover darkens (not lightens): white text keeps AA contrast */
 body.ckx .btn-primary:hover,
 body.ckx .btn-primary:focus {
-    background-color: var(--ckx-primary-hover);
-    border-color: var(--ckx-primary-hover);
+    background-color: var(--ckx-primary-active);
+    border-color: var(--ckx-primary-active);
     color: #fff;
 }
 
 body.ckx .btn-primary:active,
 body.ckx .btn-primary.active {
-    background-color: var(--ckx-primary-active) !important;
-    border-color: var(--ckx-primary-active) !important;
+    background-color: #4338ca !important;
+    border-color: #4338ca !important;
 }
 
 body.ckx .btn-outline-primary {
-    color: var(--ckx-primary);
+    color: #a5b4fc;
     border-color: var(--ckx-primary-border);
 }
 
 body.ckx .btn-outline-primary:hover {
     background-color: var(--ckx-primary-soft);
     border-color: var(--ckx-primary);
-    color: var(--ckx-primary-hover);
+    color: #c7d2fe;
 }
 
 body.ckx .btn-outline-secondary {
@@ -205,14 +253,16 @@ body.ckx .btn-outline-secondary:hover {
 }
 
 body.ckx .btn-secondary {
-    background-color: var(--ckx-ink-secondary);
-    border-color: var(--ckx-ink-secondary);
-    color: #fff;
+    background-color: var(--ckx-surface-raised);
+    border-color: var(--ckx-border-strong);
+    color: var(--ckx-ink);
 }
 
 body.ckx .btn-secondary:hover,
 body.ckx .btn-secondary:focus {
-    color: #fff;
+    background-color: #23232f;
+    border-color: var(--ckx-border-strong);
+    color: var(--ckx-ink);
 }
 
 /* ---------- Cards & panels ---------- */
@@ -222,6 +272,7 @@ body.ckx .card {
     border: 1px solid var(--ckx-border);
     border-radius: var(--ckx-radius-lg);
     box-shadow: var(--ckx-shadow);
+    color: var(--ckx-ink);
 }
 
 body.ckx .card .card-header {
@@ -234,15 +285,43 @@ body.ckx .card .card-header {
 
 body.ckx .form-control,
 body.ckx .form-select {
+    background-color: var(--ckx-surface-soft);
     border-color: var(--ckx-border-strong);
     border-radius: var(--ckx-radius-sm);
     color: var(--ckx-ink);
 }
 
+body.ckx .form-control::placeholder {
+    color: var(--ckx-ink-muted);
+}
+
+body.ckx .form-select {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23a3a8bd' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
 body.ckx .form-control:focus,
 body.ckx .form-select:focus {
+    background-color: var(--ckx-surface-soft);
     border-color: var(--ckx-primary);
-    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.2);
+    color: var(--ckx-ink);
+}
+
+body.ckx .form-control:disabled,
+body.ckx .form-select:disabled {
+    background-color: var(--ckx-surface);
+    color: var(--ckx-ink-muted);
+}
+
+/* Native pickers (date inputs, select popups) render dark */
+body.ckx .form-control,
+body.ckx .form-select {
+    color-scheme: dark;
+}
+
+body.ckx .form-check-input {
+    background-color: var(--ckx-surface-soft);
+    border-color: var(--ckx-border-strong);
 }
 
 body.ckx .form-check-input:checked {
@@ -252,15 +331,21 @@ body.ckx .form-check-input:checked {
 
 body.ckx .form-check-input:focus {
     border-color: var(--ckx-primary);
-    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.15);
+    box-shadow: 0 0 0 0.2rem rgba(99, 102, 241, 0.2);
 }
 
-/* ---------- Modals, dropdowns, tables ---------- */
+body.ckx .form-label {
+    color: var(--ckx-ink-secondary);
+}
+
+/* ---------- Modals, dropdowns, tables, alerts ---------- */
 
 body.ckx .modal-content {
-    border: 1px solid var(--ckx-border);
+    background-color: var(--ckx-surface);
+    border: 1px solid var(--ckx-border-strong);
     border-radius: var(--ckx-radius-lg);
     box-shadow: var(--ckx-shadow-lg);
+    color: var(--ckx-ink);
 }
 
 body.ckx .modal-header {
@@ -271,20 +356,54 @@ body.ckx .modal-footer {
     border-top: 1px solid var(--ckx-border);
 }
 
+body.ckx .modal-backdrop {
+    background-color: #000;
+}
+
+body.ckx .btn-close {
+    filter: invert(1) grayscale(100%) brightness(150%);
+}
+
 body.ckx .dropdown-menu {
-    border: 1px solid var(--ckx-border);
+    background-color: var(--ckx-surface-raised);
+    border: 1px solid var(--ckx-border-strong);
     border-radius: var(--ckx-radius);
     box-shadow: var(--ckx-shadow-lg);
+}
+
+body.ckx .dropdown-item {
+    color: var(--ckx-ink-secondary);
 }
 
 body.ckx .dropdown-item:hover,
 body.ckx .dropdown-item:focus {
     background-color: var(--ckx-primary-soft);
-    color: var(--ckx-primary-hover);
+    color: #c7d2fe;
+}
+
+body.ckx .dropdown-item.disabled,
+body.ckx .dropdown-item:disabled {
+    color: var(--ckx-ink-muted);
+    opacity: 0.55;
+    pointer-events: none;
+}
+
+body.ckx .toast {
+    background-color: var(--ckx-surface-raised);
+    border: 1px solid var(--ckx-border-strong);
+    color: var(--ckx-ink);
+}
+
+body.ckx .toast-header {
+    background-color: transparent;
+    color: var(--ckx-ink-secondary);
+    border-bottom-color: var(--ckx-border);
 }
 
 body.ckx .table {
     color: var(--ckx-ink);
+    --bs-table-bg: transparent;
+    --bs-table-color: var(--ckx-ink);
 }
 
 body.ckx .table thead th {
@@ -300,6 +419,30 @@ body.ckx .table td {
     border-color: var(--ckx-border);
 }
 
+body.ckx .alert-info {
+    background-color: var(--ckx-primary-soft);
+    border-color: var(--ckx-primary-border);
+    color: #c7d2fe;
+}
+
+body.ckx .alert-warning {
+    background-color: var(--ckx-warn-soft);
+    border-color: rgba(251, 191, 36, 0.35);
+    color: var(--ckx-warn);
+}
+
+body.ckx .alert-danger {
+    background-color: var(--ckx-bad-soft);
+    border-color: rgba(248, 113, 113, 0.35);
+    color: var(--ckx-bad);
+}
+
+body.ckx .alert-success {
+    background-color: var(--ckx-good-soft);
+    border-color: rgba(74, 222, 128, 0.35);
+    color: var(--ckx-good);
+}
+
 /* ---------- Accessibility ---------- */
 
 body.ckx a:focus-visible,
@@ -308,7 +451,7 @@ body.ckx input:focus-visible,
 body.ckx select:focus-visible,
 body.ckx textarea:focus-visible,
 body.ckx [tabindex]:focus-visible {
-    outline: 3px solid var(--ckx-primary);
+    outline: 3px solid var(--ckx-primary-hover);
     outline-offset: 2px;
 }
 
@@ -330,6 +473,6 @@ body.ckx [tabindex]:focus-visible {
     padding: 20px 0;
     color: var(--ckx-ink-muted);
     border-top: 1px solid var(--ckx-border);
-    background-color: var(--ckx-surface);
+    background-color: transparent;
     font-size: 0.9rem;
 }

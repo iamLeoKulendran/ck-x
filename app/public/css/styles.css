@@ -10,8 +10,9 @@ body {
     padding: 20px;
 }
 header {
-    background-color: var(--ckx-ink, #1e2142);
-    color: white;
+    background-color: var(--ckx-surface, #101016);
+    color: var(--ckx-ink, #f2f3f8);
+    border-bottom: 1px solid var(--ckx-border, rgba(255, 255, 255, 0.08));
     padding: 1rem;
     text-align: center;
 }
@@ -25,14 +26,15 @@ h1 {
     margin-top: 20px;
 }
 .card {
-    background-color: white;
+    background-color: var(--ckx-surface, #101016);
+    border: 1px solid var(--ckx-border, rgba(255, 255, 255, 0.08));
     border-radius: 8px;
     padding: 20px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.35);
 }
 .vnc-container {
     height: 600px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--ckx-border-strong, rgba(255, 255, 255, 0.14));
     border-radius: 4px;
 }
 #vnc-frame {

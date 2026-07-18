@@ -4,8 +4,8 @@
     --exam-panel: var(--ckx-surface-soft, #f4f3ee);
     --exam-paper: var(--ckx-surface, #ffffff);
     --exam-border: var(--ckx-border, #e7e5dd);
-    --exam-dark: #1e2142;
-    --exam-dark-2: #2b2f5c;
+    --exam-dark: #0e0e15;
+    --exam-dark-2: #16161f;
     --exam-accent: var(--ckx-primary, #4f46e5);
     --exam-accent-2: #d97706;
 }
@@ -23,7 +23,7 @@ body {
     overflow: hidden; /* Prevent body scrolling */
 }
 .header {
-    background: linear-gradient(90deg, #1e2142 0%, #262a52 55%, #181a33 100%);
+    background: linear-gradient(90deg, #0e0e15 0%, #14141f 55%, #0b0b12 100%);
     color: white;
     padding: 0.45rem 0.75rem;
     display: flex;
@@ -206,7 +206,7 @@ body {
 .nav-arrow-disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: #e9ecef;
+    background-color: var(--ckx-surface-soft, #16161e);
 }
 .question-select {
     flex: 1;
@@ -647,7 +647,7 @@ ul.requirements li {
 }
 .question-chip {
     border: 1px solid var(--exam-border);
-    background: #fff;
+    background: var(--ckx-surface-raised, #1b1b25);
     border-radius: 0.5rem;
     padding: 0.55rem 0.65rem;
 }
@@ -684,19 +684,19 @@ ul.requirements li {
     border: 1px solid transparent;
 }
 .state-pill.pending {
-    background: #f1f5f9;
-    color: #475569;
-    border-color: #cbd5e1;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--ckx-ink-secondary, #a3a8bd);
+    border-color: var(--ckx-border-strong, rgba(255, 255, 255, 0.14));
 }
 .state-pill.answered {
-    background: #dcfce7;
-    color: #166534;
-    border-color: #86efac;
+    background: var(--ckx-good-soft, rgba(74, 222, 128, 0.12));
+    color: var(--ckx-good, #4ade80);
+    border-color: rgba(74, 222, 128, 0.35);
 }
 .state-pill.flagged {
-    background: #fef3c7;
-    color: #92400e;
-    border-color: #fbbf24;
+    background: var(--ckx-warn-soft, rgba(251, 191, 36, 0.12));
+    color: var(--ckx-warn, #fbbf24);
+    border-color: rgba(251, 191, 36, 0.35);
 }
 .question-dropdown-item {
     display: flex;
@@ -725,7 +725,7 @@ ul.requirements li {
 }
 .exam-help-drawer {
     --bs-offcanvas-width: min(440px, 92vw);
-    background: #1e2142;
+    background: #12121a;
     color: #f8fafc;
 }
 .exam-help-drawer .offcanvas-header {
@@ -1399,9 +1399,9 @@ body {
 
 .connection-status {
     top: 48px;
-    background: rgba(255, 255, 255, 0.92);
-    border: 1px solid var(--ckx-primary-border, #c7d2fe);
-    color: var(--ckx-ink, #1e2142);
+    background: rgba(20, 20, 30, 0.92);
+    border: 1px solid var(--ckx-primary-border, rgba(129, 140, 248, 0.35));
+    color: var(--ckx-ink, #f2f3f8);
 }
 
 .exam-paused-card {

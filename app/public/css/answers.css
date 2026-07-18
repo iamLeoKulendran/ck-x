@@ -58,7 +58,8 @@
 /* Enhanced code block styling for better readability */
 .markdown-content pre {
     padding: 16px;
-    background-color: var(--ckx-ink);
+    background-color: #0a0a10;
+    border: 1px solid var(--ckx-border);
     border-radius: var(--ckx-radius-sm);
     overflow-x: auto;
     margin: 20px 0;
@@ -69,7 +70,7 @@
     font-size: 14px;
     display: block;
     line-height: 1.5;
-    color: var(--ckx-ink-inverse);
+    color: var(--ckx-ink);
     background-color: transparent;
 }
 
