@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/theme/ThemeToggle';
 import { cn } from '@/lib/utils';
 
@@ -13,39 +15,79 @@ const NAV_LINKS = [
 ];
 
 export function AppShell({ children, activeHref }: { children: React.ReactNode; activeHref?: string }) {
+    // Mobile counterpart of the legacy Bootstrap navbar toggler: below md
+    // the links live in a disclosure panel under the nav pill.
+    const [menuOpen, setMenuOpen] = useState(false);
+
     return (
         <div className="flex min-h-screen flex-col">
             <header className="pointer-events-none fixed inset-x-0 top-0 z-40 px-4 pt-3.5">
                 <nav
                     aria-label="Main"
                     className={cn(
-                        'pointer-events-auto mx-auto flex max-w-[1140px] items-center justify-between gap-4',
+                        'pointer-events-auto mx-auto max-w-[1140px]',
                         'rounded-[18px] border border-line px-4 py-2 shadow-ckx',
                         'backdrop-blur-xl backdrop-saturate-150'
                     )}
                     style={{ backgroundColor: 'var(--ckx-nav-glass)' }}
                 >
-                    <a href="/" className="flex items-center gap-2 font-bold tracking-tight text-ink">
-                        <img src="/assets/ckx-mark.svg" alt="" className="h-6 w-6 rounded-[7px]" />
-                        CK-X
-                    </a>
-                    <div className="hidden items-center gap-1 md:flex">
-                        {NAV_LINKS.map((link) => (
-                            <a
-                                key={link.href}
-                                href={link.href}
-                                aria-current={link.href === activeHref ? 'page' : undefined}
+                    <div className="flex items-center justify-between gap-4">
+                        <a href="/" className="flex items-center gap-2 font-bold tracking-tight text-ink">
+                            <img src="/assets/ckx-mark.svg" alt="" className="h-6 w-6 rounded-[7px]" />
+                            CK-X
+                        </a>
+                        <div className="hidden items-center gap-1 md:flex">
+                            {NAV_LINKS.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    aria-current={link.href === activeHref ? 'page' : undefined}
+                                    className={cn(
+                                        'rounded-ckx-sm px-3 py-1.5 text-sm font-medium text-ink-secondary',
+                                        'hover:bg-surface-soft hover:text-ink',
+                                        link.href === activeHref && 'bg-primary-soft text-primary-ink'
+                                    )}
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
+                        </div>
+                        <div className="flex items-center gap-1.5">
+                            <ThemeToggle />
+                            <button
+                                type="button"
+                                aria-label="Toggle navigation"
+                                aria-expanded={menuOpen}
+                                aria-controls="mobile-nav"
+                                onClick={() => setMenuOpen((open) => !open)}
                                 className={cn(
-                                    'rounded-ckx-sm px-3 py-1.5 text-sm font-medium text-ink-secondary',
-                                    'hover:bg-surface-soft hover:text-ink',
-                                    link.href === activeHref && 'bg-primary-soft text-primary-ink'
+                                    'inline-flex h-9 w-9 items-center justify-center rounded-ckx-sm md:hidden',
+                                    'text-ink-secondary hover:bg-surface-soft hover:text-ink',
+                                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary'
                                 )}
                             >
-                                {link.label}
-                            </a>
-                        ))}
+                                {menuOpen ? <X aria-hidden size={18} /> : <Menu aria-hidden size={18} />}
+                            </button>
+                        </div>
                     </div>
-                    <ThemeToggle />
+                    {menuOpen ? (
+                        <div id="mobile-nav" className="mt-2 flex flex-col gap-1 border-t border-line pt-2 md:hidden">
+                            {NAV_LINKS.map((link) => (
+                                <a
+                                    key={link.href}
+                                    href={link.href}
+                                    aria-current={link.href === activeHref ? 'page' : undefined}
+                                    className={cn(
+                                        'rounded-ckx-sm px-3 py-2 text-sm font-medium text-ink-secondary',
+                                        'hover:bg-surface-soft hover:text-ink',
+                                        link.href === activeHref && 'bg-primary-soft text-primary-ink'
+                                    )}
+                                >
+                                    {link.label}
+                                </a>
+                            ))}
+                        </div>
+                    ) : null}
                 </nav>
             </header>
 

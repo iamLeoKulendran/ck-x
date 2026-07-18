@@ -69,6 +69,43 @@ test('rollback: removing the route entry restores legacy behavior', async () => 
     assert.notStrictEqual(res.status, 200);
 });
 
+test('phase 2: the four tool pages are served from the React build', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    for (const page of ['/settings.html', '/packs.html', '/mistakes.html', '/analytics.html']) {
+        const res = await request(app).get(page);
+        assert.strictEqual(res.status, 200, `${page} should be migrated`);
+        assert.match(res.text, /id="root"/, `${page} must serve the React shell`);
+        assert.match(res.text, /\/react-app\//, `${page} must load React assets`);
+    }
+});
+
+test('phase 2: non-migrated pages still come from legacy public/', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    for (const page of ['/index.html', '/exam.html', '/results.html', '/answers.html', '/50x.html']) {
+        const res = await request(app).get(page);
+        assert.strictEqual(res.status, 200, `${page} should come from legacy public/`);
+        assert.doesNotMatch(res.text, /id="root"/, `${page} must not be the React shell`);
+    }
+});
+
+test('phase 2: legacy tool-page files remain on disk for instant rollback', () => {
+    for (const file of [
+        'settings.html', 'packs.html', 'mistakes.html', 'analytics.html',
+        'js/settings.js', 'js/packs.js', 'js/mistakes.js', 'js/analytics.js'
+    ]) {
+        assert.ok(fs.existsSync(path.join(PUBLIC_DIR, file)), `${file} must stay for rollback`);
+    }
+});
+
+test('phase 2 rollback: removing a tool-page entry restores the legacy page', async () => {
+    const withoutSettings = ReactAppService.MIGRATED_ROUTES.filter((r) => r !== '/settings.html');
+    const app = buildApp(withoutSettings);
+    const res = await request(app).get('/settings.html');
+    assert.strictEqual(res.status, 200);
+    assert.doesNotMatch(res.text, /id="root"/, 'rolled-back page must be the legacy file again');
+    assert.match(res.text, /js\/settings\.js/, 'rolled-back page must load the legacy script');
+});
+
 test('missing dist is a graceful no-op', async () => {
     const app = express();
     const service = new ReactAppService(path.join(__dirname, 'does-not-exist'), ['/react-preview.html']);

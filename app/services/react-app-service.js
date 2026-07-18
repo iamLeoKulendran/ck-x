@@ -7,7 +7,13 @@ const express = require('express');
 // through to the legacy static middleware. Rolling a page back is deleting
 // its entry here — nothing else changes.
 const MIGRATED_ROUTES = [
-    '/react-preview.html'
+    '/react-preview.html',
+    // Phase 2 — tool pages (each entry added only after its focused tests
+    // passed; delete a line to roll that page back to legacy public/)
+    '/settings.html',
+    '/packs.html',
+    '/mistakes.html',
+    '/analytics.html'
 ];
 
 // Vite builds with base '/react-app/', so assets never collide with

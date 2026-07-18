@@ -25,7 +25,9 @@ export default {
                 warn: { DEFAULT: 'var(--ckx-warn)', soft: 'var(--ckx-warn-soft)' },
                 bad: { DEFAULT: 'var(--ckx-bad)', soft: 'var(--ckx-bad-soft)' },
                 line: 'var(--ckx-border)',
-                'line-strong': 'var(--ckx-border-strong)'
+                'line-strong': 'var(--ckx-border-strong)',
+                'series-1': 'var(--ckx-series-1)',
+                'series-low': 'var(--ckx-series-low)'
             },
             borderRadius: {
                 ckx: 'var(--ckx-radius)',
