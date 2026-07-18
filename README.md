@@ -116,6 +116,10 @@ Do not use this unless you intentionally want to delete persistent data:
 docker compose down -v
 ```
 
+Full usage documentation — every page, question packs, settings, and how to
+back up, restore, or reset attempt history — is in
+[`docs/user-guide.md`](docs/user-guide.md).
+
 ## Main User Workflow
 
 1. Open the web UI at `http://127.0.0.1:30081`.
