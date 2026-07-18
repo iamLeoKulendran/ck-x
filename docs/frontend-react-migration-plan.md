@@ -1,9 +1,14 @@
 # Frontend Migration Plan — Vanilla HTML/Bootstrap → React
 
-Status: proposal (not started)
+Status: proposal (Phase 0 complete — see `docs/webapp/api-contract.md` and
+`tests/e2e/`)
 Scope: `app/public/*` only. Facilitator API, nginx, jumphost, cluster runtime,
 remote desktop, and the Express webapp server's websocket/VNC duties stay
 untouched.
+
+**Requirement (updated): dual theme.** The React app ships BOTH light and
+dark themes with a navbar toggle, matching the reference site
+(ui-ux-pro-max-skill.nextlevelbuilder.io) in both modes. See §3a.
 
 ---
 
@@ -69,6 +74,45 @@ so done right this migration **improves** performance and offline behavior.
 
 ---
 
+## 3a. Theming requirement (dual theme, reference-exact)
+
+Both themes replicate the reference site's look. The toggle is an icon
+button in the navbar, matching the reference: **moon icon while in light
+mode, sun icon while in dark mode** (the icon shows the mode you switch to).
+
+**Light theme (reference frame 1):**
+- Canvas: soft off-white (`#f4f6fb`-family) with large pastel radial glows —
+  light blue upper-left/center, soft peach/orange right — same composition
+  as dark mode's glow, lighter opacity.
+- Navbar: white glass pill (translucent white + blur, thin light border).
+- Ink: near-black headings, slate secondary text.
+- Cards/tiles: white surfaces, thin light borders, soft shadows; stat
+  numbers/icons stay blue.
+- Primary button: same blue; secondary: white with border.
+- Hero gradient text: same blue→purple→orange blend (reads on light).
+- **Terminal command chip stays dark in both themes** (reference does this).
+- Exam terminal/VNC panels stay dark in both themes (terminals are dark).
+
+**Dark theme:** current implemented design (near-black canvas, indigo/amber
+glow, glass navbar) — unchanged.
+
+**Mechanics:**
+- Tokens: every color exposed as CSS custom properties under
+  `:root[data-theme="light"]` / `:root[data-theme="dark"]`; Tailwind reads
+  the variables (`darkMode: ['selector', '[data-theme="dark"]']`), so
+  components are written once.
+- Default: follows `prefers-color-scheme`; user choice persisted in
+  `localStorage("ckx-theme")`; inline `<head>` script applies the stored
+  theme before first paint (no flash of wrong theme).
+- Bootstrap-era pages (during migration): not retrofitted — legacy pages
+  stay dark-only; the toggle ships with the React pages. Cutover ends the
+  split.
+- Charts: series palette must be validated **per surface** (light and dark)
+  with the dataviz palette validator; each theme may use different steps of
+  the same hues.
+- Gates gain a second axis: visual parity screenshots and contrast checks
+  run in BOTH themes for every migrated page.
+
 ## 3. Phases
 
 Each phase ends with: Playwright flows green, visual diff reviewed, Docker
@@ -87,9 +131,12 @@ with a red gate.
 ### Phase 1 — Scaffold and design system
 - `webapp-react/` (new folder): Vite + React + TS + Tailwind + shadcn/ui +
   React Router + TanStack Query.
-- Port `ckx-theme.css` tokens (colors, radii, shadows, fonts, glow) into
-  Tailwind theme config; build Nav, Card, StatTile, Tag, ScorePill, Table,
-  Modal, Toast components matching the current dark design.
+- Build the dual-theme token set (§3a): light + dark CSS variables, theme
+  toggle + persistence + no-flash script; port `ckx-theme.css` dark values
+  and derive the light set from the reference.
+- Build Nav (with theme toggle), Card, StatTile, Tag, ScorePill, Table,
+  Modal, Toast components — written once against tokens, rendered in both
+  themes in a component gallery page for review.
 - Multi-stage Dockerfile change: build stage produces `dist/`; Express
   gains one rule — serve migrated routes from `dist/`, everything else from
   `public/` (the strangler switch, one array of route names).
@@ -141,13 +188,13 @@ of a hand-rolled DOM script.
 
 | Phase | Size |
 | --- | --- |
-| 0 Baseline + contract | 0.5–1 day |
-| 1 Scaffold + design system | 1–2 days |
-| 2 Tool pages (×4) | 2–3 days |
+| 0 Baseline + contract | done |
+| 1 Scaffold + dual-theme design system | 2–3 days |
+| 2 Tool pages (×4, both themes) | 2.5–3.5 days |
 | 3 Home/Results/Answers | 2–3 days |
 | 4 Exam page | 3–5 days (highest variance) |
 | 5 Cutover | 0.5–1 day |
-| **Total** | **~9–15 focused days** |
+| **Total** | **~10–16 focused days** |
 
 ---
 
