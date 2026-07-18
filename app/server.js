@@ -7,6 +7,7 @@ const SSHTerminal = require('./services/ssh-terminal');
 const PublicService = require('./services/public-service');
 const RouteService = require('./services/route-service');
 const VNCService = require('./services/vnc-service');
+const ReactAppService = require('./services/react-app-service');
 
 // Server configuration
 const PORT = process.env.PORT || 3000;
@@ -54,6 +55,10 @@ sshIO.on('connection', (socket) => {
 
 // Initialize Route Service
 const routeService = new RouteService(publicService, vncService);
+
+// React strangler: migrated routes + /react-app assets, ahead of legacy static
+const reactAppService = new ReactAppService();
+reactAppService.setup(app);
 
 // Serve static files from the public directory
 app.use(express.static(publicService.getPublicDir()));

@@ -1,0 +1,113 @@
+/* CK-X design tokens — dual theme, ported from app/public/css/ckx-theme.css.
+   Every color is a CSS variable keyed off [data-theme] so components are
+   written once. Dark values match the shipped legacy dark theme; light
+   values follow the reference light mode (soft off-white canvas, pastel
+   blue/orange glow, white glass surfaces). */
+
+:root[data-theme='dark'] {
+    color-scheme: dark;
+
+    --ckx-canvas: #07070b;
+    --ckx-surface: #101016;
+    --ckx-surface-soft: #16161e;
+    --ckx-surface-raised: #1b1b25;
+
+    --ckx-ink: #f2f3f8;
+    --ckx-ink-secondary: #a3a8bd;
+    --ckx-ink-muted: #8b91a8;
+
+    --ckx-primary: #6366f1;
+    --ckx-primary-hover: #818cf8;
+    --ckx-primary-active: #4f46e5;
+    --ckx-primary-soft: rgba(99, 102, 241, 0.14);
+    --ckx-primary-border: rgba(129, 140, 248, 0.35);
+    --ckx-primary-ink: #a5b4fc;
+
+    --ckx-accent: #f59e0b;
+    --ckx-accent-soft: rgba(245, 158, 11, 0.12);
+
+    --ckx-good: #4ade80;
+    --ckx-good-soft: rgba(74, 222, 128, 0.12);
+    --ckx-warn: #fbbf24;
+    --ckx-warn-soft: rgba(251, 191, 36, 0.12);
+    --ckx-bad: #f87171;
+    --ckx-bad-soft: rgba(248, 113, 113, 0.12);
+
+    --ckx-series-1: #6d72f0;
+    --ckx-series-low: #f05252;
+
+    --ckx-border: rgba(255, 255, 255, 0.08);
+    --ckx-border-strong: rgba(255, 255, 255, 0.14);
+
+    --ckx-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --ckx-shadow: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px rgba(0, 0, 0, 0.35);
+    --ckx-shadow-lg: 0 2px 4px rgba(0, 0, 0, 0.45), 0 16px 48px rgba(0, 0, 0, 0.5);
+
+    --ckx-nav-glass: rgba(18, 20, 34, 0.55);
+    --ckx-cmd-bg: rgba(10, 10, 16, 0.85);
+
+    --ckx-glow: radial-gradient(1000px 640px at 50% -12%, rgba(80, 100, 240, 0.26), transparent 62%),
+        radial-gradient(720px 540px at 12% 10%, rgba(99, 102, 241, 0.18), transparent 65%),
+        radial-gradient(880px 680px at 90% 32%, rgba(245, 158, 11, 0.13), transparent 60%);
+
+    --ckx-gradient-text: linear-gradient(100deg, #a5b4fc 0%, #6366f1 45%, #f59e0b 100%);
+}
+
+:root[data-theme='light'] {
+    color-scheme: light;
+
+    --ckx-canvas: #f4f6fb;
+    --ckx-surface: #ffffff;
+    --ckx-surface-soft: #eef1f8;
+    --ckx-surface-raised: #ffffff;
+
+    --ckx-ink: #16182b;
+    --ckx-ink-secondary: #454a63;
+    --ckx-ink-muted: #6b7186;
+
+    --ckx-primary: #4f6ef7;
+    --ckx-primary-hover: #3d5bf5;
+    --ckx-primary-active: #2f49d1;
+    --ckx-primary-soft: rgba(79, 110, 247, 0.1);
+    --ckx-primary-border: rgba(79, 110, 247, 0.35);
+    --ckx-primary-ink: #3d5bf5;
+
+    --ckx-accent: #ea8a2c;
+    --ckx-accent-soft: rgba(234, 138, 44, 0.12);
+
+    --ckx-good: #147a3d;
+    --ckx-good-soft: rgba(20, 122, 61, 0.1);
+    --ckx-warn: #8a5a00;
+    --ckx-warn-soft: rgba(138, 90, 0, 0.1);
+    --ckx-bad: #c22334;
+    --ckx-bad-soft: rgba(194, 35, 52, 0.08);
+
+    --ckx-series-1: #4f6ef7;
+    --ckx-series-low: #c22334;
+
+    --ckx-border: rgba(22, 24, 43, 0.09);
+    --ckx-border-strong: rgba(22, 24, 43, 0.16);
+
+    --ckx-shadow-sm: 0 1px 2px rgba(22, 24, 43, 0.05);
+    --ckx-shadow: 0 1px 2px rgba(22, 24, 43, 0.05), 0 6px 20px rgba(22, 24, 43, 0.07);
+    --ckx-shadow-lg: 0 2px 4px rgba(22, 24, 43, 0.06), 0 14px 40px rgba(22, 24, 43, 0.12);
+
+    --ckx-nav-glass: rgba(255, 255, 255, 0.72);
+    --ckx-cmd-bg: #12121a;
+
+    --ckx-glow: radial-gradient(1000px 640px at 42% -8%, rgba(120, 150, 255, 0.35), transparent 62%),
+        radial-gradient(720px 540px at 10% 22%, rgba(140, 170, 255, 0.28), transparent 65%),
+        radial-gradient(880px 680px at 92% 40%, rgba(255, 176, 102, 0.3), transparent 60%);
+
+    --ckx-gradient-text: linear-gradient(100deg, #3d5bf5 0%, #7a6cf0 45%, #ea8a2c 100%);
+}
+
+:root {
+    --ckx-radius-sm: 8px;
+    --ckx-radius: 12px;
+    --ckx-radius-lg: 16px;
+    --ckx-font: 'Geist', 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto,
+        'Helvetica Neue', Arial, sans-serif;
+    --ckx-font-mono: 'Geist Mono', ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas,
+        'Liberation Mono', monospace;
+}
