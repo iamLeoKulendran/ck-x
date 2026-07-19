@@ -13,7 +13,14 @@ const MIGRATED_ROUTES = [
     '/settings.html',
     '/packs.html',
     '/mistakes.html',
-    '/analytics.html'
+    '/analytics.html',
+    // Phase 3 — home, results, answers (extensionless /results matches the
+    // legacy catch-all alias used by index.js redirects)
+    '/',
+    '/index.html',
+    '/results.html',
+    '/results',
+    '/answers.html'
 ];
 
 // Vite builds with base '/react-app/', so assets never collide with

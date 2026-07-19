@@ -79,9 +79,9 @@ test('phase 2: the four tool pages are served from the React build', async () =>
     }
 });
 
-test('phase 2: non-migrated pages still come from legacy public/', async () => {
+test('phase 2/3: non-migrated pages still come from legacy public/', async () => {
     const app = buildApp(ReactAppService.MIGRATED_ROUTES);
-    for (const page of ['/index.html', '/exam.html', '/results.html', '/answers.html', '/50x.html']) {
+    for (const page of ['/exam.html', '/50x.html']) {
         const res = await request(app).get(page);
         assert.strictEqual(res.status, 200, `${page} should come from legacy public/`);
         assert.doesNotMatch(res.text, /id="root"/, `${page} must not be the React shell`);
@@ -104,6 +104,43 @@ test('phase 2 rollback: removing a tool-page entry restores the legacy page', as
     assert.strictEqual(res.status, 200);
     assert.doesNotMatch(res.text, /id="root"/, 'rolled-back page must be the legacy file again');
     assert.match(res.text, /js\/settings\.js/, 'rolled-back page must load the legacy script');
+});
+
+test('phase 3: home, results, and answers are served from the React build', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    for (const page of ['/', '/index.html', '/results.html', '/results', '/answers.html']) {
+        const res = await request(app).get(page);
+        assert.strictEqual(res.status, 200, `${page} should be migrated`);
+        assert.match(res.text, /id="root"/, `${page} must serve the React shell`);
+        assert.match(res.text, /\/react-app\//, `${page} must load React assets`);
+    }
+});
+
+test('phase 3: exam and 50x stay legacy', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    for (const page of ['/exam.html', '/50x.html']) {
+        const res = await request(app).get(page);
+        assert.strictEqual(res.status, 200, `${page} should come from legacy public/`);
+        assert.doesNotMatch(res.text, /id="root"/, `${page} must not be the React shell`);
+    }
+});
+
+test('phase 3: legacy home/results/answers files remain on disk for rollback', () => {
+    for (const file of [
+        'index.html', 'results.html', 'answers.html',
+        'js/index.js', 'js/results.js', 'js/answers.js'
+    ]) {
+        assert.ok(fs.existsSync(path.join(PUBLIC_DIR, file)), `${file} must stay for rollback`);
+    }
+});
+
+test('phase 3 rollback: removing the home entries restores the legacy home', async () => {
+    const withoutHome = ReactAppService.MIGRATED_ROUTES.filter((r) => r !== '/' && r !== '/index.html');
+    const app = buildApp(withoutHome);
+    const res = await request(app).get('/index.html');
+    assert.strictEqual(res.status, 200);
+    assert.doesNotMatch(res.text, /id="root"/, 'rolled-back page must be the legacy file again');
+    assert.match(res.text, /js\/index\.js/, 'rolled-back page must load the legacy script');
 });
 
 test('missing dist is a graceful no-op', async () => {

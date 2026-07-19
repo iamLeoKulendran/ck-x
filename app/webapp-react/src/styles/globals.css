@@ -47,3 +47,78 @@
         color: transparent;
     }
 }
+
+/* Markdown answers (AnswersPage). Mirrors the legacy answers.css look:
+   dark code panels in both themes, spaced headings, readable lists. */
+@layer components {
+    .prose-ckx {
+        line-height: 1.65;
+    }
+    .prose-ckx h1,
+    .prose-ckx h2,
+    .prose-ckx h3,
+    .prose-ckx h4 {
+        margin: 1.5em 0 0.5em;
+        font-weight: 700;
+        letter-spacing: -0.01em;
+    }
+    .prose-ckx h1 { font-size: 1.5rem; }
+    .prose-ckx h2 { font-size: 1.25rem; }
+    .prose-ckx h3 { font-size: 1.1rem; }
+    .prose-ckx h1:first-child { margin-top: 0; }
+    .prose-ckx p { margin: 0.6em 0; }
+    .prose-ckx ul,
+    .prose-ckx ol {
+        margin: 0.6em 0;
+        padding-left: 1.4em;
+    }
+    .prose-ckx ul { list-style: disc; }
+    .prose-ckx ol { list-style: decimal; }
+    .prose-ckx li { margin: 0.25em 0; }
+    .prose-ckx a { text-decoration: underline; }
+    .prose-ckx code {
+        font-family: theme('fontFamily.mono');
+        font-size: 0.875em;
+    }
+    .prose-ckx :not(pre) > code {
+        border-radius: 5px;
+        padding: 0.15em 0.4em;
+        background: var(--ckx-surface-soft);
+        border: 1px solid var(--ckx-border-strong);
+    }
+    .prose-ckx pre {
+        margin: 0.8em 0;
+        overflow-x: auto;
+        border-radius: 10px;
+        border: 1px solid var(--ckx-border-strong);
+        background: #0a0a10;
+        padding: 0.9rem 1rem;
+    }
+    .prose-ckx pre code {
+        display: block;
+        background: transparent;
+        color: #d3d7e8;
+    }
+    .prose-ckx blockquote {
+        margin: 0.8em 0;
+        border-left: 3px solid var(--ckx-border-strong);
+        padding-left: 0.9em;
+        color: var(--ckx-ink-secondary);
+    }
+    .prose-ckx table {
+        margin: 0.8em 0;
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 0.9em;
+    }
+    .prose-ckx th,
+    .prose-ckx td {
+        border: 1px solid var(--ckx-border-strong);
+        padding: 0.4em 0.6em;
+        text-align: left;
+    }
+    .prose-ckx hr {
+        margin: 1.2em 0;
+        border-color: var(--ckx-border);
+    }
+}

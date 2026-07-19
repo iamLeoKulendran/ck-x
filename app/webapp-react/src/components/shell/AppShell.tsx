@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { cloneElement, isValidElement, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { ThemeToggle } from '@/theme/ThemeToggle';
 import { cn } from '@/lib/utils';
@@ -14,7 +14,16 @@ const NAV_LINKS = [
     { href: '/settings.html', label: 'Settings' }
 ];
 
-export function AppShell({ children, activeHref }: { children: React.ReactNode; activeHref?: string }) {
+export function AppShell({
+    children,
+    activeHref,
+    navExtra
+}: {
+    children: React.ReactNode;
+    activeHref?: string;
+    // Page-specific nav item (legacy: the conditional "View Result" link)
+    navExtra?: React.ReactNode;
+}) {
     // Mobile counterpart of the legacy Bootstrap navbar toggler: below md
     // the links live in a disclosure panel under the nav pill.
     const [menuOpen, setMenuOpen] = useState(false);
@@ -51,6 +60,7 @@ export function AppShell({ children, activeHref }: { children: React.ReactNode; 
                                     {link.label}
                                 </a>
                             ))}
+                            {navExtra}
                         </div>
                         <div className="flex items-center gap-1.5">
                             <ThemeToggle />
@@ -86,6 +96,11 @@ export function AppShell({ children, activeHref }: { children: React.ReactNode; 
                                     {link.label}
                                 </a>
                             ))}
+                            {/* The desktop copy keeps the element id; strip it
+                                here so the id stays unique in the document. */}
+                            {isValidElement<{ id?: string | undefined }>(navExtra)
+                                ? cloneElement(navExtra, { id: undefined })
+                                : navExtra}
                         </div>
                     ) : null}
                 </nav>

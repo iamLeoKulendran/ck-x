@@ -18,6 +18,15 @@ const MistakesPage = lazy(() =>
     import('@/pages/MistakesPage').then((module) => ({ default: module.MistakesPage }))
 );
 const AnalyticsPage = lazy(() => import('@/pages/AnalyticsPage'));
+const HomePage = lazy(() =>
+    import('@/pages/HomePage').then((module) => ({ default: module.HomePage }))
+);
+const ResultsPage = lazy(() =>
+    import('@/pages/ResultsPage').then((module) => ({ default: module.ResultsPage }))
+);
+const AnswersPage = lazy(() =>
+    import('@/pages/AnswersPage').then((module) => ({ default: module.AnswersPage }))
+);
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -41,9 +50,14 @@ export function App() {
                                 <Route path="/packs.html" element={<PacksPage />} />
                                 <Route path="/mistakes.html" element={<MistakesPage />} />
                                 <Route path="/analytics.html" element={<AnalyticsPage />} />
-                                {/* Only migrated routes exist here; anything else goes to the preview
-                                    so a stray deep link never renders a blank page. */}
-                                <Route path="*" element={<Navigate to="/react-preview.html" replace />} />
+                                <Route path="/" element={<HomePage />} />
+                                <Route path="/index.html" element={<HomePage />} />
+                                <Route path="/results.html" element={<ResultsPage />} />
+                                <Route path="/results" element={<ResultsPage />} />
+                                <Route path="/answers.html" element={<AnswersPage />} />
+                                {/* Only migrated routes exist here; anything else goes home so a
+                                    stray deep link never renders a blank page. */}
+                                <Route path="*" element={<Navigate to="/" replace />} />
                             </Routes>
                         </Suspense>
                     </BrowserRouter>
