@@ -5,7 +5,7 @@ import { io, type Socket } from 'socket.io-client';
 import 'xterm/css/xterm.css';
 import type { StatusType } from './DesktopPanel';
 
-// CK-X terminal helper — xterm 5.3.0 + socket.io-client 4.7.2 against the
+// CK-X terminal helper — xterm 5.3.0 + socket.io-client 4.8.x against the
 // same webapp /ssh namespace with the same options (polling transport) as
 // terminal-service.js. Lives for the lifetime of the exam page.
 

@@ -1,0 +1,28 @@
+{
+  "questions": [
+    {
+      "id": "1",
+      "type": "performance",
+      "question": "A non-MCQ question that wrongly carries answer-key fields.",
+      "weightage": 40,
+      "correctOptionIndexes": [1],
+      "explanation": "must never reach the client"
+    },
+    {
+      "id": "2",
+      "type": "multiple-choice",
+      "question": "Malformed MCQ: no answer key, author-set string multiSelect.",
+      "options": ["a", "b", "c"],
+      "weightage": 30,
+      "multiSelect": "false"
+    },
+    {
+      "id": "3",
+      "type": "multiple-choice",
+      "question": "Malformed MCQ: empty answer key.",
+      "options": ["a", "b", "c"],
+      "weightage": 30,
+      "correctOptionIndexes": []
+    }
+  ]
+}

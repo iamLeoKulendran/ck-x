@@ -278,13 +278,18 @@ async function getExamQuestions(examId) {
     const questionsData = fs.readFileSync(fullQuestionsPath, 'utf8');
     const questions = JSON.parse(questionsData);
 
-    // Never send answer keys or explanations to the client before evaluation
+    // Never send answer keys or explanations to the client before evaluation,
+    // whatever the question type
     const sanitizedQuestions = (questions.questions || []).map((question) => {
+      const { correctOptionIndexes, explanation, ...safeQuestion } = question;
       if (question.type === 'multiple-choice') {
-        const { correctOptionIndexes, explanation, ...safeQuestion } = question;
-        return safeQuestion;
+        // Derive the multi-select flag strictly from the answer key before
+        // discarding it, so the client can render checkboxes without ever
+        // seeing the key itself; a missing/empty key means single-select
+        safeQuestion.multiSelect = Array.isArray(correctOptionIndexes)
+          && correctOptionIndexes.length > 1;
       }
-      return question;
+      return safeQuestion;
     });
 
     logger.info(`Successfully retrieved questions for exam ${examId}`);

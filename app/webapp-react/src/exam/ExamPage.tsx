@@ -658,7 +658,7 @@ export function ExamPage() {
             stopTimerInterval();
             document.body.classList.remove('mcq-mode', 'exam-is-paused');
         };
-         
+
     }, []);
 
     useEffect(() => {

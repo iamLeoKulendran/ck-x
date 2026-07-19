@@ -1,0 +1,6 @@
+{
+  "name": "MCQ Edge-Case Fixture",
+  "examType": "mcq",
+  "totalMarks": 100,
+  "questions": "assessment.json"
+}
