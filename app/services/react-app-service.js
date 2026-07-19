@@ -20,8 +20,18 @@ const MIGRATED_ROUTES = [
     '/index.html',
     '/results.html',
     '/results',
-    '/answers.html'
+    '/answers.html',
+    // Phase 4 — React exam preview. /exam.html stays legacy until the React
+    // exam passes a full timed mock (see the migration plan); the flip is
+    // swapping '/exam-react.html' for '/exam.html' here.
+    '/exam-react.html'
 ];
+
+// Legacy pages that must stay reachable at an alias while (or after) their
+// primary URL is migrated. Served straight from public/.
+const LEGACY_ALIASES = {
+    '/exam-legacy.html': 'exam.html'
+};
 
 // Vite builds with base '/react-app/', so assets never collide with
 // legacy public/ paths.
@@ -57,9 +67,17 @@ class ReactAppService {
             });
         }
 
+        const publicDir = path.join(__dirname, '..', 'public');
+        for (const [route, file] of Object.entries(LEGACY_ALIASES)) {
+            app.get(route, (req, res) => {
+                res.sendFile(path.join(publicDir, file));
+            });
+        }
+
         console.log(`React strangler active for: ${this.migratedRoutes.join(', ') || '(none)'}`);
     }
 }
 
 module.exports = ReactAppService;
 module.exports.MIGRATED_ROUTES = MIGRATED_ROUTES;
+module.exports.LEGACY_ALIASES = LEGACY_ALIASES;

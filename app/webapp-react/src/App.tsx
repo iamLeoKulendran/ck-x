@@ -27,6 +27,9 @@ const ResultsPage = lazy(() =>
 const AnswersPage = lazy(() =>
     import('@/pages/AnswersPage').then((module) => ({ default: module.AnswersPage }))
 );
+const ExamPage = lazy(() =>
+    import('@/exam/ExamPage').then((module) => ({ default: module.ExamPage }))
+);
 
 const queryClient = new QueryClient({
     defaultOptions: {
@@ -55,6 +58,9 @@ export function App() {
                                 <Route path="/results.html" element={<ResultsPage />} />
                                 <Route path="/results" element={<ResultsPage />} />
                                 <Route path="/answers.html" element={<AnswersPage />} />
+                                {/* Phase 4 preview URL; becomes /exam.html at flip time */}
+                                <Route path="/exam-react.html" element={<ExamPage />} />
+                                <Route path="/exam.html" element={<ExamPage />} />
                                 {/* Only migrated routes exist here; anything else goes home so a
                                     stray deep link never renders a blank page. */}
                                 <Route path="*" element={<Navigate to="/" replace />} />

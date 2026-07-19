@@ -143,6 +143,26 @@ test('phase 3 rollback: removing the home entries restores the legacy home', asy
     assert.match(res.text, /js\/index\.js/, 'rolled-back page must load the legacy script');
 });
 
+test('phase 4: /exam-react.html serves the React build while /exam.html stays legacy', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    const reactRes = await request(app).get('/exam-react.html');
+    assert.strictEqual(reactRes.status, 200);
+    assert.match(reactRes.text, /id="root"/, '/exam-react.html must serve the React shell');
+
+    const legacyRes = await request(app).get('/exam.html');
+    assert.strictEqual(legacyRes.status, 200);
+    assert.doesNotMatch(legacyRes.text, /id="root"/, '/exam.html must stay legacy until the flip');
+    assert.match(legacyRes.text, /js\/exam\.js/, '/exam.html must load the legacy exam script');
+});
+
+test('phase 4: /exam-legacy.html aliases the legacy exam page for post-flip rollback', async () => {
+    const app = buildApp(ReactAppService.MIGRATED_ROUTES);
+    const res = await request(app).get('/exam-legacy.html');
+    assert.strictEqual(res.status, 200);
+    assert.doesNotMatch(res.text, /id="root"/, 'alias must serve the vanilla exam page');
+    assert.match(res.text, /js\/exam\.js/, 'alias must load the legacy exam script');
+});
+
 test('missing dist is a graceful no-op', async () => {
     const app = express();
     const service = new ReactAppService(path.join(__dirname, 'does-not-exist'), ['/react-preview.html']);
