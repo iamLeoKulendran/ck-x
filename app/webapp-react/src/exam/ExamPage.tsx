@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { usePageTitle } from '@/lib/use-page-title';
 import { navigate } from '@/lib/navigation';
 import { cn } from '@/lib/utils';
+import { ThemeToggle } from '@/theme/ThemeToggle';
 import {
     checkExamStatus,
     evaluateExam,
@@ -30,6 +31,11 @@ import { TerminalPanel, type TerminalPanelHandle } from './TerminalPanel';
 // endpoints, localStorage keys (ckx-exam-paused:/ckx-exam-progress:),
 // timer semantics (thresholds at 30/10/0 minutes, warning under 5), pause
 // overlay, MCQ mode, review mode, and keyboard shortcuts.
+
+const DEFAULT_QUESTION_PANEL_PCT = 45;
+const MIN_QUESTION_PANEL_PX = 520;
+const MIN_DESKTOP_PANEL_PX = 520;
+const MCQ_WORKSPACE_MAX_PX = 1100;
 
 interface ToastMessage {
     id: number;
@@ -372,7 +378,7 @@ export function ExamPage() {
     const [desktopActive, setDesktopActive] = useState(false);
     const desktopRef = useRef<DesktopPanelHandle | null>(null);
     const terminalRef = useRef<TerminalPanelHandle | null>(null);
-    const [questionPanelPct, setQuestionPanelPct] = useState(40);
+    const [questionPanelPct, setQuestionPanelPct] = useState(DEFAULT_QUESTION_PANEL_PCT);
     const mainRef = useRef<HTMLDivElement | null>(null);
 
     // ---------- menus ----------
@@ -673,7 +679,12 @@ export function ExamPage() {
         const rect = main.getBoundingClientRect();
         function onMove(moveEvent: PointerEvent) {
             const pct = ((moveEvent.clientX - rect.left) / rect.width) * 100;
-            setQuestionPanelPct(Math.min(70, Math.max(20, pct)));
+            const minPct = Math.min(50, (MIN_QUESTION_PANEL_PX / rect.width) * 100);
+            const maxPct = Math.max(
+                minPct,
+                Math.min(70, ((rect.width - MIN_DESKTOP_PANEL_PX) / rect.width) * 100)
+            );
+            setQuestionPanelPct(Math.min(maxPct, Math.max(minPct, pct)));
         }
         function onUp() {
             window.removeEventListener('pointermove', onMove);
@@ -843,7 +854,7 @@ export function ExamPage() {
                                     id="resizeTerminalBtn"
                                     className={menuItemClass}
                                     onClick={() => {
-                                        setQuestionPanelPct(40);
+                                        setQuestionPanelPct(DEFAULT_QUESTION_PANEL_PCT);
                                         setOpenMenu(null);
                                     }}
                                 >
@@ -991,6 +1002,7 @@ export function ExamPage() {
                             </div>
                         ) : null}
                     </div>
+                    <ThemeToggle className="h-8 w-8 shrink-0 rounded-ckx-sm bg-surface-soft" />
                 </div>
             </header>
 
@@ -1000,7 +1012,12 @@ export function ExamPage() {
                 <div
                     id="questionPanel"
                     className="flex min-h-0 flex-col overflow-y-auto border-r border-line bg-surface p-4"
-                    style={{ width: isMcq ? '100%' : `${questionPanelPct}%` }}
+                    style={{
+                        width: isMcq ? '100%' : `${questionPanelPct}%`,
+                        minWidth: isMcq ? undefined : 'min(520px, 50vw)',
+                        maxWidth: isMcq ? `${MCQ_WORKSPACE_MAX_PX}px` : '70%',
+                        marginInline: isMcq ? 'auto' : undefined
+                    }}
                 >
                     <div className="mb-3 flex items-start justify-between gap-2">
                         <div>
@@ -1135,7 +1152,7 @@ export function ExamPage() {
                             title="Drag to resize"
                             className="w-1.5 shrink-0 cursor-col-resize bg-line hover:bg-primary"
                             onPointerDown={onDividerPointerDown}
-                            onDoubleClick={() => setQuestionPanelPct(40)}
+                            onDoubleClick={() => setQuestionPanelPct(DEFAULT_QUESTION_PANEL_PCT)}
                         />
                         <div id="vncPanel" className="flex min-h-0 min-w-0 flex-1 flex-col">
                             <div

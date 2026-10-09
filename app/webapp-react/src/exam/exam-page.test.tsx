@@ -236,6 +236,22 @@ describe('ExamPage bootstrap', () => {
 });
 
 describe('ExamPage fresh performance exam', () => {
+    it('exposes the shared theme toggle and starts with a readable question-pane width', async () => {
+        localStorage.setItem('ckx-theme', 'dark');
+        examRoutes();
+        const user = userEvent.setup();
+        renderPage();
+        await startFreshExam(user);
+
+        const toggle = screen.getByRole('button', { name: /switch to (light|dark) theme/i });
+        expect(toggle).toBeInTheDocument();
+        expect(document.getElementById('questionPanel')?.style.width).toBe('45%');
+
+        await user.click(toggle);
+        expect(document.documentElement.getAttribute('data-theme')).toBe('light');
+        expect(localStorage.getItem('ckx-theme')).toBe('light');
+    });
+
     it('runs the start countdown, shows the timer and first question, tracks start', async () => {
         const calls = examRoutes();
         const user = userEvent.setup();
@@ -415,8 +431,12 @@ describe('ExamPage MCQ exam', () => {
         renderPage();
         await startFreshExam(user);
 
-        // MCQ mode hides the desktop panel
+        // MCQ mode hides the desktop panel and uses a wide, centered workspace.
         expect(document.body.classList.contains('mcq-mode')).toBe(true);
+        const questionPanel = document.getElementById('questionPanel');
+        expect(questionPanel?.style.width).toBe('100%');
+        expect(questionPanel?.style.maxWidth).toBe('1100px');
+        expect(questionPanel?.style.marginInline).toBe('auto');
         expect(screen.getByText('Select one answer')).toBeInTheDocument();
 
         await user.click(screen.getByRole('radio', { name: /kube-scheduler/ }));

@@ -1,10 +1,14 @@
 # Frontend Migration Plan — Vanilla HTML/Bootstrap → React
 
-Status: proposal (Phase 0 complete — see `docs/webapp/api-contract.md` and
-`tests/e2e/`)
-Scope: `app/public/*` only. Facilitator API, nginx, jumphost, cluster runtime,
-remote desktop, and the Express webapp server's websocket/VNC duties stay
-untouched.
+Status: in progress — Phase 4 implementation (`41bdd12`) and acceptance fixes
+(`b89ffd9`) are committed behind `/exam-react.html`. The screenshot-driven Exam
+workspace/theme correction is implemented and green but uncommitted; Leo must
+restart the full timed performance + MCQ acceptance against that corrected
+React route before the default-route cutover. See
+`docs/handoffs/ck-x-react-migration-current.md` for the exact human checklist.
+Scope: the browser UI and its static delivery path under `app/`. Facilitator API,
+nginx, jumphost, cluster runtime, remote desktop, and the Express webapp
+server's websocket/VNC duties stay untouched.
 
 **Requirement (updated): dual theme.** The React app ships BOTH light and
 dark themes with a navbar toggle, matching the reference site
@@ -129,7 +133,7 @@ with a red gate.
   with-data) as the visual baseline.
 
 ### Phase 1 — Scaffold and design system
-- `webapp-react/` (new folder): Vite + React + TS + Tailwind + shadcn/ui +
+- `app/webapp-react/`: Vite + React + TS + Tailwind + shadcn/ui +
   React Router + TanStack Query.
 - Build the dual-theme token set (§3a): light + dark CSS variables, theme
   toggle + persistence + no-flash script; port `ckx-theme.css` dark values
@@ -188,12 +192,12 @@ of a hand-rolled DOM script.
 
 | Phase | Size |
 | --- | --- |
-| 0 Baseline + contract | done |
-| 1 Scaffold + dual-theme design system | 2–3 days |
-| 2 Tool pages (×4, both themes) | 2.5–3.5 days |
-| 3 Home/Results/Answers | 2–3 days |
-| 4 Exam page | 3–5 days (highest variance) |
-| 5 Cutover | 0.5–1 day |
+| 0 Baseline + contract | done (`c85c104`) |
+| 1 Scaffold + dual-theme design system | done (`c038cba`) |
+| 2 Tool pages (×4, both themes) | done (`6b812bc`) |
+| 3 Home/Results/Answers | done (`b281acd`) |
+| 4 Exam page | implementation + fixes green (`41bdd12`, `b89ffd9`); human acceptance pending |
+| 5 Cutover | blocked on human Phase 4 acceptance |
 | **Total** | **~10–16 focused days** |
 
 ---

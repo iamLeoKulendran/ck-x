@@ -1,5 +1,9 @@
 This repository is a CK-X Simulator project for generating CKA 2026 and CKS 2026 mock exams and practice question sets.
 
+## React frontend migration
+
+For frontend-migration work, read `docs/handoffs/ck-x-react-migration-current.md` before editing. It records the verified branch/HEAD, completed phases, exact validation chain, and next bounded phase. Treat repository files—not account-local chat history—as the continuation source of truth. Use one active editor per worktree and do not repeat completed phase discovery. The exam-generator skills below apply to lab-content work, not to the React migration.
+
 Project skills:
 - For CKA content: /cka-exam-generator-2026
 - For CKS content: /cks-exam-generator-2026
